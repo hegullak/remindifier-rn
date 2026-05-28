@@ -18,6 +18,17 @@
       },
       "predictiveBackGestureEnabled": false
     },
+    "scheme": "remindifier-rn",
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      [
+        "expo-sqlite",
+        {
+          "useSQLCipher": true
+        }
+      ]
+    ],
     "web": {
       "favicon": "./assets/favicon.png"
     }

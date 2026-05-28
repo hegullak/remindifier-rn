@@ -1,0 +1,132 @@
+CREATE TABLE `brief_red_letter_days` (
+	`id` text PRIMARY KEY NOT NULL,
+	`person_name` text NOT NULL,
+	`headline` text NOT NULL,
+	`timing` text NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE `brief_schedule` (
+	`id` text PRIMARY KEY NOT NULL,
+	`time_label` text NOT NULL,
+	`title` text NOT NULL,
+	`note` text NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE `gathering_participants` (
+	`id` text PRIMARY KEY NOT NULL,
+	`gathering_id` text NOT NULL,
+	`person_id` text NOT NULL,
+	`user_id` text NOT NULL,
+	`tonight_mode_active` integer DEFAULT false NOT NULL,
+	`notes` text,
+	`created_at` integer DEFAULT (unixepoch() * 1000) NOT NULL,
+	FOREIGN KEY (`gathering_id`) REFERENCES `gatherings`(`id`) ON UPDATE no action ON DELETE cascade,
+	FOREIGN KEY (`person_id`) REFERENCES `persons`(`id`) ON UPDATE no action ON DELETE cascade,
+	FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE cascade
+);
+--> statement-breakpoint
+CREATE UNIQUE INDEX `gathering_participants_unique` ON `gathering_participants` (`gathering_id`,`person_id`);--> statement-breakpoint
+CREATE INDEX `gathering_participants_gathering_idx` ON `gathering_participants` (`gathering_id`);--> statement-breakpoint
+CREATE INDEX `gathering_participants_person_idx` ON `gathering_participants` (`user_id`,`person_id`);--> statement-breakpoint
+CREATE TABLE `gatherings` (
+	`id` text PRIMARY KEY NOT NULL,
+	`user_id` text NOT NULL,
+	`title` text NOT NULL,
+	`description` text,
+	`scheduled_at` integer,
+	`location` text,
+	`type` text DEFAULT 'other' NOT NULL,
+	`status` text DEFAULT 'planned' NOT NULL,
+	`conversation_logged_at` integer,
+	`created_at` integer DEFAULT (unixepoch() * 1000) NOT NULL,
+	`updated_at` integer DEFAULT (unixepoch() * 1000) NOT NULL,
+	FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE cascade
+);
+--> statement-breakpoint
+CREATE INDEX `gatherings_user_idx` ON `gatherings` (`user_id`,`scheduled_at`);--> statement-breakpoint
+CREATE INDEX `gatherings_status_idx` ON `gatherings` (`user_id`,`status`);--> statement-breakpoint
+CREATE TABLE `person_entries` (
+	`id` text PRIMARY KEY NOT NULL,
+	`user_id` text NOT NULL,
+	`person_id` text,
+	`entry_type` text DEFAULT 'context' NOT NULL,
+	`body` text NOT NULL,
+	`body_encrypted` text,
+	`raw_input` text,
+	`occurred_at` integer DEFAULT (unixepoch() * 1000) NOT NULL,
+	`created_at` integer DEFAULT (unixepoch() * 1000) NOT NULL,
+	`updated_at` integer DEFAULT (unixepoch() * 1000) NOT NULL,
+	FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE cascade,
+	FOREIGN KEY (`person_id`) REFERENCES `persons`(`id`) ON UPDATE no action ON DELETE cascade
+);
+--> statement-breakpoint
+CREATE INDEX `person_entries_person_idx` ON `person_entries` (`user_id`,`person_id`,`occurred_at`);--> statement-breakpoint
+CREATE INDEX `person_entries_recent_idx` ON `person_entries` (`user_id`,`occurred_at`);--> statement-breakpoint
+CREATE TABLE `person_red_letter_days` (
+	`id` text PRIMARY KEY NOT NULL,
+	`user_id` text NOT NULL,
+	`person_id` text NOT NULL,
+	`kind` text NOT NULL,
+	`label` text,
+	`event_date` text NOT NULL,
+	`year_known` integer DEFAULT true NOT NULL,
+	`recurring` integer DEFAULT true NOT NULL,
+	`created_at` integer DEFAULT (unixepoch() * 1000) NOT NULL,
+	`updated_at` integer DEFAULT (unixepoch() * 1000) NOT NULL,
+	FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE cascade,
+	FOREIGN KEY (`person_id`) REFERENCES `persons`(`id`) ON UPDATE no action ON DELETE cascade
+);
+--> statement-breakpoint
+CREATE INDEX `person_red_letter_days_person_idx` ON `person_red_letter_days` (`user_id`,`person_id`);--> statement-breakpoint
+CREATE INDEX `person_red_letter_days_date_idx` ON `person_red_letter_days` (`user_id`,`event_date`);--> statement-breakpoint
+CREATE TABLE `persons` (
+	`id` text PRIMARY KEY NOT NULL,
+	`user_id` text NOT NULL,
+	`display_name` text NOT NULL,
+	`nickname` text,
+	`birthday` text,
+	`birthday_year_known` integer DEFAULT true NOT NULL,
+	`relation_type` text,
+	`interests` text DEFAULT '[]' NOT NULL,
+	`preferences` text DEFAULT '{}' NOT NULL,
+	`anniversary` text,
+	`sensitive_topics` text DEFAULT '[]' NOT NULL,
+	`last_interaction_at` integer,
+	`archived` integer DEFAULT false NOT NULL,
+	`created_at` integer DEFAULT (unixepoch() * 1000) NOT NULL,
+	`updated_at` integer DEFAULT (unixepoch() * 1000) NOT NULL,
+	FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE cascade
+);
+--> statement-breakpoint
+CREATE INDEX `persons_user_idx` ON `persons` (`user_id`,`archived`,`display_name`);--> statement-breakpoint
+CREATE INDEX `persons_birthday_idx` ON `persons` (`user_id`,`birthday`);--> statement-breakpoint
+CREATE INDEX `persons_last_interaction_idx` ON `persons` (`user_id`,`last_interaction_at`);--> statement-breakpoint
+CREATE TABLE `relationships` (
+	`id` text PRIMARY KEY NOT NULL,
+	`user_id` text NOT NULL,
+	`from_person_id` text NOT NULL,
+	`to_person_id` text NOT NULL,
+	`label` text NOT NULL,
+	`notes` text,
+	`created_at` integer DEFAULT (unixepoch() * 1000) NOT NULL,
+	FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE cascade,
+	FOREIGN KEY (`from_person_id`) REFERENCES `persons`(`id`) ON UPDATE no action ON DELETE cascade,
+	FOREIGN KEY (`to_person_id`) REFERENCES `persons`(`id`) ON UPDATE no action ON DELETE cascade
+);
+--> statement-breakpoint
+CREATE UNIQUE INDEX `relationships_unique_directed` ON `relationships` (`user_id`,`from_person_id`,`to_person_id`,`label`);--> statement-breakpoint
+CREATE INDEX `relationships_from_idx` ON `relationships` (`user_id`,`from_person_id`);--> statement-breakpoint
+CREATE INDEX `relationships_to_idx` ON `relationships` (`user_id`,`to_person_id`);--> statement-breakpoint
+CREATE TABLE `users` (
+	`id` text PRIMARY KEY NOT NULL,
+	`email` text NOT NULL,
+	`display_name` text,
+	`timezone` text DEFAULT 'Europe/Oslo' NOT NULL,
+	`intensity` text DEFAULT 'standard' NOT NULL,
+	`morning_brief_enabled` integer DEFAULT true NOT NULL,
+	`morning_brief_time` text DEFAULT '06:00:00' NOT NULL,
+	`consent_accepted_at` integer,
+	`brief_preferences` text DEFAULT '{}' NOT NULL,
+	`created_at` integer DEFAULT (unixepoch() * 1000) NOT NULL,
+	`updated_at` integer DEFAULT (unixepoch() * 1000) NOT NULL
+);
