@@ -24,7 +24,7 @@ module.exports = {
     "**/*.test.{ts,tsx}",
     "**/__mocks__/**",
   ],
-  coverageThresholds: {
+  coverageThreshold: {
     global: {
       statements: 80,
       branches: 75,
@@ -32,6 +32,7 @@ module.exports = {
       lines: 80,
     },
   },
+  passWithNoTests: true,
   coverageReporters: ["text", "lcov"],
 
   testMatch: ["**/__tests__/**/*.{ts,tsx}", "**/*.{test,spec}.{ts,tsx}"],

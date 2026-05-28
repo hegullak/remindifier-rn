@@ -1,6 +1,5 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.0.0/schema.json",
-  "organizeImports": { "enabled": true },
+  "$schema": "https://biomejs.dev/schemas/2.4.16/schema.json",
   "linter": {
     "enabled": true,
     "rules": {
@@ -21,6 +20,13 @@
       }
     }
   },
+  "assist": {
+    "actions": {
+      "source": {
+        "organizeImports": "on"
+      }
+    }
+  },
   "formatter": {
     "enabled": true,
     "indentStyle": "space",
@@ -35,14 +41,15 @@
     }
   },
   "files": {
-    "ignore": [
-      "node_modules/**",
-      ".expo/**",
-      "dist/**",
-      "build/**",
-      "android/**",
-      "ios/**",
-      "drizzle/**"
+    "includes": [
+      "**",
+      "!node_modules/**",
+      "!.expo/**",
+      "!dist/**",
+      "!build/**",
+      "!android/**",
+      "!ios/**",
+      "!drizzle/**"
     ]
   }
 }
