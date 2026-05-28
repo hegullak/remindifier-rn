@@ -1,0 +1,49 @@
+/** @type {import('jest').Config} */
+module.exports = {
+  preset: "jest-expo",
+
+  // Mock native modules that require a real device/simulator
+  moduleNameMapper: {
+    "^expo-sqlite$": "<rootDir>/tests/__mocks__/expo-sqlite.js",
+    "^expo-secure-store$": "<rootDir>/tests/__mocks__/expo-secure-store.js",
+    "^expo-crypto$": "<rootDir>/tests/__mocks__/expo-crypto.js",
+    "^nativewind$": "<rootDir>/tests/__mocks__/nativewind.js",
+  },
+
+  // Coverage targets pure business logic only.
+  // Screens, navigation and UI components require a simulator — those are
+  // covered by Maestro E2E tests locally, not unit coverage thresholds.
+  collectCoverageFrom: [
+    "src/lib/**/*.{ts,tsx}",
+    "src/db/queries/**/*.ts",
+    "lib/**/*.{ts,tsx}",
+    "db/queries/**/*.ts",
+  ],
+  coveragePathIgnorePatterns: [
+    "/node_modules/",
+    "**/*.test.{ts,tsx}",
+    "**/__mocks__/**",
+  ],
+  coverageThresholds: {
+    global: {
+      statements: 80,
+      branches: 75,
+      functions: 80,
+      lines: 80,
+    },
+  },
+  coverageReporters: ["text", "lcov"],
+
+  testMatch: ["**/__tests__/**/*.{ts,tsx}", "**/*.{test,spec}.{ts,tsx}"],
+  testPathIgnorePatterns: ["/node_modules/", "/tests/__mocks__/"],
+
+  // Transform via babel-jest with the Expo preset
+  transform: {
+    "^.+\\.(js|jsx|ts|tsx)$": ["babel-jest", { presets: ["babel-preset-expo"] }],
+  },
+
+  // Allow Jest to transform Expo/React Native packages (they ship as ESM)
+  transformIgnorePatterns: [
+    "node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|nativewind|tailwindcss)",
+  ],
+};
