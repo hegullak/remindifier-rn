@@ -1,7 +1,8 @@
 import { Link } from "expo-router";
 import { useAuth } from "@clerk/clerk-expo";
-import { SafeAreaView, ScrollView, Text, View } from "react-native";
+import { ScrollView, Text, View } from "react-native";
 import { usePeopleData } from "@/features/people/usePeopleData";
+import { AppShell } from "@/ui/AppShell";
 import { SectionLabel } from "@/ui/SectionLabel";
 
 function formatAge(birthday: string | null, yearKnown: boolean) {
@@ -32,9 +33,9 @@ export default function PeopleListScreen() {
   const activePeople = people.filter((p) => !p.archived);
 
   return (
-    <SafeAreaView className="flex-1 bg-bg">
+    <AppShell>
       <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}>
-        <View className="pt-3 pb-2">
+        <View className="pt-1 pb-2">
           <Text className="text-[30px] leading-[36px] text-text1 font-heading">People</Text>
           <Text className="text-[13px] text-text2 font-body mt-1">
             Your relationship memory space.
@@ -60,7 +61,7 @@ export default function PeopleListScreen() {
               <Link
                 key={person.id}
                 href={`/people/${person.id}`}
-                className="bg-card border border-black/10 rounded-lg px-4 py-3 mb-2"
+                className="bg-card border border-border rounded-lg px-4 py-3 mb-2"
               >
                 <View>
                   <View className="flex-row items-center gap-2">
@@ -81,6 +82,6 @@ export default function PeopleListScreen() {
           })
         )}
       </ScrollView>
-    </SafeAreaView>
+    </AppShell>
   );
 }

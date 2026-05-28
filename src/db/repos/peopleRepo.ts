@@ -1,7 +1,9 @@
-import { and, asc, desc, eq } from "drizzle-orm";
+import { and, asc, desc, eq, notInArray } from "drizzle-orm";
 import * as Crypto from "expo-crypto";
 import { getDrizzleDbForUser } from "@/db/drizzleClient";
 import { personEntries, personRedLetterDays, persons, relationships } from "@/db/schema";
+import type { RedLetterDayInput } from "@/lib/red-letter-day";
+import { normalizeRedLetterDay } from "@/lib/red-letter-day";
 
 export interface PersonSummary {
   id: string;
@@ -29,6 +31,7 @@ export interface UpsertPersonInput {
   birthdayYearKnown?: boolean;
   isSensitive?: boolean;
   funFacts?: string[];
+  redLetterDays?: RedLetterDayInput[];
 }
 
 export interface CreatePersonEntryInput {
@@ -146,6 +149,74 @@ export async function getPersonProfileBundle(userId: string, personId: string) {
   return { person, redLetterDays, timeline, links };
 }
 
+async function upsertRedLetterDays(
+  userId: string,
+  personId: string,
+  days: RedLetterDayInput[],
+) {
+  const db = await getDrizzleDbForUser(userId);
+  const normalized = days.map(normalizeRedLetterDay);
+
+  if (normalized.length === 0) {
+    await db
+      .delete(personRedLetterDays)
+      .where(
+        and(eq(personRedLetterDays.userId, userId), eq(personRedLetterDays.personId, personId)),
+      );
+    return;
+  }
+
+  const existingIds = normalized.filter((d) => d.id).map((d) => d.id as string);
+
+  if (existingIds.length > 0) {
+    await db
+      .delete(personRedLetterDays)
+      .where(
+        and(
+          eq(personRedLetterDays.userId, userId),
+          eq(personRedLetterDays.personId, personId),
+          notInArray(personRedLetterDays.id, existingIds),
+        ),
+      );
+  } else {
+    await db
+      .delete(personRedLetterDays)
+      .where(
+        and(eq(personRedLetterDays.userId, userId), eq(personRedLetterDays.personId, personId)),
+      );
+  }
+
+  for (const day of normalized) {
+    const payload = {
+      kind: day.kind,
+      label: day.label,
+      eventDate: day.eventDate,
+      yearKnown: day.yearKnown,
+      recurring: day.recurring,
+      updatedAt: new Date(),
+    };
+    if (day.id) {
+      await db
+        .update(personRedLetterDays)
+        .set(payload)
+        .where(
+          and(
+            eq(personRedLetterDays.userId, userId),
+            eq(personRedLetterDays.personId, personId),
+            eq(personRedLetterDays.id, day.id),
+          ),
+        );
+    } else {
+      await db.insert(personRedLetterDays).values({
+        id: `rld-${Crypto.randomUUID()}`,
+        userId,
+        personId,
+        ...payload,
+      });
+    }
+  }
+}
+
 export async function createPerson(userId: string, input: UpsertPersonInput) {
   const db = await getDrizzleDbForUser(userId);
   const id = `p-${Crypto.randomUUID()}`;
@@ -160,6 +231,9 @@ export async function createPerson(userId: string, input: UpsertPersonInput) {
     sensitiveTopics: input.isSensitive ? ["handle_with_care"] : [],
     interests: input.funFacts ?? [],
   });
+  if (input.redLetterDays) {
+    await upsertRedLetterDays(userId, id, input.redLetterDays);
+  }
   return id;
 }
 
@@ -177,6 +251,9 @@ export async function updatePerson(userId: string, personId: string, input: Upse
       updatedAt: new Date(),
     })
     .where(and(eq(persons.userId, userId), eq(persons.id, personId)));
+  if (input.redLetterDays) {
+    await upsertRedLetterDays(userId, personId, input.redLetterDays);
+  }
 }
 
 export async function deletePerson(userId: string, personId: string) {
@@ -208,4 +285,13 @@ export async function createPersonEntry(userId: string, input: CreatePersonEntry
   }
 
   return id;
+}
+
+export async function deletePersonEntry(userId: string, entryId: string) {
+  const db = await getDrizzleDbForUser(userId);
+  const [deleted] = await db
+    .delete(personEntries)
+    .where(and(eq(personEntries.userId, userId), eq(personEntries.id, entryId)))
+    .returning();
+  return deleted ?? null;
 }

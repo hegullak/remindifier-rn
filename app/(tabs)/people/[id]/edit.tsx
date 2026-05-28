@@ -1,9 +1,11 @@
 import { Link, router, useLocalSearchParams } from "expo-router";
 import { useAuth } from "@clerk/clerk-expo";
-import { SafeAreaView, ScrollView, Text, View } from "react-native";
+import { ScrollView, Text, View } from "react-native";
+import { AppShell } from "@/ui/AppShell";
 import { deletePerson, updatePerson } from "@/db/repos/peopleRepo";
 import { usePersonProfileData } from "@/features/people/usePersonProfileData";
 import { PersonForm } from "@/features/people/PersonForm";
+import type { RedLetterKind } from "@/lib/red-letter-day";
 
 export default function EditPersonScreen() {
   const { userId } = useAuth();
@@ -11,9 +13,9 @@ export default function EditPersonScreen() {
   const { bundle, loading, error } = usePersonProfileData(userId, id);
 
   return (
-    <SafeAreaView className="flex-1 bg-bg">
+    <AppShell>
       <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}>
-        <View className="pt-3 pb-2">
+        <View className="pt-1 pb-2">
           <Link href={id ? `/people/${id}` : "/people"} className="text-[12px] text-accent font-bodyMedium">
             ← Back
           </Link>
@@ -35,6 +37,14 @@ export default function EditPersonScreen() {
               birthdayYearKnown: bundle.person.birthdayYearKnown,
               isSensitive: (bundle.person.sensitiveTopics ?? []).includes("handle_with_care"),
               funFacts: bundle.person.interests ?? [],
+              redLetterDays: bundle.redLetterDays.map((d) => ({
+                id: d.id,
+                kind: d.kind as RedLetterKind,
+                label: d.label,
+                eventDate: d.eventDate,
+                yearKnown: d.yearKnown,
+                recurring: d.recurring,
+              })),
             }}
             submitLabel="Save changes"
             onSubmit={async (payload) => {
@@ -50,6 +60,6 @@ export default function EditPersonScreen() {
           />
         ) : null}
       </ScrollView>
-    </SafeAreaView>
+    </AppShell>
   );
 }

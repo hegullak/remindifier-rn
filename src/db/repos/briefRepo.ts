@@ -1,19 +1,19 @@
-import { asc } from "drizzle-orm";
+import { asc, eq } from "drizzle-orm";
 import { getDrizzleDbForUser } from "@/db/drizzleClient";
-import { briefRedLetterDays, briefSchedule } from "@/db/schema";
+import { personRedLetterDays, persons, briefSchedule } from "@/db/schema";
+import {
+  legacyAnniversaryRow,
+  legacyBirthdayRow,
+  type RedLetterDayRow,
+  upcomingRedLetterDays,
+  type UpcomingRedLetterDay,
+} from "@/lib/timeline/red-letter-days";
 
 export interface BriefScheduleItem {
   id: string;
   time: string;
   title: string;
   note: string;
-}
-
-export interface BriefRedLetterDayItem {
-  id: string;
-  personName: string;
-  headline: string;
-  timing: string;
 }
 
 export async function listBriefSchedule(userId: string): Promise<BriefScheduleItem[]> {
@@ -31,16 +31,50 @@ export async function listBriefSchedule(userId: string): Promise<BriefScheduleIt
   return rows;
 }
 
-export async function listBriefRedLetterDays(userId: string): Promise<BriefRedLetterDayItem[]> {
+export async function listAllRedLetterSources(userId: string): Promise<RedLetterDayRow[]> {
   const db = await getDrizzleDbForUser(userId);
-  const rows = await db
+  const explicit = await db
     .select({
-      id: briefRedLetterDays.id,
-      personName: briefRedLetterDays.personName,
-      headline: briefRedLetterDays.headline,
-      timing: briefRedLetterDays.timing,
+      id: personRedLetterDays.id,
+      personId: personRedLetterDays.personId,
+      personName: persons.displayName,
+      kind: personRedLetterDays.kind,
+      label: personRedLetterDays.label,
+      eventDate: personRedLetterDays.eventDate,
+      yearKnown: personRedLetterDays.yearKnown,
     })
-    .from(briefRedLetterDays);
+    .from(personRedLetterDays)
+    .innerJoin(persons, eq(personRedLetterDays.personId, persons.id))
+    .where(eq(personRedLetterDays.userId, userId));
 
-  return rows;
+  const people = await db
+    .select({
+      id: persons.id,
+      displayName: persons.displayName,
+      birthday: persons.birthday,
+      birthdayYearKnown: persons.birthdayYearKnown,
+      anniversary: persons.anniversary,
+    })
+    .from(persons)
+    .where(eq(persons.userId, userId));
+
+  const legacy: RedLetterDayRow[] = [];
+  for (const p of people) {
+    if (p.birthday) {
+      legacy.push(legacyBirthdayRow(p.id, p.displayName, p.birthday, p.birthdayYearKnown));
+    }
+    if (p.anniversary) {
+      legacy.push(legacyAnniversaryRow(p.id, p.displayName, p.anniversary));
+    }
+  }
+
+  return [...explicit, ...legacy];
+}
+
+export async function listUpcomingRedLetterDays(
+  userId: string,
+  windowDays = 90,
+): Promise<UpcomingRedLetterDay[]> {
+  const rows = await listAllRedLetterSources(userId);
+  return upcomingRedLetterDays(rows, new Date(), windowDays);
 }

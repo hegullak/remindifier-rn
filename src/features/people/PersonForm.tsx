@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Pressable, Switch, Text, TextInput, View } from "react-native";
 import type { UpsertPersonInput } from "@/db/repos/peopleRepo";
+import type { RedLetterDayInput } from "@/lib/red-letter-day";
+import { RedLetterDaysSection } from "@/features/people/RedLetterDaysSection";
 
 interface PersonFormProps {
   initial?: {
@@ -10,11 +12,15 @@ interface PersonFormProps {
     birthdayYearKnown: boolean;
     isSensitive: boolean;
     funFacts: string[];
+    redLetterDays: RedLetterDayInput[];
   };
   submitLabel: string;
   onSubmit: (payload: UpsertPersonInput) => Promise<void>;
   onDelete?: () => Promise<void>;
 }
+
+const fieldClass =
+  "mt-2 bg-bg2 border border-border rounded-md px-3 py-3 text-[14px] text-text1 font-body";
 
 export function PersonForm({ initial, submitLabel, onSubmit, onDelete }: PersonFormProps) {
   const [displayName, setDisplayName] = useState(initial?.displayName ?? "");
@@ -23,6 +29,9 @@ export function PersonForm({ initial, submitLabel, onSubmit, onDelete }: PersonF
   const [birthdayYearKnown, setBirthdayYearKnown] = useState(initial?.birthdayYearKnown ?? true);
   const [isSensitive, setIsSensitive] = useState(initial?.isSensitive ?? false);
   const [funFactsText, setFunFactsText] = useState((initial?.funFacts ?? []).join("\n"));
+  const [redLetterDays, setRedLetterDays] = useState<RedLetterDayInput[]>(
+    initial?.redLetterDays ?? [],
+  );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -45,6 +54,7 @@ export function PersonForm({ initial, submitLabel, onSubmit, onDelete }: PersonF
         birthdayYearKnown,
         isSensitive,
         funFacts,
+        redLetterDays,
       });
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to save person");
@@ -65,22 +75,22 @@ export function PersonForm({ initial, submitLabel, onSubmit, onDelete }: PersonF
   };
 
   return (
-    <View className="bg-card border border-black/10 rounded-lg px-4 py-4">
+    <View className="bg-card border border-border rounded-lg px-4 py-4">
       <Text className="text-[11px] uppercase tracking-[1.5px] text-text3 font-bodySemi">About</Text>
       <TextInput
         value={displayName}
         onChangeText={setDisplayName}
         placeholder="Full name"
-        placeholderTextColor="#A89E90"
-        className="mt-2 bg-bg2 border border-black/10 rounded-md px-3 py-3 text-[14px] text-text1 font-body"
+        placeholderTextColor="#7A8CAD"
+        className={fieldClass}
       />
 
       <TextInput
         value={relationType}
         onChangeText={setRelationType}
         placeholder="Relation type"
-        placeholderTextColor="#A89E90"
-        className="mt-2 bg-bg2 border border-black/10 rounded-md px-3 py-3 text-[14px] text-text1 font-body"
+        placeholderTextColor="#7A8CAD"
+        className={fieldClass}
       />
 
       <Text className="text-[11px] uppercase tracking-[1.5px] text-text3 font-bodySemi mt-4">
@@ -90,12 +100,16 @@ export function PersonForm({ initial, submitLabel, onSubmit, onDelete }: PersonF
         value={birthday}
         onChangeText={setBirthday}
         placeholder="YYYY-MM-DD"
-        placeholderTextColor="#A89E90"
-        className="mt-2 bg-bg2 border border-black/10 rounded-md px-3 py-3 text-[14px] text-text1 font-body"
+        placeholderTextColor="#7A8CAD"
+        className={fieldClass}
       />
       <View className="flex-row items-center justify-between mt-2">
         <Text className="text-[12px] text-text2 font-body">Year is known</Text>
         <Switch value={birthdayYearKnown} onValueChange={setBirthdayYearKnown} />
+      </View>
+
+      <View className="mt-5">
+        <RedLetterDaysSection items={redLetterDays} onChange={setRedLetterDays} />
       </View>
 
       <Text className="text-[11px] uppercase tracking-[1.5px] text-text3 font-bodySemi mt-4">
@@ -105,10 +119,10 @@ export function PersonForm({ initial, submitLabel, onSubmit, onDelete }: PersonF
         value={funFactsText}
         onChangeText={setFunFactsText}
         placeholder={"One per line\nRan her 6th half marathon in May this year."}
-        placeholderTextColor="#A89E90"
+        placeholderTextColor="#7A8CAD"
         multiline
         numberOfLines={5}
-        className="mt-2 bg-bg2 border border-black/10 rounded-md px-3 py-3 text-[14px] text-text1 font-body"
+        className={fieldClass}
         style={{ textAlignVertical: "top", minHeight: 110 }}
       />
 
@@ -122,7 +136,7 @@ export function PersonForm({ initial, submitLabel, onSubmit, onDelete }: PersonF
       <Pressable
         onPress={handleSubmit}
         disabled={saving}
-        className="mt-4 bg-text1 rounded-lg py-3 px-4 items-center"
+        className="mt-4 bg-accent rounded-lg py-3 px-4 items-center"
       >
         <Text className="text-[14px] text-card font-bodySemi">{saving ? "Saving..." : submitLabel}</Text>
       </Pressable>

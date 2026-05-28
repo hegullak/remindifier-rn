@@ -1,3 +1,59 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Sand (light) — default */
+:root {
+  --bg: #ede9e2;
+  --bg2: #e5e0d8;
+  --card: #f7f4ef;
+  --card2: #efebe3;
+  --border: rgba(0, 0, 0, 0.07);
+  --text1: #1c1a16;
+  --text2: #6b6355;
+  --text3: #a89e90;
+  --accent: #c4784a;
+  --accent-light: #f5e5d8;
+  --green: #4a7460;
+  --green-light: #dff0e8;
+  --amber: #b8882a;
+  --amber-light: #f5edda;
+  --red: #a84040;
+  --red-light: #f5e0e0;
+  --sage: #4e6e58;
+  --sage-light: #e0ebe4;
+  --dusk: #5a5070;
+  --dusk-light: #e8e5f0;
+  --blue: #3a6b8a;
+  --blue-light: #dde9f2;
+  --gold: #b89a4a;
+  --gold-light: #f5edda;
+}
+
+/* Slate (dark) — preferred */
+.dark {
+  --bg: #1a1e26;
+  --bg2: #141720;
+  --card: #222838;
+  --card2: #1c2030;
+  --border: rgba(255, 255, 255, 0.1);
+  --text1: #eef0f5;
+  --text2: #8e97ad;
+  --text3: #7a8cad;
+  --accent: #7eb8d4;
+  --accent-light: #1e3040;
+  --green: #7dd4a8;
+  --green-light: #1a3028;
+  --amber: #d4a87d;
+  --amber-light: #2a2010;
+  --red: #d47d7d;
+  --red-light: #301818;
+  --sage: #7db89a;
+  --sage-light: #182820;
+  --dusk: #9d8dc0;
+  --dusk-light: #201830;
+  --blue: #9ccae0;
+  --blue-light: #2a3c55;
+  --gold: #d4ba7a;
+  --gold-light: #3a2a16;
+}

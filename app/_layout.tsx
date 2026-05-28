@@ -11,9 +11,11 @@ import {
 } from "@expo-google-fonts/dm-sans";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
-import { SafeAreaView, Text, View } from "react-native";
+import { ActivityIndicator, SafeAreaView, StyleSheet, Text, View } from "react-native";
 import "../global.css";
 import { useBootstrapApp } from "@/bootstrap/useBootstrapApp";
+import { SignInScreen } from "@/features/auth/SignInScreen";
+import { ThemeProvider } from "@/theme/ThemeProvider";
 import migrations from "@/db/drizzle/migrations";
 import { useUserDrizzleDb } from "@/db/useUserDrizzleDb";
 import type { ExpoSQLiteDatabase } from "drizzle-orm/expo-sqlite";
@@ -32,9 +34,11 @@ export default function RootLayout() {
 
   return (
     <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
-      <ClerkLoaded>
-        <RootNavigation />
-      </ClerkLoaded>
+      <ThemeProvider>
+        <ClerkLoaded>
+          <RootNavigation />
+        </ClerkLoaded>
+      </ThemeProvider>
     </ClerkProvider>
   );
 }
@@ -49,9 +53,18 @@ function RootNavigation() {
   const { userId } = useAuth();
   const { db, loading: dbLoading, error: dbError } = useUserDrizzleDb(userId);
 
-  if (!fontsLoaded) return null;
+  useEffect(() => {
+    if (fontsLoaded && !userId) {
+      SplashScreen.hideAsync().catch(() => {
+        // no-op
+      });
+    }
+  }, [fontsLoaded, userId]);
+
+  if (!fontsLoaded) return <LoadingScreen message="Loading fonts…" />;
+  if (!userId) return <SignInScreen />;
   if (dbError) return <FatalScreen message={dbError.message} />;
-  if (dbLoading || !db) return null;
+  if (dbLoading || !db) return <LoadingScreen message="Opening your encrypted database…" />;
   return <MigratedNavigation db={db} fontsLoaded={fontsLoaded} userId={userId} />;
 }
 
@@ -80,36 +93,54 @@ function MigratedNavigation({
   return (
     <>
       <SignedIn>
-        {!ready ? null : (
+        {!ready ? (
+          <LoadingScreen message="Preparing your local data…" />
+        ) : (
           <Stack
             screenOptions={{
               headerShown: false,
-              contentStyle: { backgroundColor: "#EDE9E2" },
+              contentStyle: { backgroundColor: "var(--bg)" },
             }}
           />
         )}
       </SignedIn>
       <SignedOut>
-        <SignedOutScreen />
+        <SignInScreen />
       </SignedOut>
     </>
   );
 }
 
-function SignedOutScreen() {
+function LoadingScreen({ message }: { message: string }) {
   return (
-    <SafeAreaView className="flex-1 bg-bg">
-      <View className="flex-1 px-6 pt-20">
-        <Text className="text-[30px] leading-[36px] text-text1 font-heading">
-          remindifier
-        </Text>
-        <Text className="text-[15px] text-text2 font-body mt-3">
-          Sign in to unlock your local encrypted memory space on this device.
-        </Text>
-      </View>
-    </SafeAreaView>
+    <View style={loadingStyles.container}>
+      <ActivityIndicator size="large" color="#C4784A" />
+      <Text style={loadingStyles.title}>remindifier</Text>
+      <Text style={loadingStyles.message}>{message}</Text>
+    </View>
   );
 }
+
+const loadingStyles = StyleSheet.create({
+  container: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#1A1E26",
+    paddingHorizontal: 24,
+    gap: 12,
+  },
+  title: {
+    fontSize: 28,
+    color: "#EEF0F5",
+    marginTop: 8,
+  },
+  message: {
+    fontSize: 15,
+    color: "#8E97AD",
+    textAlign: "center",
+  },
+});
 
 function FatalScreen({ message }: { message: string }) {
   return (

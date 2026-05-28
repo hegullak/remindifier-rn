@@ -1,8 +1,10 @@
 import { View } from "react-native";
 
 const stripeClass: Record<string, string> = {
-  blue: "bg-text3",
+  blue: "bg-blue",
   amber: "bg-amber",
+  green: "bg-green",
+  dusk: "bg-dusk",
 };
 
 export function BriefCard({
@@ -10,10 +12,10 @@ export function BriefCard({
   stripeColor,
 }: {
   children: React.ReactNode;
-  stripeColor: "blue" | "amber";
+  stripeColor: "blue" | "amber" | "green" | "dusk";
 }) {
   return (
-    <View className="relative bg-card border border-black/10 rounded-lg px-4 py-3 mb-1 overflow-hidden">
+    <View className="relative bg-card border border-border rounded-lg px-4 py-3 mb-1 overflow-hidden">
       <View className={`absolute left-0 top-0 bottom-0 w-[3px] ${stripeClass[stripeColor]}`} />
       {children}
     </View>

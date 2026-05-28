@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { seedLocalData } from "@/db/seed";
+import { ensureDefaultBriefPreferences } from "@/db/repos/userRepo";
 
 export function useBootstrapApp(userId: string | null | undefined, migrationsReady: boolean) {
   const [ready, setReady] = useState(false);
@@ -15,6 +16,7 @@ export function useBootstrapApp(userId: string | null | undefined, migrationsRea
 
     async function boot() {
       await seedLocalData(activeUserId);
+      await ensureDefaultBriefPreferences(activeUserId);
       if (!cancelled) setReady(true);
     }
 

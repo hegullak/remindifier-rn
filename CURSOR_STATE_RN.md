@@ -1,74 +1,72 @@
-# Session State RN — 2026-05-28
+# Session State RN — 2026-05-28 (late)
 
 ## Project
 - `remindifier-rn` (Expo + React Native + NativeWind)
 - Goal: migrate web remindifier into a local-first mobile app
+- Web reference: `C:\dev\remindifier`
 
-## Current architecture status
-- Expo Router is configured and active.
-- Clerk is integrated for identity only (`@clerk/clerk-expo`).
-- Local DB is user-isolated (`remindifier-<userId>.db`).
-- Encryption key is per-user in `expo-secure-store`.
-- SQLCipher pragma key is applied on DB open.
+## Runtime / toolchain
+- **Expo SDK 54** (`expo@~54.0.0`) for Expo Go on device
+- Run: `npm run start:lan:log` → `expo-output.log`
+- After theme/metro changes: restart with `--clear`
 
-## Database stack status
-- Drizzle ORM is installed and used with Expo SQLite driver.
-- Drizzle DB is initialized with `drizzle(expoDb)` in:
-  - `src/db/drizzleClient.ts`
-- SQLite schema mapping exists in:
-  - `src/db/schema.ts`
-- Migration files generated via Drizzle Kit:
-  - `src/db/drizzle/0000_aromatic_doctor_doom.sql`
-  - `src/db/drizzle/meta/_journal.json`
-  - runtime migration bundle:
-    - `src/db/drizzle/migrations.ts`
-- Auto-migration on startup is enabled:
-  - `useMigrations` in `app/_layout.tsx`
+## Theme (sand / slate)
+- **Default: slate (dark)** — matches user preference
+- CSS variables in `global.css` (`:root` sand, `.dark` slate)
+- `tailwind.config.js` — semantic colors via `var(--*)`, `darkMode: 'class'`
+- `src/theme/ThemeProvider.tsx` — persists to SecureStore (`remindifier-theme`)
+- `src/ui/ThemeToggle.tsx` — sun/moon in `AppShell` header
+- Web slate tokens ported from `remindifier/app/globals.css`
 
-## Seed and repositories
-- Seed is Drizzle-based (`src/db/seed.ts`) with realistic test data.
-- `briefRepo` is Drizzle-based:
-  - `src/db/repos/briefRepo.ts`
-- `peopleRepo` is Drizzle-based with CRUD + timeline ops:
-  - list people summaries
-  - get profile bundle
-  - create/update/delete person
-  - create note/follow-up entry
-  - file: `src/db/repos/peopleRepo.ts`
+## Navigation
+- Bottom tabs: `app/(tabs)/_layout.tsx` — **Brief** | **People**
+- People stack: `app/(tabs)/people/_layout.tsx` (list, detail, new, edit)
+- `app/index.tsx` → `/(tabs)/brief`
 
-## Implemented screens
-- `app/brief.tsx`
-- `app/people/index.tsx` (list)
-- `app/people/[id].tsx` (detail)
-- `app/people/new.tsx` (create)
-- `app/people/[id]/edit.tsx` (edit + delete)
+## Auth
+- `src/features/auth/SignInScreen.tsx` — email/password + optional 2FA
+- Clerk dev keys; Client Trust may still require email code on new device
 
-## Implemented hooks/components
-- `src/bootstrap/useBootstrapApp.ts`
-- `src/db/useUserDrizzleDb.ts`
-- `src/features/brief/useBriefData.ts`
-- `src/features/people/usePeopleData.ts`
-- `src/features/people/usePersonProfileData.ts` (with `reload()`)
-- `src/features/people/PersonForm.tsx`
-- UI atoms: `src/ui/BriefCard.tsx`, `src/ui/SectionLabel.tsx`, `src/ui/Tag.tsx`
+## Database / repos
+- Drizzle + SQLCipher per user
+- `peopleRepo` — CRUD, timeline create/delete, `upsertRedLetterDays`
+- `briefRepo` — schedule + `listUpcomingRedLetterDays` (real data from `person_red_letter_days` + legacy birthday/anniversary on person)
+- `userRepo` — `brief_preferences.sectionOrder` get/set
 
-## UX currently working
-- Person CRUD flow end-to-end.
-- Add note/follow-up directly on person detail timeline.
-- Timeline refreshes after save.
+## Brief screen (`app/(tabs)/brief.tsx`)
+- Sections: weather, schedule, heads-up, training, red-letter days
+- Section reorder (↑↓) persisted per user
+- Red-letter: today + upcoming, “+N more”, tap through to person
+- Heads-up + training: static seed content (web parity partial)
+- ISO week in date line
 
-## Environment requirements
-- Required env var:
-  - `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY`
-- App throws early if missing.
+## People
+- List, detail, new, edit with `AppShell` + theme-aware borders
+- `RedLetterDaysSection` on person form (Anniversary, Smoke-free, etc.)
+- Timeline entry **delete** (✕ + confirm)
+- Red-letter days CRUD on create/edit
 
-## Validation status
-- `npm run typecheck` passes at latest checkpoint.
-- No current lints in recently edited files.
+## Lib ports from web
+- `src/lib/red-letter-day.ts`
+- `src/lib/timeline/birthdays.ts`, `red-letter-days.ts`
+- `src/lib/brief/sections.ts`
 
-## Suggested next steps
-1. Add edit/delete for individual timeline entries.
-2. Port red-letter day create/edit UX in RN.
-3. Implement brief section reorder + local persistence.
-4. Add BYOC foundation modules (cloud provider interface + encrypted backup/restore).
-5. Add small integration smoke tests for migrations + seed + people CRUD.
+## Styling
+- `metro.config.js` + NativeWind v4 (`nativewind/babel`, `jsxImportSource`)
+- Prefer `border-border`, `bg-bg`, `text-text1`, `bg-accent` over hardcoded colors
+
+## Not yet ported (web has / RN roadmap)
+- Timeline entry **edit** (web also lacks UI)
+- Live weather (Open-Meteo)
+- `reminders` table / training from DB
+- Children on person form (`person_children`)
+- Relationship add/edit
+- People list search
+- Memory / Gather tabs (placeholders on web)
+- BYOC encrypted backup (RN-only roadmap)
+
+## Validation
+- `npm run typecheck` passes
+
+## Debugging
+- `npm run start:lan:log` — user can say “se logg”

@@ -1,16 +1,17 @@
 import { router } from "expo-router";
 import { useAuth } from "@clerk/clerk-expo";
-import { SafeAreaView, ScrollView, Text, View } from "react-native";
+import { ScrollView, Text, View } from "react-native";
 import { createPerson } from "@/db/repos/peopleRepo";
 import { PersonForm } from "@/features/people/PersonForm";
+import { AppShell } from "@/ui/AppShell";
 
 export default function NewPersonScreen() {
   const { userId } = useAuth();
 
   return (
-    <SafeAreaView className="flex-1 bg-bg">
+    <AppShell>
       <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}>
-        <View className="pt-3 pb-2">
+        <View className="pt-1 pb-2">
           <Text className="text-[30px] leading-[36px] text-text1 font-heading">New person</Text>
           <Text className="text-[13px] text-text2 font-body mt-1">
             Add someone you want to keep showing up for.
@@ -26,6 +27,6 @@ export default function NewPersonScreen() {
           }}
         />
       </ScrollView>
-    </SafeAreaView>
+    </AppShell>
   );
 }

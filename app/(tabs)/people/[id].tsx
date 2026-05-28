@@ -1,9 +1,10 @@
 import { Link, useLocalSearchParams } from "expo-router";
 import { useAuth } from "@clerk/clerk-expo";
 import { useState } from "react";
-import { Pressable, SafeAreaView, ScrollView, Text, TextInput, View } from "react-native";
-import { createPersonEntry } from "@/db/repos/peopleRepo";
+import { Alert, Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { createPersonEntry, deletePersonEntry } from "@/db/repos/peopleRepo";
 import { usePersonProfileData } from "@/features/people/usePersonProfileData";
+import { AppShell } from "@/ui/AppShell";
 import { SectionLabel } from "@/ui/SectionLabel";
 
 function formatDate(iso: string) {
@@ -49,14 +50,26 @@ export default function PersonDetailScreen() {
     }
   };
 
+  const confirmDeleteEntry = (entryId: string) => {
+    if (!userId) return;
+    Alert.alert("Remove note?", "This cannot be undone.", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Remove",
+        style: "destructive",
+        onPress: async () => {
+          await deletePersonEntry(userId, entryId);
+          reload();
+        },
+      },
+    ]);
+  };
+
   return (
-    <SafeAreaView className="flex-1 bg-bg">
+    <AppShell>
       <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}>
-        <View className="pt-3 pb-2">
-          <Link href="/people" className="text-[12px] text-accent font-bodyMedium">
-            ← Back to people
-          </Link>
-          <Text className="text-[30px] leading-[36px] text-text1 font-heading mt-2">
+        <View className="pt-1 pb-2">
+          <Text className="text-[30px] leading-[36px] text-text1 font-heading">
             {bundle?.person.displayName ?? "Person"}
           </Text>
           {id ? (
@@ -86,7 +99,7 @@ export default function PersonDetailScreen() {
               bundle.redLetterDays.map((item) => (
                 <View
                   key={item.id}
-                  className="bg-card border border-black/10 rounded-lg px-4 py-3 mb-2"
+                  className="bg-card border border-border rounded-lg px-4 py-3 mb-2"
                 >
                   <Text className="text-[11px] uppercase tracking-[1.2px] text-amber font-bodySemi">
                     {formatDate(item.eventDate)} · {item.kind.toLowerCase()}
@@ -105,7 +118,7 @@ export default function PersonDetailScreen() {
               bundle.links.map((link) => (
                 <View
                   key={link.id}
-                  className="bg-card border border-black/10 rounded-lg px-4 py-3 mb-2"
+                  className="bg-card border border-border rounded-lg px-4 py-3 mb-2"
                 >
                   <Text className="text-[14px] text-text1 font-bodyMedium">
                     {link.direction === "outgoing" ? "→" : "←"} {link.otherPersonName}
@@ -119,7 +132,7 @@ export default function PersonDetailScreen() {
             )}
 
             <SectionLabel>Timeline</SectionLabel>
-            <View className="bg-card border border-black/10 rounded-lg px-4 py-3 mb-3">
+            <View className="bg-card border border-border rounded-lg px-4 py-3 mb-3">
               <Text className="text-[11px] uppercase tracking-[1.2px] text-text3 font-bodySemi">
                 Add note
               </Text>
@@ -127,9 +140,7 @@ export default function PersonDetailScreen() {
                 <Pressable
                   onPress={() => setEntryType("note")}
                   className={`px-3 py-1.5 rounded-pill border ${
-                    entryType === "note"
-                      ? "bg-text1 border-text1"
-                      : "bg-bg2 border-black/10"
+                    entryType === "note" ? "bg-accent border-accent" : "bg-bg2 border-border"
                   }`}
                 >
                   <Text
@@ -143,9 +154,7 @@ export default function PersonDetailScreen() {
                 <Pressable
                   onPress={() => setEntryType("follow_up")}
                   className={`px-3 py-1.5 rounded-pill border ${
-                    entryType === "follow_up"
-                      ? "bg-text1 border-text1"
-                      : "bg-bg2 border-black/10"
+                    entryType === "follow_up" ? "bg-accent border-accent" : "bg-bg2 border-border"
                   }`}
                 >
                   <Text
@@ -162,10 +171,10 @@ export default function PersonDetailScreen() {
                 value={entryBody}
                 onChangeText={setEntryBody}
                 placeholder="Something worth remembering..."
-                placeholderTextColor="#A89E90"
+                placeholderTextColor="#7A8CAD"
                 multiline
                 numberOfLines={3}
-                className="mt-2 bg-bg2 border border-black/10 rounded-md px-3 py-3 text-[14px] text-text1 font-body"
+                className="mt-2 bg-bg2 border border-border rounded-md px-3 py-3 text-[14px] text-text1 font-body"
                 style={{ textAlignVertical: "top", minHeight: 90 }}
               />
 
@@ -174,7 +183,7 @@ export default function PersonDetailScreen() {
               <Pressable
                 onPress={submitEntry}
                 disabled={entrySaving}
-                className="mt-3 bg-text1 rounded-lg py-3 px-4 items-center"
+                className="mt-3 bg-accent rounded-lg py-3 px-4 items-center"
               >
                 <Text className="text-[14px] text-card font-bodySemi">
                   {entrySaving ? "Saving..." : "Add to timeline"}
@@ -185,10 +194,16 @@ export default function PersonDetailScreen() {
               <Text className="text-[13px] text-text3 font-body">No notes yet.</Text>
             ) : (
               bundle.timeline.map((entry) => (
-                <View key={entry.id} className="border-l-2 border-black/10 pl-3 py-2 mb-2">
-                  <Text className="text-[10px] uppercase tracking-[1.2px] text-text3 font-bodyMedium">
-                    {formatDate(entry.occurredAt.toISOString())} · {entryTypeLabel(entry.entryType)}
-                  </Text>
+                <View key={entry.id} className="border-l-2 border-border pl-3 py-2 mb-2">
+                  <View className="flex-row items-start justify-between gap-2">
+                    <Text className="text-[10px] uppercase tracking-[1.2px] text-text3 font-bodyMedium flex-1">
+                      {formatDate(entry.occurredAt.toISOString())} ·{" "}
+                      {entryTypeLabel(entry.entryType)}
+                    </Text>
+                    <Pressable onPress={() => confirmDeleteEntry(entry.id)} hitSlop={8}>
+                      <Text className="text-[14px] text-text3 font-body">✕</Text>
+                    </Pressable>
+                  </View>
                   <Text className="text-[14px] text-text2 font-body mt-1">{entry.body}</Text>
                 </View>
               ))
@@ -196,6 +211,6 @@ export default function PersonDetailScreen() {
           </>
         ) : null}
       </ScrollView>
-    </SafeAreaView>
+    </AppShell>
   );
 }
