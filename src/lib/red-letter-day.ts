@@ -22,13 +22,13 @@ export interface RedLetterDayInput {
 }
 
 export function redLetterDisplayLabel(kind: string, label: string | null): string {
-  if (kind === "Other" && label) return label;
+  if (kind === "Other" && label?.trim()) return label;
   return label?.trim() ? label : kind;
 }
 
 export function normalizeRedLetterDay(input: RedLetterDayInput): RedLetterDayInput {
   if (!input.yearKnown && /^\d{4}-(\d{2}-\d{2})$/.test(input.eventDate)) {
-    const [, m, d] = input.eventDate.match(/^(\d{4})-(\d{2})-(\d{2})$/) ?? [];
+    const [, , m, d] = input.eventDate.match(/^(\d{4})-(\d{2})-(\d{2})$/) ?? [];
     if (m && d) {
       return {
         ...input,
