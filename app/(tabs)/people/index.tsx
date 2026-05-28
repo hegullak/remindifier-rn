@@ -94,6 +94,7 @@ export default function PeopleListScreen() {
       <FlashList
         data={loading || error ? [] : activePeople}
         keyExtractor={(item) => item.id}
+        estimatedItemSize={80}
         renderItem={({ item }) => (
           <View className="px-4">
             <PersonRowCard person={item} />

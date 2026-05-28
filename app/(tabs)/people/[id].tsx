@@ -1,12 +1,13 @@
 import { Link, useLocalSearchParams } from "expo-router";
 import { useAuth } from "@clerk/clerk-expo";
 import { useState } from "react";
-import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { Pressable, ScrollView, Text, TextInput, View, useColorScheme } from "react-native";
 import { createPersonEntry, deletePersonEntry } from "@/db/repos/peopleRepo";
 import { usePersonProfileData } from "@/features/people/usePersonProfileData";
 import { AppShell } from "@/ui/AppShell";
 import { BottomSheet } from "@/ui/BottomSheet";
 import { Button } from "@/ui/Button";
+import { Card } from "@/ui/Card";
 import { SectionLabel } from "@/ui/SectionLabel";
 
 function formatDate(iso: string) {
@@ -24,6 +25,7 @@ export default function PersonDetailScreen() {
   const { userId } = useAuth();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { bundle, loading, error, reload } = usePersonProfileData(userId, id);
+  const colorScheme = useColorScheme();
   const [entryType, setEntryType] = useState<"note" | "follow_up">("note");
   const [entryBody, setEntryBody] = useState("");
   const [entrySaving, setEntrySaving] = useState(false);
@@ -98,17 +100,14 @@ export default function PersonDetailScreen() {
               <Text className="text-[13px] text-text3 font-body">No red-letter days yet.</Text>
             ) : (
               bundle.redLetterDays.map((item) => (
-                <View
-                  key={item.id}
-                  className="bg-card border border-border rounded-lg px-4 py-3 mb-2"
-                >
+                <Card key={item.id}>
                   <Text className="text-[11px] uppercase tracking-[1.2px] text-amber font-bodySemi">
                     {formatDate(item.eventDate)} · {item.kind.toLowerCase()}
                   </Text>
                   {item.label ? (
                     <Text className="text-[13px] text-text2 font-body mt-1">{item.label}</Text>
                   ) : null}
-                </View>
+                </Card>
               ))
             )}
 
@@ -117,10 +116,7 @@ export default function PersonDetailScreen() {
               <Text className="text-[13px] text-text3 font-body">No links yet.</Text>
             ) : (
               bundle.links.map((link) => (
-                <View
-                  key={link.id}
-                  className="bg-card border border-border rounded-lg px-4 py-3 mb-2"
-                >
+                <Card key={link.id}>
                   <Text className="text-[14px] text-text1 font-bodyMedium">
                     {link.direction === "outgoing" ? "→" : "←"} {link.otherPersonName}
                   </Text>
@@ -128,12 +124,12 @@ export default function PersonDetailScreen() {
                   {link.notes ? (
                     <Text className="text-[12px] text-text2 font-body mt-1">{link.notes}</Text>
                   ) : null}
-                </View>
+                </Card>
               ))
             )}
 
             <SectionLabel>Timeline</SectionLabel>
-            <View className="bg-card border border-border rounded-lg px-4 py-3 mb-3">
+            <Card style={{ marginBottom: 12 }}>
               <Text className="text-[11px] uppercase tracking-[1.2px] text-text3 font-bodySemi">
                 Add note
               </Text>
@@ -172,7 +168,7 @@ export default function PersonDetailScreen() {
                 value={entryBody}
                 onChangeText={setEntryBody}
                 placeholder="Something worth remembering..."
-                placeholderTextColor="#7A8CAD"
+                placeholderTextColor={colorScheme === "dark" ? "#7A8CAD" : "#A89E90"}
                 multiline
                 numberOfLines={3}
                 className="mt-2 bg-bg2 border border-border rounded-md px-3 py-3 text-[14px] text-text1 font-body"
@@ -181,16 +177,12 @@ export default function PersonDetailScreen() {
 
               {entryError ? <Text className="text-[12px] text-red font-body mt-2">{entryError}</Text> : null}
 
-              <Pressable
-                onPress={submitEntry}
-                disabled={entrySaving}
-                className="mt-3 bg-accent rounded-lg py-3 px-4 items-center"
-              >
-                <Text className="text-[14px] text-card font-bodySemi">
-                  {entrySaving ? "Saving..." : "Add to timeline"}
-                </Text>
-              </Pressable>
-            </View>
+              <View className="mt-3">
+                <Button variant="primary" onPress={submitEntry} loading={entrySaving} disabled={entrySaving}>
+                  Add to timeline
+                </Button>
+              </View>
+            </Card>
             {bundle.timeline.length === 0 ? (
               <Text className="text-[13px] text-text3 font-body">No notes yet.</Text>
             ) : (

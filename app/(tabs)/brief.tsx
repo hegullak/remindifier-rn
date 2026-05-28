@@ -11,7 +11,6 @@ import { BRIEF_SECTION_LABELS, type BriefSectionId } from "@/lib/brief/sections"
 import { AppShell } from "@/ui/AppShell";
 import { BriefCard } from "@/ui/BriefCard";
 import { SectionLabel } from "@/ui/SectionLabel";
-import { Tag } from "@/ui/Tag";
 
 export default function BriefScreen() {
   const { userId } = useAuth();
@@ -53,8 +52,8 @@ export default function BriefScreen() {
               {brief.schedule.length === 0 ? (
                 <Text className="text-[13px] text-text3 font-body">Nothing scheduled.</Text>
               ) : (
-                brief.schedule.map((item) => (
-                  <View key={item.id} className="mb-3 last:mb-0">
+                brief.schedule.map((item, i) => (
+                  <View key={item.id} className={i < brief.schedule.length - 1 ? "mb-3" : ""}>
                     <Text className="text-[12px] text-text3 font-bodyMedium">{item.time}</Text>
                     <Text className="text-[15px] text-text1 font-bodyMedium mt-1">{item.title}</Text>
                     <Text className="text-[12px] text-text3 font-body mt-1">{item.note}</Text>
@@ -73,8 +72,8 @@ export default function BriefScreen() {
               onMove={moveSection}
             />
             <BriefCard stripeColor="dusk">
-              {HEADSUP_ITEMS.map((item) => (
-                <View key={item.day} className="mb-3 last:mb-0">
+              {HEADSUP_ITEMS.map((item, i) => (
+                <View key={item.day} className={i < HEADSUP_ITEMS.length - 1 ? "mb-3" : ""}>
                   <Text className="text-[11px] uppercase tracking-[1.2px] text-dusk font-bodySemi">
                     {item.day}
                   </Text>
@@ -93,8 +92,8 @@ export default function BriefScreen() {
               onMove={moveSection}
             />
             <BriefCard stripeColor="green">
-              {FALLBACK_TRAINING.map((line) => (
-                <Text key={line} className="text-[15px] text-text1 font-bodyMedium mb-2 last:mb-0">
+              {FALLBACK_TRAINING.map((line, i) => (
+                <Text key={line} className={`text-[15px] text-text1 font-bodyMedium${i < FALLBACK_TRAINING.length - 1 ? " mb-2" : ""}`}>
                   {line}
                 </Text>
               ))}
@@ -192,13 +191,11 @@ function RedLetterRow({
   };
 }) {
   const content = (
-    <View className="mb-3 last:mb-0">
+    <View className="mb-3">
       <Text className="text-[15px] text-text1 font-bodyMedium">
         {item.icon} {item.personName}
       </Text>
-      <Tag variant="amber" className="mt-1">
-        {item.headline}
-      </Tag>
+      <Text className="text-[13px] text-amber font-bodySemi mt-1">{item.headline}</Text>
       <Text className="text-[12px] text-text3 font-body mt-1">{item.timing}</Text>
     </View>
   );
