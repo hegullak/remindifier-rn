@@ -196,7 +196,7 @@ function RedLetterRow({
       <Text className="text-[15px] text-text1 font-bodyMedium">
         {item.icon} {item.personName}
       </Text>
-      <Tag tone="amber" className="mt-1">
+      <Tag variant="amber" className="mt-1">
         {item.headline}
       </Tag>
       <Text className="text-[12px] text-text3 font-body mt-1">{item.timing}</Text>

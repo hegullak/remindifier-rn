@@ -1,10 +1,12 @@
 import { Link, useLocalSearchParams } from "expo-router";
 import { useAuth } from "@clerk/clerk-expo";
 import { useState } from "react";
-import { Alert, Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { createPersonEntry, deletePersonEntry } from "@/db/repos/peopleRepo";
 import { usePersonProfileData } from "@/features/people/usePersonProfileData";
 import { AppShell } from "@/ui/AppShell";
+import { BottomSheet } from "@/ui/BottomSheet";
+import { Button } from "@/ui/Button";
 import { SectionLabel } from "@/ui/SectionLabel";
 
 function formatDate(iso: string) {
@@ -26,6 +28,8 @@ export default function PersonDetailScreen() {
   const [entryBody, setEntryBody] = useState("");
   const [entrySaving, setEntrySaving] = useState(false);
   const [entryError, setEntryError] = useState<string | null>(null);
+  const [entryToDelete, setEntryToDelete] = useState<string | null>(null);
+  const [deletingEntry, setDeletingEntry] = useState(false);
 
   const submitEntry = async () => {
     if (!userId || !id) {
@@ -50,19 +54,16 @@ export default function PersonDetailScreen() {
     }
   };
 
-  const confirmDeleteEntry = (entryId: string) => {
-    if (!userId) return;
-    Alert.alert("Remove note?", "This cannot be undone.", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Remove",
-        style: "destructive",
-        onPress: async () => {
-          await deletePersonEntry(userId, entryId);
-          reload();
-        },
-      },
-    ]);
+  const handleDeleteEntry = async () => {
+    if (!userId || !entryToDelete) return;
+    setDeletingEntry(true);
+    try {
+      await deletePersonEntry(userId, entryToDelete);
+      setEntryToDelete(null);
+      reload();
+    } finally {
+      setDeletingEntry(false);
+    }
   };
 
   return (
@@ -200,7 +201,7 @@ export default function PersonDetailScreen() {
                       {formatDate(entry.occurredAt.toISOString())} ·{" "}
                       {entryTypeLabel(entry.entryType)}
                     </Text>
-                    <Pressable onPress={() => confirmDeleteEntry(entry.id)} hitSlop={8}>
+                    <Pressable onPress={() => setEntryToDelete(entry.id)} hitSlop={8}>
                       <Text className="text-[14px] text-text3 font-body">✕</Text>
                     </Pressable>
                   </View>
@@ -211,6 +212,27 @@ export default function PersonDetailScreen() {
           </>
         ) : null}
       </ScrollView>
+
+      <BottomSheet
+        visible={entryToDelete !== null}
+        onDismiss={() => setEntryToDelete(null)}
+        title="Remove note?"
+      >
+        <Text className="text-[14px] text-text2 font-body mb-4">This cannot be undone.</Text>
+        <View className="gap-2">
+          <Button
+            variant="primary"
+            onPress={handleDeleteEntry}
+            loading={deletingEntry}
+            disabled={deletingEntry}
+          >
+            Remove
+          </Button>
+          <Button variant="ghost" onPress={() => setEntryToDelete(null)} disabled={deletingEntry}>
+            Cancel
+          </Button>
+        </View>
+      </BottomSheet>
     </AppShell>
   );
 }
