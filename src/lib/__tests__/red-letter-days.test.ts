@@ -1,9 +1,9 @@
+import type { RedLetterDayRow } from "@/lib/timeline/red-letter-days";
 import {
   legacyAnniversaryRow,
   legacyBirthdayRow,
   upcomingRedLetterDays,
 } from "@/lib/timeline/red-letter-days";
-import type { RedLetterDayRow } from "@/lib/timeline/red-letter-days";
 
 function date(y: number, m: number, d: number): Date {
   return new Date(y, m - 1, d, 0, 0, 0, 0);
@@ -115,9 +115,15 @@ describe("upcomingRedLetterDays", () => {
   it("timing is weekday name when daysUntil is 2–6", () => {
     const row = makeRow({ eventDate: "1990-05-04" }); // 3 days away = Sunday 5 May
     const result = upcomingRedLetterDays([row], TODAY, WINDOW);
-    expect(["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]).toContain(
-      result[0].timing,
-    );
+    expect([
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+      "Sunday",
+    ]).toContain(result[0].timing);
   });
 });
 

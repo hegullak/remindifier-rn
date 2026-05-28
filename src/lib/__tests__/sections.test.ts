@@ -1,7 +1,4 @@
-import {
-  DEFAULT_BRIEF_SECTION_ORDER,
-  normalizeBriefSectionOrder,
-} from "@/lib/brief/sections";
+import { DEFAULT_BRIEF_SECTION_ORDER, normalizeBriefSectionOrder } from "@/lib/brief/sections";
 
 describe("normalizeBriefSectionOrder", () => {
   it("returns full default order for undefined input", () => {

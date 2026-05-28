@@ -9,22 +9,22 @@ describe("nextBirthdayOccurrence", () => {
     const today = date(2024, 6, 15);
     const result = nextBirthdayOccurrence("1990-06-15", today);
     expect(result).not.toBeNull();
-    expect(result!.daysUntil).toBe(0);
+    expect(result?.daysUntil).toBe(0);
   });
 
   it("returns daysUntil 1 when birthday is tomorrow", () => {
     const today = date(2024, 6, 14);
     const result = nextBirthdayOccurrence("1990-06-15", today);
     expect(result).not.toBeNull();
-    expect(result!.daysUntil).toBe(1);
+    expect(result?.daysUntil).toBe(1);
   });
 
   it("wraps to next year when birthday has passed this year", () => {
     const today = date(2024, 6, 16);
     const result = nextBirthdayOccurrence("1990-06-15", today);
     expect(result).not.toBeNull();
-    expect(result!.daysUntil).toBeGreaterThan(300);
-    expect(result!.nextDate.getFullYear()).toBe(2025);
+    expect(result?.daysUntil).toBeGreaterThan(300);
+    expect(result?.nextDate.getFullYear()).toBe(2025);
   });
 
   it("returns null for invalid date string", () => {
@@ -48,21 +48,21 @@ describe("nextBirthdayOccurrence", () => {
     const result = nextBirthdayOccurrence("2000-02-29", today);
     expect(result).not.toBeNull();
     // Next occurrence from March 2024 — Feb 29 doesn't exist in 2025, so further out
-    expect(result!.daysUntil).toBeGreaterThan(0);
+    expect(result?.daysUntil).toBeGreaterThan(0);
   });
 
   it("nextDate has correct month and day", () => {
     const today = date(2024, 1, 1);
     const result = nextBirthdayOccurrence("1985-08-20", today);
     expect(result).not.toBeNull();
-    expect(result!.nextDate.getMonth()).toBe(7); // August (0-indexed)
-    expect(result!.nextDate.getDate()).toBe(20);
+    expect(result?.nextDate.getMonth()).toBe(7); // August (0-indexed)
+    expect(result?.nextDate.getDate()).toBe(20);
   });
 
   it("sentinel year (0001) is handled without negative daysUntil", () => {
     const today = date(2024, 6, 15);
     const result = nextBirthdayOccurrence("0001-06-15", today);
     expect(result).not.toBeNull();
-    expect(result!.daysUntil).toBeGreaterThanOrEqual(0);
+    expect(result?.daysUntil).toBeGreaterThanOrEqual(0);
   });
 });

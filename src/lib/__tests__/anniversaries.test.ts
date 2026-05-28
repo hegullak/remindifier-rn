@@ -14,8 +14,8 @@ describe("upcomingAnniversaryMilestone", () => {
     const anniversary = "1999-05-20"; // 25 years on May 20
     const result = upcomingAnniversaryMilestone(anniversary, today, 90);
     expect(result).not.toBeNull();
-    expect(result!.years).toBe(25);
-    expect(result!.name).toBe("Sølvbryllup");
+    expect(result?.years).toBe(25);
+    expect(result?.name).toBe("Sølvbryllup");
   });
 
   it("returns null when anniversary is outside the window", () => {
@@ -42,8 +42,8 @@ describe("upcomingAnniversaryMilestone", () => {
     const anniversary = "1974-06-15"; // 50 years in June 2024
     const result = upcomingAnniversaryMilestone(anniversary, today, 90);
     expect(result).not.toBeNull();
-    expect(result!.years).toBe(50);
-    expect(result!.name).toBe("Gullbryllup");
+    expect(result?.years).toBe(50);
+    expect(result?.name).toBe("Gullbryllup");
   });
 
   it("returns non-null daysUntil when milestone is today", () => {
@@ -51,7 +51,7 @@ describe("upcomingAnniversaryMilestone", () => {
     const anniversary = "1999-06-01"; // exactly 25 years today
     const result = upcomingAnniversaryMilestone(anniversary, today, 90);
     expect(result).not.toBeNull();
-    expect(result!.daysUntil).toBe(0);
+    expect(result?.daysUntil).toBe(0);
   });
 });
 
@@ -60,8 +60,8 @@ describe("currentAnniversaryName", () => {
     const today = date(2024, 6, 15);
     const result = currentAnniversaryName("1974-06-15", today);
     expect(result).not.toBeNull();
-    expect(result!.years).toBe(50);
-    expect(result!.name).toBe("Gullbryllup");
+    expect(result?.years).toBe(50);
+    expect(result?.name).toBe("Gullbryllup");
   });
 
   it("returns null for null input", () => {

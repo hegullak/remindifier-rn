@@ -1,9 +1,9 @@
+import type { RedLetterDayInput } from "@/lib/red-letter-day";
 import {
   BIRTHDAY_SENTINEL_YEAR,
   normalizeRedLetterDay,
   redLetterDisplayLabel,
 } from "@/lib/red-letter-day";
-import type { RedLetterDayInput } from "@/lib/red-letter-day";
 
 function makeInput(overrides: Partial<RedLetterDayInput> = {}): RedLetterDayInput {
   return {
