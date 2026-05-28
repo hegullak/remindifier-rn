@@ -2,9 +2,11 @@ import { useAuth } from "@clerk/clerk-expo";
 import { useRouter } from "expo-router";
 import { useEffect } from "react";
 import { AuthScreen } from "@/features/auth/AuthScreen";
+import { useTranslation } from "@/i18n";
 import { LoadingScreen } from "@/ui/StartupScreens";
 
 export default function SignInRoute() {
+  const { t } = useTranslation();
   const { isSignedIn, isLoaded } = useAuth();
   const router = useRouter();
 
@@ -16,11 +18,11 @@ export default function SignInRoute() {
   }, [isLoaded, isSignedIn, router]);
 
   if (!isLoaded) {
-    return <LoadingScreen message="Loading…" />;
+    return <LoadingScreen message={t("common.loading")} />;
   }
 
   if (isSignedIn) {
-    return <LoadingScreen message="Logger inn…" />;
+    return <LoadingScreen message={t("startup.signingIn")} />;
   }
 
   return <AuthScreen />;

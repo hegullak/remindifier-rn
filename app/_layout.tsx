@@ -10,10 +10,11 @@ import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
-import { ErrorUtils } from "react-native";
 import { tokenCache } from "@/features/auth/clerk/tokenCache";
+import { installGlobalErrorLogger } from "@/lib/globalErrorHandler";
 import { logger } from "@/lib/logger";
 import "../global.css";
+import { LanguageProvider, useTranslation } from "@/i18n";
 import { ThemeProvider } from "@/theme/ThemeProvider";
 import { LoadingScreen } from "@/ui/StartupScreens";
 
@@ -30,16 +31,19 @@ export default function RootLayout() {
 
   return (
     <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
-      <ThemeProvider>
-        <ClerkLoaded>
-          <RootStack />
-        </ClerkLoaded>
-      </ThemeProvider>
+      <LanguageProvider>
+        <ThemeProvider>
+          <ClerkLoaded>
+            <RootStack />
+          </ClerkLoaded>
+        </ThemeProvider>
+      </LanguageProvider>
     </ClerkProvider>
   );
 }
 
 function RootStack() {
+  const { t } = useTranslation();
   const [fontsLoaded] = useFonts({
     Lora_400Regular,
     DMSans_400Regular,
@@ -49,11 +53,7 @@ function RootStack() {
 
   useEffect(() => {
     logger.info("app_launched");
-    const defaultHandler = ErrorUtils.getGlobalHandler();
-    ErrorUtils.setGlobalHandler((error: Error, isFatal?: boolean) => {
-      logger.error("unhandled_js_error", { code: error.name, fatal: Boolean(isFatal) });
-      defaultHandler?.(error, isFatal);
-    });
+    installGlobalErrorLogger();
   }, []);
 
   useEffect(() => {
@@ -65,7 +65,7 @@ function RootStack() {
   }, [fontsLoaded]);
 
   if (!fontsLoaded) {
-    return <LoadingScreen message="Loading fonts…" />;
+    return <LoadingScreen message={t("startup.loadingFonts")} />;
   }
 
   return (

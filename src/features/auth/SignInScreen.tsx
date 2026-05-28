@@ -18,46 +18,15 @@ import {
   resolveSignInStep,
   signInStatusMessage,
 } from "@/features/auth/clerk/session";
+import { strategyHint, strategyLabel } from "@/features/auth/signInFormHelpers";
+import { useTranslation } from "@/i18n/LanguageContext";
 
 type SecondFactor = NonNullable<SignInResource["supportedSecondFactors"]>[number];
 type FirstFactor = NonNullable<SignInResource["supportedFirstFactors"]>[number];
 
-function strategyLabel(strategy: string) {
-  switch (strategy) {
-    case "totp":
-      return "Autentiseringsapp";
-    case "phone_code":
-      return "SMS-kode";
-    case "email_code":
-      return "E-postkode";
-    case "backup_code":
-      return "Backup-kode";
-    default:
-      return strategy;
-  }
-}
-
-function strategyHint(strategy: string, codeSent: boolean) {
-  switch (strategy) {
-    case "totp":
-      return "Åpne Google Authenticator, 1Password eller lignende. Velg kontoen for remindifier og skriv inn den 6-sifrede koden som vises nå (den bytter hvert 30. sekund).";
-    case "phone_code":
-      return codeSent
-        ? "Vi har sendt en kode på SMS. Skriv den inn her."
-        : "Trykk «Send kode» for å få SMS.";
-    case "email_code":
-      return codeSent
-        ? "Sjekk e-posten din (også søppelpost). Skriv inn koden fra Clerk."
-        : "Trykk «Send kode» for å få e-post fra Clerk.";
-    case "backup_code":
-      return "Skriv inn en av backup-kodene du fikk da du satte opp 2FA i Clerk.";
-    default:
-      return "Skriv inn verifiseringskoden.";
-  }
-}
-
 export function SignInScreen() {
   const router = useRouter();
+  const { t, locale } = useTranslation();
   const auth = useAuth();
   const { isLoaded, signIn, setActive } = useSignIn();
   const emailRef = useRef<TextInput>(null);
@@ -89,13 +58,13 @@ export function SignInScreen() {
       if (!setActive) return false;
       const active = await activateClerkSession(setActive, sessionId);
       if (!active) {
-        setErrorMessage("Innloggingen fullførte, men økten startet ikke. Prøv igjen.");
+        setErrorMessage(t("signInForm.sessionNotStarted"));
         return false;
       }
       goToApp();
       return true;
     },
-    [setActive, goToApp],
+    [setActive, goToApp, t],
   );
 
   useEffect(() => {
@@ -150,7 +119,7 @@ export function SignInScreen() {
       });
       setCodeSent(true);
     } catch (error: unknown) {
-      setErrorMessage(clerkErrorMessage(error, "Kunne ikke sende kode. Prøv igjen."));
+      setErrorMessage(clerkErrorMessage(error, t("signInForm.sendCodeFailed")));
     } finally {
       setSubmitting(false);
     }
@@ -214,7 +183,7 @@ export function SignInScreen() {
       });
       setCodeSent(true);
     } catch (error: unknown) {
-      setErrorMessage(clerkErrorMessage(error, "Kunne ikke sende kode. Prøv igjen."));
+      setErrorMessage(clerkErrorMessage(error, t("signInForm.sendCodeFailed")));
     } finally {
       setSubmitting(false);
     }
@@ -279,7 +248,7 @@ export function SignInScreen() {
       } else if (step.kind === "first_factor") {
         beginFirstFactorStep(step.signIn);
       } else {
-        setErrorMessage(signInStatusMessage(step.status));
+        setErrorMessage(signInStatusMessage(step.status, locale));
       }
     } catch (error: unknown) {
       if (isSessionExistsError(error)) {
@@ -306,7 +275,7 @@ export function SignInScreen() {
         goToApp();
         return;
       }
-      setErrorMessage(clerkErrorMessage(error, "Kunne ikke logge inn. Sjekk e-post og passord."));
+      setErrorMessage(clerkErrorMessage(error, t("signInForm.signInFailed")));
     } finally {
       setSubmitting(false);
     }
@@ -342,7 +311,7 @@ export function SignInScreen() {
         if (step.kind === "complete") {
           await finishSignIn(step.sessionId);
         } else {
-          setErrorMessage("Verifisering fullførte ikke. Prøv en ny kode eller start på nytt.");
+          setErrorMessage(t("signInForm.verifyIncomplete"));
           setVerificationCode("");
           setCodeInputKey((k) => k + 1);
           focusCodeField();
@@ -356,11 +325,9 @@ export function SignInScreen() {
       }
       const clerkMsg = clerkErrorMessage(error, "");
       if (selectedFactor.strategy === "totp" && clerkMsg.toLowerCase().includes("incorrect")) {
-        setErrorMessage(
-          "Feil kode fra autentiseringsappen. Bruk koden som vises NÅ (ny hvert 30. sek), riktig app-konto, og samme Clerk-miljø (dev vs prod) som i .env. Etter flere feil: «Start innlogging på nytt».",
-        );
+        setErrorMessage(t("signInForm.totpIncorrect"));
       } else {
-        setErrorMessage(clerkMsg || "Ugyldig kode. Prøv igjen.");
+        setErrorMessage(clerkMsg || t("signInForm.invalidCode"));
       }
       setVerificationCode("");
       setCodeInputKey((k) => k + 1);
@@ -406,14 +373,14 @@ export function SignInScreen() {
       } else if (step.kind === "second_factor") {
         beginSecondFactorStep(step.signIn);
       } else if (step.kind === "unsupported") {
-        setErrorMessage(signInStatusMessage(step.status));
+        setErrorMessage(signInStatusMessage(step.status, locale));
       }
     } catch (error: unknown) {
       if (isSessionExistsError(error) || auth.isSignedIn) {
         goToApp();
         return;
       }
-      setErrorMessage(clerkErrorMessage(error, "Ugyldig eller utløpt kode."));
+      setErrorMessage(clerkErrorMessage(error, t("signInForm.invalidOrExpiredCode")));
       setVerificationCode("");
       setCodeInputKey((k) => k + 1);
       focusCodeField();
@@ -437,15 +404,13 @@ export function SignInScreen() {
     <View className="gap-5">
       {pendingVerification ? (
         <Text className="text-[16px] leading-[24px] text-text1 font-body mb-1">
-          {pendingFirstFactor
-            ? "Bekreft enheten — skriv inn koden du fikk på e-post (Client Trust)."
-            : "Nesten ferdig — bekreft med ekstra sikkerhet."}
+          {pendingFirstFactor ? t("signInForm.confirmDevice") : t("signInForm.confirmSecondFactor")}
         </Text>
       ) : null}
       {!pendingVerification ? (
         <>
           <View>
-            <Text className={authLabelClassName}>E-post</Text>
+            <Text className={authLabelClassName}>{t("signInForm.email")}</Text>
             <TextInput
               ref={emailRef}
               value={emailAddress}
@@ -456,13 +421,13 @@ export function SignInScreen() {
               textContentType="emailAddress"
               returnKeyType="next"
               onSubmitEditing={() => passwordRef.current?.focus()}
-              placeholder="deg@eksempel.no"
+              placeholder={t("signInForm.emailPlaceholder")}
               placeholderTextColor={authPlaceholderColor}
               className={authInputClassName}
             />
           </View>
           <View>
-            <Text className={authLabelClassName}>Passord</Text>
+            <Text className={authLabelClassName}>{t("signInForm.password")}</Text>
             <TextInput
               ref={passwordRef}
               value={password}
@@ -471,7 +436,7 @@ export function SignInScreen() {
               textContentType="password"
               returnKeyType="done"
               onSubmitEditing={onSignInPress}
-              placeholder="Ditt passord"
+              placeholder={t("signInForm.passwordPlaceholder")}
               placeholderTextColor={authPlaceholderColor}
               className={authInputClassName}
             />
@@ -481,7 +446,7 @@ export function SignInScreen() {
         <>
           {pendingFirstFactor && supportedFirstFactors.length > 1 ? (
             <View className="gap-2">
-              <Text className={authLabelClassName}>Verifiseringsmetode</Text>
+              <Text className={authLabelClassName}>{t("signInForm.verificationMethod")}</Text>
               <View className="flex-row flex-wrap gap-2">
                 {supportedFirstFactors.map((factor) => {
                   const active = selectedFirstFactor?.strategy === factor.strategy;
@@ -498,7 +463,7 @@ export function SignInScreen() {
                           active ? "text-card" : "text-text1"
                         }`}
                       >
-                        {strategyLabel(factor.strategy)}
+                        {strategyLabel(factor.strategy, t)}
                       </Text>
                     </Pressable>
                   );
@@ -509,7 +474,7 @@ export function SignInScreen() {
 
           {supportedFactors.length > 1 ? (
             <View className="gap-2">
-              <Text className={authLabelClassName}>Verifiseringsmetode</Text>
+              <Text className={authLabelClassName}>{t("signInForm.verificationMethod")}</Text>
               <View className="flex-row flex-wrap gap-2">
                 {supportedFactors.map((factor) => {
                   const active = selectedFactor?.strategy === factor.strategy;
@@ -526,7 +491,7 @@ export function SignInScreen() {
                           active ? "text-card" : "text-text1"
                         }`}
                       >
-                        {strategyLabel(factor.strategy)}
+                        {strategyLabel(factor.strategy, t)}
                       </Text>
                     </Pressable>
                   );
@@ -536,7 +501,7 @@ export function SignInScreen() {
           ) : null}
 
           <Text className="text-[16px] leading-[24px] text-text1 font-body">
-            {strategyHint(activeStrategy, codeSent)}
+            {strategyHint(activeStrategy, codeSent, t)}
           </Text>
 
           {(activeStrategy === "email_code" || activeStrategy === "phone_code") && !codeSent ? (
@@ -551,13 +516,17 @@ export function SignInScreen() {
               disabled={submitting}
               className="self-start rounded-xl bg-card2 px-4 py-3 border border-bg2"
             >
-              <Text className="text-[15px] text-accent font-bodyMedium">Send kode</Text>
+              <Text className="text-[15px] text-accent font-bodyMedium">
+                {t("signInForm.sendCode")}
+              </Text>
             </Pressable>
           ) : null}
 
           <Pressable onPress={focusCodeField} accessibilityRole="button">
             <Text className={authLabelClassName}>
-              {activeStrategy === "totp" ? "Kode fra autentiseringsapp" : "Verifiseringskode"}
+              {activeStrategy === "totp"
+                ? t("signInForm.codeFromApp")
+                : t("signInForm.verificationCode")}
             </Text>
             <TextInput
               key={`code-${codeInputKey}-${activeStrategy}`}
@@ -589,13 +558,13 @@ export function SignInScreen() {
               selectTextOnFocus
             />
             <Text className="text-[14px] text-text3 font-body mt-2">
-              Trykk her hvis tastaturet ikke vises.
+              {t("signInForm.keyboardHint")}
             </Text>
           </Pressable>
 
           <Pressable onPress={onBackToCredentials} className="self-start py-2">
             <Text className="text-[15px] text-accent font-bodyMedium">
-              ← Start innlogging på nytt
+              {t("signInForm.startOver")}
             </Text>
           </Pressable>
         </>
@@ -630,7 +599,7 @@ export function SignInScreen() {
           <ActivityIndicator color="#F7F4EF" />
         ) : (
           <Text className="text-center text-[17px] text-card font-bodySemi">
-            {pendingVerification ? "Bekreft og fortsett" : "Logg inn"}
+            {pendingVerification ? t("signInForm.confirmAndContinue") : t("auth.signIn")}
           </Text>
         )}
       </Pressable>

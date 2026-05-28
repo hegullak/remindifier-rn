@@ -1,12 +1,14 @@
 import { useAuth } from "@clerk/clerk-expo";
 import { Redirect } from "expo-router";
+import { useTranslation } from "@/i18n/LanguageContext";
 import { LoadingScreen } from "@/ui/StartupScreens";
 
 export default function IndexScreen() {
   const { isSignedIn, isLoaded } = useAuth();
+  const { t } = useTranslation();
 
   if (!isLoaded) {
-    return <LoadingScreen message="Loading…" />;
+    return <LoadingScreen message={t("common.loading")} />;
   }
 
   if (!isSignedIn) {

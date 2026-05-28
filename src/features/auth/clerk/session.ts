@@ -1,5 +1,7 @@
 import { getClerkInstance } from "@clerk/clerk-expo";
 import type { SetActive, SignInResource } from "@clerk/types";
+import { translate } from "@/i18n/translate";
+import type { Locale } from "@/i18n/types";
 
 export function isSessionExistsError(error: unknown) {
   const msg =
@@ -56,15 +58,15 @@ export function resolveSignInStep(signIn: SignInResource): SignInFlowStep {
   return { kind: "unsupported", status };
 }
 
-export function signInStatusMessage(status: string | null) {
+export function signInStatusMessage(status: string | null, locale: Locale) {
   switch (status) {
     case "needs_new_password":
-      return "Du må sette et nytt passord i Clerk Dashboard.";
+      return translate(locale, "signInForm.needsNewPassword");
     case "needs_identifier":
-      return "Skriv inn e-postadressen din.";
+      return translate(locale, "signInForm.needsIdentifier");
     default:
       return status
-        ? `Innloggingen stoppet med status «${status}». Sjekk Clerk-innstillinger eller prøv igjen.`
-        : "Innloggingen fullførte ikke. Prøv igjen.";
+        ? translate(locale, "signInForm.statusStopped", { status })
+        : translate(locale, "signInForm.signInIncomplete");
   }
 }

@@ -7,6 +7,7 @@ import { useBootstrapApp } from "@/bootstrap/useBootstrapApp";
 import migrations from "@/db/drizzle/migrations";
 import type * as schema from "@/db/schema";
 import { useUserDrizzleDb } from "@/db/useUserDrizzleDb";
+import { useTranslation } from "@/i18n";
 import { useAppTheme } from "@/theme/ThemeProvider";
 import { FatalScreen, LoadingScreen } from "@/ui/StartupScreens";
 
@@ -30,6 +31,7 @@ function TabsWithBootstrap({
   userId: string;
 }) {
   const { isDark } = useAppTheme();
+  const { t } = useTranslation();
   const migrationState = useMigrations(db, migrations);
   const { ready } = useBootstrapApp(userId, migrationState.success);
 
@@ -38,7 +40,7 @@ function TabsWithBootstrap({
   }
 
   if (!ready) {
-    return <LoadingScreen message="Preparing your local data…" />;
+    return <LoadingScreen message={t("startup.preparingData")} />;
   }
 
   return (
@@ -61,7 +63,7 @@ function TabsWithBootstrap({
         options={{
           title: "Brief",
           tabBarIcon: ({ focused }) => <TabIcon emoji="☀️" focused={focused} />,
-          tabBarLabel: ({ focused }) => <TabLabel label="brief" focused={focused} />,
+          tabBarLabel: ({ focused }) => <TabLabel label={t("tabs.brief")} focused={focused} />,
         }}
       />
       <Tabs.Screen
@@ -69,7 +71,15 @@ function TabsWithBootstrap({
         options={{
           title: "People",
           tabBarIcon: ({ focused }) => <TabIcon emoji="👤" focused={focused} />,
-          tabBarLabel: ({ focused }) => <TabLabel label="people" focused={focused} />,
+          tabBarLabel: ({ focused }) => <TabLabel label={t("tabs.people")} focused={focused} />,
+        }}
+      />
+      <Tabs.Screen
+        name="myself"
+        options={{
+          title: "Myself",
+          tabBarIcon: ({ focused }) => <TabIcon emoji="🪪" focused={focused} />,
+          tabBarLabel: ({ focused }) => <TabLabel label={t("tabs.myself")} focused={focused} />,
         }}
       />
     </Tabs>
@@ -77,6 +87,7 @@ function TabsWithBootstrap({
 }
 
 export default function TabsLayout() {
+  const { t } = useTranslation();
   const { isSignedIn, isLoaded, userId } = useAuth();
   const effectiveUserId = isSignedIn
     ? (userId ?? getClerkInstance().session?.user?.id ?? null)
@@ -84,7 +95,7 @@ export default function TabsLayout() {
   const { db, loading, error } = useUserDrizzleDb(effectiveUserId);
 
   if (!isLoaded) {
-    return <LoadingScreen message="Loading…" />;
+    return <LoadingScreen message={t("common.loading")} />;
   }
 
   if (!isSignedIn || !effectiveUserId) {
@@ -96,7 +107,7 @@ export default function TabsLayout() {
   }
 
   if (loading || !db) {
-    return <LoadingScreen message="Opening your encrypted database…" />;
+    return <LoadingScreen message={t("startup.openingDatabase")} />;
   }
 
   return <TabsWithBootstrap db={db} userId={effectiveUserId} />;

@@ -5,8 +5,10 @@ import { Pressable, Text, View } from "react-native";
 import DraggableFlatList, { ScaleDecorator } from "react-native-draggable-flatlist";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { FALLBACK_TRAINING, HEADSUP_ITEMS, useBriefData } from "@/features/brief/useBriefData";
+import { useTranslation } from "@/i18n";
 import { briefGreetingLine } from "@/lib/brief/greeting";
-import { BRIEF_SECTION_LABELS, type BriefSectionId } from "@/lib/brief/sections";
+import { briefSectionLabelKey } from "@/lib/brief/sectionLabels";
+import type { BriefSectionId } from "@/lib/brief/sections";
 import { anniversaryMilestoneDetail } from "@/lib/milestones/anniversaries";
 import type { UpcomingRedLetterDay } from "@/lib/timeline/red-letter-days";
 import { AppShell } from "@/ui/AppShell";
@@ -15,6 +17,7 @@ import { BriefCard } from "@/ui/BriefCard";
 import { SectionLabel } from "@/ui/SectionLabel";
 
 export default function BriefScreen() {
+  const { t, locale } = useTranslation();
   const { user } = useUser();
   const { userId } = useAuth();
   const { brief, setSectionOrder, dateLine } = useBriefData(userId);
@@ -27,8 +30,8 @@ export default function BriefScreen() {
     english: string | null;
   } | null>(null);
 
-  const firstName = user?.firstName?.trim() || "there";
-  const greeting = briefGreetingLine(firstName);
+  const firstName = user?.firstName?.trim() || (locale === "no" ? "du" : "there");
+  const greeting = briefGreetingLine(firstName, locale);
   const [greetingLead, greetingName] = greeting.split("\n");
 
   const todayRedLetters = brief.redLetterDays.filter((d) => d.isToday);
@@ -42,7 +45,7 @@ export default function BriefScreen() {
         case "weather":
           return (
             <View>
-              <SectionLabel>{BRIEF_SECTION_LABELS[sectionId]}</SectionLabel>
+              <SectionLabel>{t(briefSectionLabelKey(sectionId))}</SectionLabel>
               <Pressable onPress={() => setWeatherExpanded((v) => !v)}>
                 <BriefCard stripeColor="blue">
                   <View className="flex-row items-start justify-between">
@@ -60,7 +63,7 @@ export default function BriefScreen() {
                     <View className="mt-3 pt-3 border-t border-border">
                       {brief.weather.goodForRun ? (
                         <Text className="text-[12px] text-green font-bodyMedium mb-3">
-                          ✓ Good conditions for a run
+                          {t("brief.goodForRun")}
                         </Text>
                       ) : null}
                       {brief.weather.details.map((d) => (
@@ -74,7 +77,7 @@ export default function BriefScreen() {
                     </View>
                   ) : (
                     <Text className="text-[12px] text-accent font-bodyMedium mt-2">
-                      Tap for details
+                      {t("brief.tapForDetails")}
                     </Text>
                   )}
                 </BriefCard>
@@ -84,7 +87,7 @@ export default function BriefScreen() {
         case "schedule":
           return (
             <View>
-              <SectionLabel>{BRIEF_SECTION_LABELS[sectionId]}</SectionLabel>
+              <SectionLabel>{t(briefSectionLabelKey(sectionId))}</SectionLabel>
               <BriefCard stripeColor="blue">
                 {brief.schedule.length === 0 ? (
                   <Text className="text-[13px] text-text3 font-body">Nothing scheduled.</Text>
@@ -105,7 +108,7 @@ export default function BriefScreen() {
         case "headsup":
           return (
             <View>
-              <SectionLabel>{BRIEF_SECTION_LABELS[sectionId]}</SectionLabel>
+              <SectionLabel>{t(briefSectionLabelKey(sectionId))}</SectionLabel>
               <BriefCard stripeColor="dusk">
                 {HEADSUP_ITEMS.map((item, i) => (
                   <View key={item.day} className={i < HEADSUP_ITEMS.length - 1 ? "mb-3" : ""}>
@@ -121,7 +124,7 @@ export default function BriefScreen() {
         case "training":
           return (
             <View>
-              <SectionLabel>{BRIEF_SECTION_LABELS[sectionId]}</SectionLabel>
+              <SectionLabel>{t(briefSectionLabelKey(sectionId))}</SectionLabel>
               <BriefCard stripeColor="green">
                 {FALLBACK_TRAINING.map((line, i) => (
                   <Text
@@ -137,7 +140,7 @@ export default function BriefScreen() {
         case "red_letter":
           return (
             <View>
-              <SectionLabel>{BRIEF_SECTION_LABELS[sectionId]}</SectionLabel>
+              <SectionLabel>{t(briefSectionLabelKey(sectionId))}</SectionLabel>
               <BriefCard stripeColor="amber">
                 {brief.redLetterDays.length === 0 ? (
                   <Text className="text-[13px] text-text3 font-body">
@@ -162,7 +165,7 @@ export default function BriefScreen() {
                     {hiddenUpcomingCount > 0 ? (
                       <Pressable onPress={() => setShowAllRedLetters(true)} className="mt-2">
                         <Text className="text-[13px] text-accent font-bodyMedium">
-                          +{hiddenUpcomingCount} more
+                          {t("brief.showMore", { count: hiddenUpcomingCount })}
                         </Text>
                       </Pressable>
                     ) : null}
@@ -175,7 +178,7 @@ export default function BriefScreen() {
           return null;
       }
     },
-    [brief, hiddenUpcomingCount, todayRedLetters, visibleUpcoming, weatherExpanded],
+    [brief, hiddenUpcomingCount, todayRedLetters, visibleUpcoming, weatherExpanded, t],
   );
 
   const listHeader = (

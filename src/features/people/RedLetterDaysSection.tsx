@@ -1,4 +1,5 @@
 import { Pressable, Text, TextInput, View } from "react-native";
+import { useTranslation } from "@/i18n/LanguageContext";
 import {
   RED_LETTER_OTHER_KINDS,
   type RedLetterDayInput,
@@ -21,6 +22,8 @@ export function RedLetterDaysSection({
   items: RedLetterDayInput[];
   onChange: (next: RedLetterDayInput[]) => void;
 }) {
+  const { t } = useTranslation();
+
   const addDay = () => {
     onChange([
       ...items,
@@ -45,7 +48,7 @@ export function RedLetterDaysSection({
   return (
     <View className="gap-3">
       <Text className="text-[11px] uppercase tracking-[1.5px] text-text3 font-bodySemi">
-        Red-letter days
+        {t("redLetter.title")}
       </Text>
       {items.map((day, i) => (
         <View
@@ -58,12 +61,12 @@ export function RedLetterDaysSection({
               {day.kind === "Other" && day.label ? ` · ${day.label}` : ""}
             </Text>
             <Pressable onPress={() => removeDay(i)}>
-              <Text className="text-[12px] text-red font-bodyMedium">Remove</Text>
+              <Text className="text-[12px] text-red font-bodyMedium">{t("redLetter.remove")}</Text>
             </Pressable>
           </View>
 
           <Text className="text-[11px] uppercase tracking-[1px] text-text3 font-bodySemi mb-1">
-            Type
+            {t("redLetter.type")}
           </Text>
           <View className="flex-row flex-wrap gap-2 mb-3">
             {RED_LETTER_OTHER_KINDS.map((kind) => (
@@ -88,12 +91,12 @@ export function RedLetterDaysSection({
           {day.kind === "Other" ? (
             <>
               <Text className="text-[11px] uppercase tracking-[1px] text-text3 font-bodySemi mb-1">
-                Label
+                {t("redLetter.label")}
               </Text>
               <TextInput
                 value={day.label ?? ""}
                 onChangeText={(label) => updateDay(i, { label: label || null })}
-                placeholder="Custom label"
+                placeholder={t("redLetter.customLabel")}
                 placeholderTextColor="#7A8CAD"
                 className="bg-card border border-border rounded-md px-3 py-2.5 text-[14px] text-text1 font-body mb-3"
               />
@@ -101,7 +104,7 @@ export function RedLetterDaysSection({
           ) : null}
 
           <Text className="text-[11px] uppercase tracking-[1px] text-text3 font-bodySemi mb-1">
-            Date (YYYY-MM-DD)
+            {t("redLetter.dateLabel")}
           </Text>
           <TextInput
             value={dateInputValue(day.eventDate, day.yearKnown)}
@@ -121,13 +124,13 @@ export function RedLetterDaysSection({
                 day.yearKnown ? "bg-accent border-accent" : "border-border bg-card"
               }`}
             />
-            <Text className="text-[13px] text-text2 font-body">Year is known</Text>
+            <Text className="text-[13px] text-text2 font-body">{t("redLetter.yearKnown")}</Text>
           </Pressable>
         </View>
       ))}
 
       <Pressable onPress={addDay} className="self-start">
-        <Text className="text-[14px] text-accent font-bodyMedium">+ Add red-letter day</Text>
+        <Text className="text-[14px] text-accent font-bodyMedium">{t("redLetter.add")}</Text>
       </Pressable>
     </View>
   );

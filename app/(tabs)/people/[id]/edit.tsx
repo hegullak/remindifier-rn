@@ -5,6 +5,7 @@ import { Pressable, ScrollView, Text, View } from "react-native";
 import { deletePerson, updatePerson } from "@/db/repos/peopleRepo";
 import { PersonForm, type PersonFormHandle } from "@/features/people/PersonForm";
 import { usePersonProfileData } from "@/features/people/usePersonProfileData";
+import { useTranslation } from "@/i18n/LanguageContext";
 import type { RedLetterKind } from "@/lib/red-letter-day";
 import { AppShell } from "@/ui/AppShell";
 
@@ -14,6 +15,7 @@ export default function EditPersonScreen() {
   const { bundle, loading, error } = usePersonProfileData(userId, id);
   const formRef = useRef<PersonFormHandle>(null);
   const [saving, setSaving] = useState(false);
+  const { t } = useTranslation();
 
   return (
     <AppShell>
@@ -23,17 +25,19 @@ export default function EditPersonScreen() {
             href={id ? `/people/${id}` : "/people"}
             className="text-[12px] text-accent font-bodyMedium"
           >
-            ← Back
+            {t("common.back")}
           </Link>
           <Text className="text-[30px] leading-[36px] text-text1 font-heading mt-2">
-            Edit person
+            {t("people.editPersonTitle")}
           </Text>
         </View>
 
-        {loading ? <Text className="text-[13px] text-text3 font-body">Loading…</Text> : null}
+        {loading ? (
+          <Text className="text-[13px] text-text3 font-body">{t("common.loading")}</Text>
+        ) : null}
         {error ? <Text className="text-[13px] text-red font-body">{error}</Text> : null}
         {!loading && !error && !bundle ? (
-          <Text className="text-[13px] text-text3 font-body">Person not found.</Text>
+          <Text className="text-[13px] text-text3 font-body">{t("people.notFound")}</Text>
         ) : null}
 
         {bundle ? (
@@ -59,7 +63,7 @@ export default function EditPersonScreen() {
                   recurring: d.recurring,
                 })),
               }}
-              submitLabel="Save changes"
+              submitLabel={t("people.saveChanges")}
               onSubmit={async (payload) => {
                 if (!userId || !id) throw new Error("Missing auth or person");
                 await updatePerson(userId, id, payload);
@@ -79,7 +83,7 @@ export default function EditPersonScreen() {
                 className="bg-accent rounded-lg py-3 px-4 items-center opacity-100 disabled:opacity-50"
               >
                 <Text className="text-[14px] text-card font-bodySemi">
-                  {saving ? "Saving..." : "Save changes"}
+                  {saving ? t("personForm.saving") : t("people.saveChanges")}
                 </Text>
               </Pressable>
               <Pressable
@@ -87,7 +91,9 @@ export default function EditPersonScreen() {
                 disabled={saving}
                 className="py-3 px-4 items-center opacity-100 disabled:opacity-50"
               >
-                <Text className="text-[13px] text-red font-bodyMedium">Delete person</Text>
+                <Text className="text-[13px] text-red font-bodyMedium">
+                  {t("personForm.deletePerson")}
+                </Text>
               </Pressable>
             </View>
           </>

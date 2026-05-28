@@ -4,11 +4,13 @@ import { useMemo } from "react";
 import { ScrollView, Text, View } from "react-native";
 import { createPerson } from "@/db/repos/peopleRepo";
 import { PersonForm } from "@/features/people/PersonForm";
+import { useTranslation } from "@/i18n/LanguageContext";
 import { qrPayloadToPersonPrefill } from "@/lib/me/qr-payload";
 import { AppShell } from "@/ui/AppShell";
 
 export default function NewPersonScreen() {
   const { userId } = useAuth();
+  const { t } = useTranslation();
   const params = useLocalSearchParams<{
     prefillName?: string;
     prefillBirthday?: string;
@@ -38,18 +40,18 @@ export default function NewPersonScreen() {
     <AppShell>
       <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}>
         <View className="pt-1 pb-2">
-          <Text className="text-[30px] leading-[36px] text-text1 font-heading">New person</Text>
+          <Text className="text-[30px] leading-[36px] text-text1 font-heading">
+            {t("people.newPersonTitle")}
+          </Text>
           <Text className="text-[13px] text-text2 font-body mt-1">
-            {scannedInitial
-              ? "Fra QR-kode — sjekk og lagre når det ser riktig ut."
-              : "Add someone you want to keep showing up for."}
+            {scannedInitial ? t("people.newPersonFromQr") : t("people.newPersonSubtitle")}
           </Text>
         </View>
 
         <PersonForm
           key={scannedInitial ? `scan-${params.prefillName}` : "new"}
           initial={scannedInitial}
-          submitLabel="Create person"
+          submitLabel={t("people.createPerson")}
           onSubmit={async (payload) => {
             if (!userId) throw new Error("Not signed in");
             const id = await createPerson(userId, payload);

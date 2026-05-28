@@ -11,9 +11,11 @@ import {
 } from "@/features/auth/authStyles";
 import { clerkErrorMessage } from "@/features/auth/clerk/errors";
 import { activateClerkSession } from "@/features/auth/clerk/session";
+import { useTranslation } from "@/i18n/LanguageContext";
 
 export function SignUpScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { isLoaded, signUp, setActive } = useSignUp();
   const emailRef = useRef<TextInput>(null);
   const passwordRef = useRef<TextInput>(null);
@@ -39,7 +41,7 @@ export function SignUpScreen() {
       await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
       setPendingVerification(true);
     } catch (error: unknown) {
-      setErrorMessage(clerkErrorMessage(error, "Kunne ikke opprette konto. Prøv igjen."));
+      setErrorMessage(clerkErrorMessage(error, t("signUpForm.createFailed")));
     } finally {
       setSubmitting(false);
     }
@@ -56,12 +58,12 @@ export function SignUpScreen() {
       if (result.status === "complete" && result.createdSessionId) {
         const active = await activateClerkSession(setActive, result.createdSessionId);
         if (active) router.replace("/(tabs)/brief");
-        else setErrorMessage("Kontoen ble opprettet, men økten startet ikke. Prøv å logge inn.");
+        else setErrorMessage(t("signUpForm.sessionNotStarted"));
       } else {
-        setErrorMessage("Verifisering fullførte ikke. Sjekk koden og prøv igjen.");
+        setErrorMessage(t("signUpForm.verifyIncomplete"));
       }
     } catch (error: unknown) {
-      setErrorMessage(clerkErrorMessage(error, "Ugyldig eller utløpt kode."));
+      setErrorMessage(clerkErrorMessage(error, t("signUpForm.invalidOrExpiredCode")));
     } finally {
       setSubmitting(false);
     }
@@ -72,7 +74,7 @@ export function SignUpScreen() {
       {!pendingVerification ? (
         <>
           <View>
-            <Text className={authLabelClassName}>E-post</Text>
+            <Text className={authLabelClassName}>{t("signUpForm.email")}</Text>
             <TextInput
               ref={emailRef}
               value={emailAddress}
@@ -83,13 +85,13 @@ export function SignUpScreen() {
               textContentType="emailAddress"
               returnKeyType="next"
               onSubmitEditing={() => passwordRef.current?.focus()}
-              placeholder="deg@eksempel.no"
+              placeholder={t("signUpForm.emailPlaceholder")}
               placeholderTextColor={authPlaceholderColor}
               className={authInputClassName}
             />
           </View>
           <View>
-            <Text className={authLabelClassName}>Passord</Text>
+            <Text className={authLabelClassName}>{t("signUpForm.password")}</Text>
             <TextInput
               ref={passwordRef}
               value={password}
@@ -98,7 +100,7 @@ export function SignUpScreen() {
               textContentType="newPassword"
               returnKeyType="done"
               onSubmitEditing={onSignUpPress}
-              placeholder="Minst 8 tegn"
+              placeholder={t("signUpForm.passwordPlaceholder")}
               placeholderTextColor={authPlaceholderColor}
               className={authInputClassName}
             />
@@ -107,10 +109,10 @@ export function SignUpScreen() {
       ) : (
         <>
           <Text className="text-[16px] leading-[24px] text-text1 font-body">
-            Vi har sendt en kode til {emailAddress.trim()}. Skriv den inn her.
+            {t("signUpForm.codeSentTo", { email: emailAddress.trim() })}
           </Text>
           <View>
-            <Text className={authLabelClassName}>Verifiseringskode</Text>
+            <Text className={authLabelClassName}>{t("signUpForm.verificationCode")}</Text>
             <TextInput
               ref={codeRef}
               value={verificationCode}
@@ -134,7 +136,9 @@ export function SignUpScreen() {
             }}
             className="self-start py-2"
           >
-            <Text className="text-[15px] text-accent font-bodyMedium">← Endre e-post</Text>
+            <Text className="text-[15px] text-accent font-bodyMedium">
+              {t("signUpForm.changeEmail")}
+            </Text>
           </Pressable>
         </>
       )}
@@ -159,7 +163,7 @@ export function SignUpScreen() {
           <ActivityIndicator color="#F7F4EF" />
         ) : (
           <Text className="text-center text-[17px] text-card font-bodySemi">
-            {pendingVerification ? "Bekreft e-post" : "Opprett konto"}
+            {pendingVerification ? t("signUpForm.confirmEmail") : t("signUpForm.createAccount")}
           </Text>
         )}
       </Pressable>

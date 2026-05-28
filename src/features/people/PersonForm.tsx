@@ -2,6 +2,7 @@ import { forwardRef, useImperativeHandle, useState } from "react";
 import { Pressable, Switch, Text, TextInput, View } from "react-native";
 import type { UpsertPersonInput } from "@/db/repos/peopleRepo";
 import { RedLetterDaysSection } from "@/features/people/RedLetterDaysSection";
+import { useTranslation } from "@/i18n/LanguageContext";
 import type { RedLetterDayInput } from "@/lib/red-letter-day";
 import { Card } from "@/ui/Card";
 
@@ -44,6 +45,7 @@ export const PersonForm = forwardRef<PersonFormHandle, PersonFormProps>(function
   },
   ref,
 ) {
+  const { t } = useTranslation();
   const [displayName, setDisplayName] = useState(initial?.displayName ?? "");
   const [relationType, setRelationType] = useState(initial?.relationType ?? "");
   const [birthday, setBirthday] = useState(initial?.birthday ?? "");
@@ -58,7 +60,7 @@ export const PersonForm = forwardRef<PersonFormHandle, PersonFormProps>(function
 
   const handleSubmit = async () => {
     if (!displayName.trim()) {
-      setError("Name is required.");
+      setError(t("common.nameRequired"));
       return;
     }
     setSaving(true);
@@ -79,7 +81,7 @@ export const PersonForm = forwardRef<PersonFormHandle, PersonFormProps>(function
         redLetterDays,
       });
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed to save person");
+      setError(err instanceof Error ? err.message : t("people.savePersonFailed"));
       setSaving(false);
       onSavingChange?.(false);
     }
@@ -93,7 +95,7 @@ export const PersonForm = forwardRef<PersonFormHandle, PersonFormProps>(function
     try {
       await onDelete();
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed to delete person");
+      setError(err instanceof Error ? err.message : t("people.deletePersonFailed"));
       setSaving(false);
       onSavingChange?.(false);
     }
@@ -111,18 +113,20 @@ export const PersonForm = forwardRef<PersonFormHandle, PersonFormProps>(function
 
   const nameFields = (
     <>
-      <Text className="text-[11px] uppercase tracking-[1.5px] text-text3 font-bodySemi">About</Text>
+      <Text className="text-[11px] uppercase tracking-[1.5px] text-text3 font-bodySemi">
+        {t("personForm.about")}
+      </Text>
       <TextInput
         value={displayName}
         onChangeText={setDisplayName}
-        placeholder="Full name"
+        placeholder={t("personForm.fullName")}
         placeholderTextColor="#7A8CAD"
         className={fieldClass}
       />
       <TextInput
         value={relationType}
         onChangeText={setRelationType}
-        placeholder="Relation type"
+        placeholder={t("personForm.relationType")}
         placeholderTextColor="#7A8CAD"
         className={fieldClass}
       />
@@ -132,7 +136,7 @@ export const PersonForm = forwardRef<PersonFormHandle, PersonFormProps>(function
   const birthdayFields = (
     <>
       <Text className="text-[11px] uppercase tracking-[1.5px] text-text3 font-bodySemi">
-        Birthday
+        {t("personForm.birthday")}
       </Text>
       <TextInput
         value={birthday}
@@ -142,7 +146,7 @@ export const PersonForm = forwardRef<PersonFormHandle, PersonFormProps>(function
         className={fieldClass}
       />
       <View className="flex-row items-center justify-between mt-2">
-        <Text className="text-[12px] text-text2 font-body">Year is known</Text>
+        <Text className="text-[12px] text-text2 font-body">{t("personForm.yearKnown")}</Text>
         <Switch value={birthdayYearKnown} onValueChange={setBirthdayYearKnown} />
       </View>
     </>
@@ -152,12 +156,12 @@ export const PersonForm = forwardRef<PersonFormHandle, PersonFormProps>(function
     <>
       <RedLetterDaysSection items={redLetterDays} onChange={setRedLetterDays} />
       <Text className="text-[11px] uppercase tracking-[1.5px] text-text3 font-bodySemi mt-4">
-        Fun facts
+        {t("personForm.funFacts")}
       </Text>
       <TextInput
         value={funFactsText}
         onChangeText={setFunFactsText}
-        placeholder={"One per line\nRan her 6th half marathon in May this year."}
+        placeholder={t("personForm.funFactsPlaceholder")}
         placeholderTextColor="#7A8CAD"
         multiline
         numberOfLines={5}
@@ -165,7 +169,7 @@ export const PersonForm = forwardRef<PersonFormHandle, PersonFormProps>(function
         style={{ textAlignVertical: "top", minHeight: 110 }}
       />
       <View className="flex-row items-center justify-between mt-3">
-        <Text className="text-[12px] text-text2 font-body">Handle with care</Text>
+        <Text className="text-[12px] text-text2 font-body">{t("personForm.handleWithCare")}</Text>
         <Switch value={isSensitive} onValueChange={setIsSensitive} />
       </View>
     </>
@@ -179,7 +183,7 @@ export const PersonForm = forwardRef<PersonFormHandle, PersonFormProps>(function
         className="mt-4 bg-accent rounded-lg py-3 px-4 items-center"
       >
         <Text className="text-[14px] text-card font-bodySemi">
-          {saving ? "Saving..." : submitLabel}
+          {saving ? t("personForm.saving") : submitLabel}
         </Text>
       </Pressable>
       {onDelete ? (
@@ -188,7 +192,9 @@ export const PersonForm = forwardRef<PersonFormHandle, PersonFormProps>(function
           disabled={saving}
           className="mt-2 border border-red/40 rounded-lg py-3 px-4 items-center"
         >
-          <Text className="text-[13px] text-red font-bodyMedium">Delete person</Text>
+          <Text className="text-[13px] text-red font-bodyMedium">
+            {t("personForm.deletePerson")}
+          </Text>
         </Pressable>
       ) : null}
     </>

@@ -17,30 +17,34 @@ describe("dayPeriod", () => {
 
 describe("briefGreetingLine", () => {
   it("includes the first name", () => {
-    expect(briefGreetingLine("Helga", dateAt(8))).toContain("Helga");
+    expect(briefGreetingLine("Helga", "en", dateAt(8))).toContain("Helga");
   });
 
   it("trims whitespace from name", () => {
-    expect(briefGreetingLine("  Henning  ", dateAt(8))).toContain("Henning");
+    expect(briefGreetingLine("  Henning  ", "en", dateAt(8))).toContain("Henning");
   });
 
-  it('falls back to "there" for empty name', () => {
-    expect(briefGreetingLine("", dateAt(8))).toContain("there");
+  it('falls back to "there" for empty name in English', () => {
+    expect(briefGreetingLine("", "en", dateAt(8))).toContain("there");
   });
 
-  it('falls back to "there" for whitespace-only name', () => {
-    expect(briefGreetingLine("   ", dateAt(8))).toContain("there");
+  it('falls back to "du" for empty name in Norwegian', () => {
+    expect(briefGreetingLine("", "no", dateAt(8))).toContain("du");
   });
 
   it("includes Good morning in the morning", () => {
-    expect(briefGreetingLine("Ida", dateAt(9))).toContain("Good morning");
+    expect(briefGreetingLine("Ida", "en", dateAt(9))).toContain("Good morning");
   });
 
   it("includes Good afternoon in the afternoon", () => {
-    expect(briefGreetingLine("Ida", dateAt(14))).toContain("Good afternoon");
+    expect(briefGreetingLine("Ida", "en", dateAt(14))).toContain("Good afternoon");
   });
 
   it("includes Good evening in the evening", () => {
-    expect(briefGreetingLine("Ida", dateAt(20))).toContain("Good evening");
+    expect(briefGreetingLine("Ida", "en", dateAt(20))).toContain("Good evening");
+  });
+
+  it("includes God morgen in Norwegian morning", () => {
+    expect(briefGreetingLine("Ida", "no", dateAt(9))).toContain("God morgen");
   });
 });

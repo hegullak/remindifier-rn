@@ -2,11 +2,13 @@ import { CameraView, useCameraPermissions } from "expo-camera";
 import { router } from "expo-router";
 import { useRef, useState } from "react";
 import { Pressable, Text, View } from "react-native";
+import { useTranslation } from "@/i18n";
 import { parseRemindifierQrPayload } from "@/lib/me/qr-payload";
 import { AppShell } from "@/ui/AppShell";
 import { Button } from "@/ui/Button";
 
 export default function MeScanScreen() {
+  const { t } = useTranslation();
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -24,7 +26,7 @@ export default function MeScanScreen() {
 
     const payload = parseRemindifierQrPayload(raw);
     if (!payload) {
-      setErrorMessage("Dette er ikke en gyldig Remindifier QR-kode. Prøv igjen.");
+      setErrorMessage(t("scan.invalidQr"));
       handlingRef.current = false;
       return;
     }
@@ -46,7 +48,9 @@ export default function MeScanScreen() {
     return (
       <AppShell>
         <View className="flex-1 items-center justify-center px-6">
-          <Text className="text-[15px] text-text2 font-body text-center">Laster kamera…</Text>
+          <Text className="text-[15px] text-text2 font-body text-center">
+            {t("scan.loadingCamera")}
+          </Text>
         </View>
       </AppShell>
     );
@@ -57,7 +61,7 @@ export default function MeScanScreen() {
       <AppShell>
         <View className="flex-1 items-center justify-center px-6 gap-4">
           <Text className="text-[15px] text-text2 font-body text-center">
-            Vi trenger tilgang til kameraet for å skanne QR-koder.
+            {t("scan.permissionBody")}
           </Text>
           <Button
             variant="primary"
@@ -65,10 +69,10 @@ export default function MeScanScreen() {
               void ensurePermission();
             }}
           >
-            Gi kameratilgang
+            {t("scan.grantCamera")}
           </Button>
           <Button variant="ghost" onPress={() => router.back()}>
-            Avbryt
+            {t("common.cancel")}
           </Button>
         </View>
       </AppShell>
@@ -86,12 +90,12 @@ export default function MeScanScreen() {
         />
         <View className="absolute top-0 left-0 right-0 px-4 pt-2">
           <Pressable onPress={() => router.back()} className="self-start py-2">
-            <Text className="text-[14px] text-card font-bodyMedium">← Avbryt</Text>
+            <Text className="text-[14px] text-card font-bodyMedium">{t("common.cancel")}</Text>
           </Pressable>
         </View>
         <View className="absolute bottom-0 left-0 right-0 px-6 pb-10 items-center">
           <Text className="text-[14px] text-card font-body text-center mb-2">
-            Hold QR-koden innenfor rammen
+            {t("scan.holdQr")}
           </Text>
           {errorMessage ? (
             <View className="bg-card rounded-xl px-4 py-3 w-full">
@@ -103,7 +107,9 @@ export default function MeScanScreen() {
                 }}
                 className="mt-2 self-center"
               >
-                <Text className="text-[13px] text-accent font-bodyMedium">Prøv igjen</Text>
+                <Text className="text-[13px] text-accent font-bodyMedium">
+                  {t("scan.tryAgain")}
+                </Text>
               </Pressable>
             </View>
           ) : null}

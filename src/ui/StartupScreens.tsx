@@ -1,4 +1,5 @@
 import { ActivityIndicator, SafeAreaView, StyleSheet, Text, View } from "react-native";
+import { useTranslation } from "@/i18n/LanguageContext";
 
 export function LoadingScreen({ message }: { message: string }) {
   return (
@@ -32,10 +33,13 @@ const loadingStyles = StyleSheet.create({
 });
 
 export function FatalScreen({ message }: { message: string }) {
+  const { t } = useTranslation();
   return (
     <SafeAreaView className="flex-1 bg-bg">
       <View className="flex-1 px-6 pt-20">
-        <Text className="text-[22px] leading-[28px] text-text1 font-heading">Startup error</Text>
+        <Text className="text-[22px] leading-[28px] text-text1 font-heading">
+          {t("startup.startupError")}
+        </Text>
         <Text className="text-[14px] text-red font-body mt-3">{message}</Text>
       </View>
     </SafeAreaView>
