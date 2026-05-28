@@ -45,9 +45,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <ThemeContext.Provider
-      value={{ theme, setTheme, toggleTheme, isDark: theme === "slate" }}
-    >
+    <ThemeContext.Provider value={{ theme, setTheme, toggleTheme, isDark: theme === "slate" }}>
       <View className={`flex-1 bg-bg ${theme === "slate" ? "dark" : ""}`}>{children}</View>
     </ThemeContext.Provider>
   );

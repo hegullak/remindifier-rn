@@ -1,6 +1,6 @@
 // Mock for expo-crypto — crypto.randomUUID() is available in Node 19+,
 // but expo-crypto wraps native APIs. Fall back to Node's built-in.
-const { randomUUID } = require("crypto");
+const { randomUUID } = require("node:crypto");
 
 module.exports = {
   randomUUID: jest.fn(() => randomUUID()),

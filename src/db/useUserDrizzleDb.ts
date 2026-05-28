@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
 import type { ExpoSQLiteDatabase } from "drizzle-orm/expo-sqlite";
+import { useEffect, useState } from "react";
 import { getDrizzleDbForUser } from "@/db/drizzleClient";
-import * as schema from "@/db/schema";
+import type * as schema from "@/db/schema";
 
 export function useUserDrizzleDb(userId: string | null | undefined) {
   const [db, setDb] = useState<ExpoSQLiteDatabase<typeof schema> | null>(null);

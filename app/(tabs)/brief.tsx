@@ -1,12 +1,8 @@
-import { Link } from "expo-router";
 import { useAuth } from "@clerk/clerk-expo";
+import { Link } from "expo-router";
 import { useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
-import {
-  FALLBACK_TRAINING,
-  HEADSUP_ITEMS,
-  useBriefData,
-} from "@/features/brief/useBriefData";
+import { FALLBACK_TRAINING, HEADSUP_ITEMS, useBriefData } from "@/features/brief/useBriefData";
 import { BRIEF_SECTION_LABELS, type BriefSectionId } from "@/lib/brief/sections";
 import { AppShell } from "@/ui/AppShell";
 import { BriefCard } from "@/ui/BriefCard";
@@ -19,9 +15,7 @@ export default function BriefScreen() {
 
   const todayRedLetters = brief.redLetterDays.filter((d) => d.isToday);
   const upcomingRedLetters = brief.redLetterDays.filter((d) => !d.isToday);
-  const visibleUpcoming = showAllRedLetters
-    ? upcomingRedLetters
-    : upcomingRedLetters.slice(0, 2);
+  const visibleUpcoming = showAllRedLetters ? upcomingRedLetters : upcomingRedLetters.slice(0, 2);
   const hiddenUpcomingCount = upcomingRedLetters.length - visibleUpcoming.length;
 
   const renderSection = (sectionId: BriefSectionId) => {
@@ -36,7 +30,9 @@ export default function BriefScreen() {
             />
             <BriefCard stripeColor="blue">
               <Text className="text-[28px] text-text1 font-heading">{brief.weather.temp}</Text>
-              <Text className="text-[13px] text-text2 font-body mt-1">{brief.weather.description}</Text>
+              <Text className="text-[13px] text-text2 font-body mt-1">
+                {brief.weather.description}
+              </Text>
             </BriefCard>
           </View>
         );
@@ -55,7 +51,9 @@ export default function BriefScreen() {
                 brief.schedule.map((item, i) => (
                   <View key={item.id} className={i < brief.schedule.length - 1 ? "mb-3" : ""}>
                     <Text className="text-[12px] text-text3 font-bodyMedium">{item.time}</Text>
-                    <Text className="text-[15px] text-text1 font-bodyMedium mt-1">{item.title}</Text>
+                    <Text className="text-[15px] text-text1 font-bodyMedium mt-1">
+                      {item.title}
+                    </Text>
                     <Text className="text-[12px] text-text3 font-body mt-1">{item.note}</Text>
                   </View>
                 ))
@@ -93,7 +91,10 @@ export default function BriefScreen() {
             />
             <BriefCard stripeColor="green">
               {FALLBACK_TRAINING.map((line, i) => (
-                <Text key={line} className={`text-[15px] text-text1 font-bodyMedium${i < FALLBACK_TRAINING.length - 1 ? " mb-2" : ""}`}>
+                <Text
+                  key={line}
+                  className={`text-[15px] text-text1 font-bodyMedium${i < FALLBACK_TRAINING.length - 1 ? " mb-2" : ""}`}
+                >
                   {line}
                 </Text>
               ))}
@@ -110,7 +111,9 @@ export default function BriefScreen() {
             />
             <BriefCard stripeColor="amber">
               {brief.redLetterDays.length === 0 ? (
-                <Text className="text-[13px] text-text3 font-body">No red-letter days coming up.</Text>
+                <Text className="text-[13px] text-text3 font-body">
+                  No red-letter days coming up.
+                </Text>
               ) : (
                 <>
                   {todayRedLetters.map((item) => (

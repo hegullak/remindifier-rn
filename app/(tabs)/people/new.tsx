@@ -1,5 +1,5 @@
-import { router } from "expo-router";
 import { useAuth } from "@clerk/clerk-expo";
+import { router } from "expo-router";
 import { ScrollView, Text, View } from "react-native";
 import { createPerson } from "@/db/repos/peopleRepo";
 import { PersonForm } from "@/features/people/PersonForm";

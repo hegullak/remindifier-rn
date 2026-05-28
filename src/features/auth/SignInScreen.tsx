@@ -85,6 +85,7 @@ export function SignInScreen() {
 
   const strategy = selectedFactor?.strategy ?? "totp";
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: codeInputKey and strategy are intentional reset triggers
   useEffect(() => {
     if (pendingSecondFactor) {
       const timer = setTimeout(() => codeRef.current?.focus(), 300);
@@ -188,7 +189,10 @@ export function SignInScreen() {
       const signInState = signIn.status ? signIn : attempt;
       if (attempt.status === "complete" && attempt.createdSessionId) {
         await setActive({ session: attempt.createdSessionId });
-      } else if (attempt.status === "needs_second_factor" || signIn.status === "needs_second_factor") {
+      } else if (
+        attempt.status === "needs_second_factor" ||
+        signIn.status === "needs_second_factor"
+      ) {
         beginSecondFactorStep(signInState as SignInResource);
       } else {
         setErrorMessage("Innlogging krever et ekstra steg i Clerk som ikke er støttet her ennå.");
@@ -401,7 +405,9 @@ export function SignInScreen() {
 
             {errorMessage ? (
               <View className="rounded-xl bg-redLight px-4 py-3">
-                <Text className="text-[15px] leading-[22px] text-red font-body">{errorMessage}</Text>
+                <Text className="text-[15px] leading-[22px] text-red font-body">
+                  {errorMessage}
+                </Text>
               </View>
             ) : null}
 

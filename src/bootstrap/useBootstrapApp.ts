@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { seedLocalData } from "@/db/seed";
 import { ensureDefaultBriefPreferences } from "@/db/repos/userRepo";
+import { seedLocalData } from "@/db/seed";
 
 export function useBootstrapApp(userId: string | null | undefined, migrationsReady: boolean) {
   const [ready, setReady] = useState(false);

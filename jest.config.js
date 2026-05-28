@@ -19,11 +19,7 @@ module.exports = {
     "lib/**/*.{ts,tsx}",
     "db/queries/**/*.ts",
   ],
-  coveragePathIgnorePatterns: [
-    "/node_modules/",
-    "**/*.test.{ts,tsx}",
-    "**/__mocks__/**",
-  ],
+  coveragePathIgnorePatterns: ["/node_modules/", "**/*.test.{ts,tsx}", "**/__mocks__/**"],
   coverageThreshold: {
     global: {
       statements: 80,

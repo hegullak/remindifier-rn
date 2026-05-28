@@ -92,7 +92,12 @@ export const relationships = sqliteTable(
       .default(sql`(unixepoch() * 1000)`),
   },
   (t) => [
-    uniqueIndex("relationships_unique_directed").on(t.userId, t.fromPersonId, t.toPersonId, t.label),
+    uniqueIndex("relationships_unique_directed").on(
+      t.userId,
+      t.fromPersonId,
+      t.toPersonId,
+      t.label,
+    ),
     index("relationships_from_idx").on(t.userId, t.fromPersonId),
     index("relationships_to_idx").on(t.userId, t.toPersonId),
   ],
@@ -153,7 +158,10 @@ export const gatherings = sqliteTable(
       .notNull()
       .default(sql`(unixepoch() * 1000)`),
   },
-  (t) => [index("gatherings_user_idx").on(t.userId, t.scheduledAt), index("gatherings_status_idx").on(t.userId, t.status)],
+  (t) => [
+    index("gatherings_user_idx").on(t.userId, t.scheduledAt),
+    index("gatherings_status_idx").on(t.userId, t.status),
+  ],
 );
 
 export const gatheringParticipants = sqliteTable(

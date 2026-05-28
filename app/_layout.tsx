@@ -1,25 +1,25 @@
-import { Stack } from "expo-router";
 import { ClerkLoaded, ClerkProvider, SignedIn, SignedOut, useAuth } from "@clerk/clerk-expo";
 import { tokenCache } from "@clerk/clerk-expo/token-cache";
-import { useMigrations } from "drizzle-orm/expo-sqlite/migrator";
-import { useFonts } from "expo-font";
-import { Lora_400Regular } from "@expo-google-fonts/lora";
 import {
   DMSans_400Regular,
   DMSans_500Medium,
   DMSans_600SemiBold,
 } from "@expo-google-fonts/dm-sans";
+import { Lora_400Regular } from "@expo-google-fonts/lora";
+import { useMigrations } from "drizzle-orm/expo-sqlite/migrator";
+import { useFonts } from "expo-font";
+import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
 import { ActivityIndicator, SafeAreaView, StyleSheet, Text, View } from "react-native";
 import "../global.css";
+import type { ExpoSQLiteDatabase } from "drizzle-orm/expo-sqlite";
 import { useBootstrapApp } from "@/bootstrap/useBootstrapApp";
+import migrations from "@/db/drizzle/migrations";
+import type * as schema from "@/db/schema";
+import { useUserDrizzleDb } from "@/db/useUserDrizzleDb";
 import { SignInScreen } from "@/features/auth/SignInScreen";
 import { ThemeProvider } from "@/theme/ThemeProvider";
-import migrations from "@/db/drizzle/migrations";
-import { useUserDrizzleDb } from "@/db/useUserDrizzleDb";
-import type { ExpoSQLiteDatabase } from "drizzle-orm/expo-sqlite";
-import * as schema from "@/db/schema";
 
 SplashScreen.preventAutoHideAsync().catch(() => {
   // no-op

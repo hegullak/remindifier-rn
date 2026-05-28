@@ -1,12 +1,12 @@
 import { asc, eq } from "drizzle-orm";
 import { getDrizzleDbForUser } from "@/db/drizzleClient";
-import { personRedLetterDays, persons, briefSchedule } from "@/db/schema";
+import { briefSchedule, personRedLetterDays, persons } from "@/db/schema";
 import {
   legacyAnniversaryRow,
   legacyBirthdayRow,
   type RedLetterDayRow,
-  upcomingRedLetterDays,
   type UpcomingRedLetterDay,
+  upcomingRedLetterDays,
 } from "@/lib/timeline/red-letter-days";
 
 export interface BriefScheduleItem {

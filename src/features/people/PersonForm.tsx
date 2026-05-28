@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Pressable, Switch, Text, TextInput, View } from "react-native";
 import type { UpsertPersonInput } from "@/db/repos/peopleRepo";
-import type { RedLetterDayInput } from "@/lib/red-letter-day";
 import { RedLetterDaysSection } from "@/features/people/RedLetterDaysSection";
+import type { RedLetterDayInput } from "@/lib/red-letter-day";
 
 interface PersonFormProps {
   initial?: {
@@ -138,7 +138,9 @@ export function PersonForm({ initial, submitLabel, onSubmit, onDelete }: PersonF
         disabled={saving}
         className="mt-4 bg-accent rounded-lg py-3 px-4 items-center"
       >
-        <Text className="text-[14px] text-card font-bodySemi">{saving ? "Saving..." : submitLabel}</Text>
+        <Text className="text-[14px] text-card font-bodySemi">
+          {saving ? "Saving..." : submitLabel}
+        </Text>
       </Pressable>
 
       {onDelete ? (

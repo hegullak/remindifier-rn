@@ -12,6 +12,7 @@ export function usePersonProfileData(
   const [error, setError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: reloadKey is an intentional reload trigger
   useEffect(() => {
     if (!userId || !personId) {
       setBundle(null);

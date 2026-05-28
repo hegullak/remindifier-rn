@@ -80,9 +80,7 @@ export async function listPersonRedLetterDays(userId: string, personId: string) 
       recurring: personRedLetterDays.recurring,
     })
     .from(personRedLetterDays)
-    .where(
-      and(eq(personRedLetterDays.userId, userId), eq(personRedLetterDays.personId, personId)),
-    )
+    .where(and(eq(personRedLetterDays.userId, userId), eq(personRedLetterDays.personId, personId)))
     .orderBy(asc(personRedLetterDays.eventDate));
 }
 
@@ -149,11 +147,7 @@ export async function getPersonProfileBundle(userId: string, personId: string) {
   return { person, redLetterDays, timeline, links };
 }
 
-async function upsertRedLetterDays(
-  userId: string,
-  personId: string,
-  days: RedLetterDayInput[],
-) {
+async function upsertRedLetterDays(userId: string, personId: string, days: RedLetterDayInput[]) {
   const db = await getDrizzleDbForUser(userId);
   const normalized = days.map(normalizeRedLetterDay);
 

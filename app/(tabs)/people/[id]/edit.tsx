@@ -1,11 +1,11 @@
-import { Link, router, useLocalSearchParams } from "expo-router";
 import { useAuth } from "@clerk/clerk-expo";
+import { Link, router, useLocalSearchParams } from "expo-router";
 import { ScrollView, Text, View } from "react-native";
-import { AppShell } from "@/ui/AppShell";
 import { deletePerson, updatePerson } from "@/db/repos/peopleRepo";
-import { usePersonProfileData } from "@/features/people/usePersonProfileData";
 import { PersonForm } from "@/features/people/PersonForm";
+import { usePersonProfileData } from "@/features/people/usePersonProfileData";
 import type { RedLetterKind } from "@/lib/red-letter-day";
+import { AppShell } from "@/ui/AppShell";
 
 export default function EditPersonScreen() {
   const { userId } = useAuth();
@@ -16,10 +16,15 @@ export default function EditPersonScreen() {
     <AppShell>
       <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}>
         <View className="pt-1 pb-2">
-          <Link href={id ? `/people/${id}` : "/people"} className="text-[12px] text-accent font-bodyMedium">
+          <Link
+            href={id ? `/people/${id}` : "/people"}
+            className="text-[12px] text-accent font-bodyMedium"
+          >
             ← Back
           </Link>
-          <Text className="text-[30px] leading-[36px] text-text1 font-heading mt-2">Edit person</Text>
+          <Text className="text-[30px] leading-[36px] text-text1 font-heading mt-2">
+            Edit person
+          </Text>
         </View>
 
         {loading ? <Text className="text-[13px] text-text3 font-body">Loading…</Text> : null}

@@ -2,9 +2,9 @@ import { eq } from "drizzle-orm";
 import { getDrizzleDbForUser } from "@/db/drizzleClient";
 import { users } from "@/db/schema";
 import {
+  type BriefSectionId,
   DEFAULT_BRIEF_SECTION_ORDER,
   normalizeBriefSectionOrder,
-  type BriefSectionId,
 } from "@/lib/brief/sections";
 
 export async function getBriefSectionOrder(userId: string): Promise<BriefSectionId[]> {

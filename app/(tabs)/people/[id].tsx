@@ -1,7 +1,7 @@
-import { Link, useLocalSearchParams } from "expo-router";
 import { useAuth } from "@clerk/clerk-expo";
+import { Link, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
-import { Pressable, ScrollView, Text, TextInput, View, useColorScheme } from "react-native";
+import { Pressable, ScrollView, Text, TextInput, useColorScheme, View } from "react-native";
 import { createPersonEntry, deletePersonEntry } from "@/db/repos/peopleRepo";
 import { usePersonProfileData } from "@/features/people/usePersonProfileData";
 import { AppShell } from "@/ui/AppShell";
@@ -76,7 +76,10 @@ export default function PersonDetailScreen() {
             {bundle?.person.displayName ?? "Person"}
           </Text>
           {id ? (
-            <Link href={`/people/${id}/edit`} className="text-[12px] text-accent font-bodyMedium mt-2">
+            <Link
+              href={`/people/${id}/edit`}
+              className="text-[12px] text-accent font-bodyMedium mt-2"
+            >
               Edit person →
             </Link>
           ) : null}
@@ -87,7 +90,9 @@ export default function PersonDetailScreen() {
           ) : null}
         </View>
 
-        {loading ? <Text className="text-[13px] text-text3 font-body">Loading profile…</Text> : null}
+        {loading ? (
+          <Text className="text-[13px] text-text3 font-body">Loading profile…</Text>
+        ) : null}
         {error ? <Text className="text-[13px] text-red font-body">{error}</Text> : null}
         {!loading && !error && !bundle ? (
           <Text className="text-[13px] text-text3 font-body">Person not found.</Text>
@@ -175,10 +180,17 @@ export default function PersonDetailScreen() {
                 style={{ textAlignVertical: "top", minHeight: 90 }}
               />
 
-              {entryError ? <Text className="text-[12px] text-red font-body mt-2">{entryError}</Text> : null}
+              {entryError ? (
+                <Text className="text-[12px] text-red font-body mt-2">{entryError}</Text>
+              ) : null}
 
               <View className="mt-3">
-                <Button variant="primary" onPress={submitEntry} loading={entrySaving} disabled={entrySaving}>
+                <Button
+                  variant="primary"
+                  onPress={submitEntry}
+                  loading={entrySaving}
+                  disabled={entrySaving}
+                >
                   Add to timeline
                 </Button>
               </View>

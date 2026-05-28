@@ -17,9 +17,7 @@ export interface TagProps {
 export function Tag({ children, variant, className = "" }: TagProps) {
   const tone = variantClass[variant];
   return (
-    <View
-      className={`self-start px-3 py-1 rounded-[10px] ${tone.container} ${className}`}
-    >
+    <View className={`self-start px-3 py-1 rounded-[10px] ${tone.container} ${className}`}>
       <Text className={`text-xs ${tone.text} font-bodySemi`}>{children}</Text>
     </View>
   );

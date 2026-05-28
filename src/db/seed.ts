@@ -14,7 +14,10 @@ import {
 
 async function hasSeedData(userId: string) {
   const db = await getDrizzleDbForUser(userId);
-  const [{ value }] = await db.select({ value: count() }).from(persons).where(eq(persons.userId, userId));
+  const [{ value }] = await db
+    .select({ value: count() })
+    .from(persons)
+    .where(eq(persons.userId, userId));
   return value > 0;
 }
 
@@ -38,7 +41,10 @@ export async function seedLocalData(userId: string) {
       displayName: "Ida Nilsen",
       relationType: "Close friend",
       birthday: "1992-06-14",
-      interests: ["Ran her 6th half marathon in May this year.", "Planning a move to Copenhagen in autumn."],
+      interests: [
+        "Ran her 6th half marathon in May this year.",
+        "Planning a move to Copenhagen in autumn.",
+      ],
     },
     {
       id: "p-trond",

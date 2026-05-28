@@ -4,9 +4,7 @@ import { useAppTheme } from "@/theme/ThemeProvider";
 
 function TabLabel({ label, focused }: { label: string; focused: boolean }) {
   return (
-    <Text
-      className={`text-[11px] font-bodySemi ${focused ? "text-accent" : "text-text3"}`}
-    >
+    <Text className={`text-[11px] font-bodySemi ${focused ? "text-accent" : "text-text3"}`}>
       {label}
     </Text>
   );

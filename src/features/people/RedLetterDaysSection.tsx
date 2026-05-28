@@ -48,7 +48,10 @@ export function RedLetterDaysSection({
         Red-letter days
       </Text>
       {items.map((day, i) => (
-        <View key={day.id ?? `new-${i}`} className="bg-bg2 border border-border rounded-lg px-4 py-3">
+        <View
+          key={day.id ?? `new-${i}`}
+          className="bg-bg2 border border-border rounded-lg px-4 py-3"
+        >
           <View className="flex-row items-center justify-between mb-3">
             <Text className="text-[12px] text-text3 font-bodySemi">
               {day.kind}

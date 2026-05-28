@@ -6,7 +6,6 @@
     "@clerk/clerk-expo": "^2.19.31",
     "@expo-google-fonts/dm-sans": "^0.4.2",
     "@expo-google-fonts/lora": "^0.4.2",
-    "@expo/ui": "~0.2.0-beta.9",
     "@shopify/flash-list": "2.0.2",
     "drizzle-kit": "^0.31.10",
     "drizzle-orm": "^0.45.2",
