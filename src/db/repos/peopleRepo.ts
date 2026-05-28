@@ -2,8 +2,10 @@ import { and, asc, desc, eq, notInArray } from "drizzle-orm";
 import * as Crypto from "expo-crypto";
 import { getDrizzleDbForUser } from "@/db/drizzleClient";
 import { personEntries, personRedLetterDays, persons, relationships } from "@/db/schema";
+import { logger } from "@/lib/logger";
 import type { RedLetterDayInput } from "@/lib/red-letter-day";
 import { normalizeRedLetterDay } from "@/lib/red-letter-day";
+import { logRepoError } from "@/lib/repoLog";
 
 export interface PersonSummary {
   id: string;
@@ -212,80 +214,105 @@ async function upsertRedLetterDays(userId: string, personId: string, days: RedLe
 }
 
 export async function createPerson(userId: string, input: UpsertPersonInput) {
-  const db = await getDrizzleDbForUser(userId);
-  const id = `p-${Crypto.randomUUID()}`;
-  await db.insert(persons).values({
-    id,
-    userId,
-    displayName: input.displayName.trim(),
-    relationType: input.relationType?.trim() || null,
-    birthday: input.birthday || null,
-    birthdayYearKnown: input.birthdayYearKnown ?? true,
-    archived: false,
-    sensitiveTopics: input.isSensitive ? ["handle_with_care"] : [],
-    interests: input.funFacts ?? [],
-  });
-  if (input.redLetterDays) {
-    await upsertRedLetterDays(userId, id, input.redLetterDays);
-  }
-  return id;
-}
-
-export async function updatePerson(userId: string, personId: string, input: UpsertPersonInput) {
-  const db = await getDrizzleDbForUser(userId);
-  await db
-    .update(persons)
-    .set({
+  try {
+    const db = await getDrizzleDbForUser(userId);
+    const id = `p-${Crypto.randomUUID()}`;
+    await db.insert(persons).values({
+      id,
+      userId,
       displayName: input.displayName.trim(),
       relationType: input.relationType?.trim() || null,
       birthday: input.birthday || null,
       birthdayYearKnown: input.birthdayYearKnown ?? true,
+      archived: false,
       sensitiveTopics: input.isSensitive ? ["handle_with_care"] : [],
       interests: input.funFacts ?? [],
-      updatedAt: new Date(),
-    })
-    .where(and(eq(persons.userId, userId), eq(persons.id, personId)));
-  if (input.redLetterDays) {
-    await upsertRedLetterDays(userId, personId, input.redLetterDays);
+    });
+    if (input.redLetterDays) {
+      await upsertRedLetterDays(userId, id, input.redLetterDays);
+    }
+    logger.info("person_created", { userId, personId: id });
+    return id;
+  } catch (err) {
+    logRepoError("person_create_failed", err, { userId });
+  }
+}
+
+export async function updatePerson(userId: string, personId: string, input: UpsertPersonInput) {
+  try {
+    const db = await getDrizzleDbForUser(userId);
+    await db
+      .update(persons)
+      .set({
+        displayName: input.displayName.trim(),
+        relationType: input.relationType?.trim() || null,
+        birthday: input.birthday || null,
+        birthdayYearKnown: input.birthdayYearKnown ?? true,
+        sensitiveTopics: input.isSensitive ? ["handle_with_care"] : [],
+        interests: input.funFacts ?? [],
+        updatedAt: new Date(),
+      })
+      .where(and(eq(persons.userId, userId), eq(persons.id, personId)));
+    if (input.redLetterDays) {
+      await upsertRedLetterDays(userId, personId, input.redLetterDays);
+    }
+    logger.info("person_updated", { userId, personId });
+  } catch (err) {
+    logRepoError("person_update_failed", err, { userId, personId });
   }
 }
 
 export async function deletePerson(userId: string, personId: string) {
-  const db = await getDrizzleDbForUser(userId);
-  await db.delete(persons).where(and(eq(persons.userId, userId), eq(persons.id, personId)));
+  try {
+    const db = await getDrizzleDbForUser(userId);
+    await db.delete(persons).where(and(eq(persons.userId, userId), eq(persons.id, personId)));
+    logger.info("person_deleted", { userId, personId });
+  } catch (err) {
+    logRepoError("person_delete_failed", err, { userId, personId });
+  }
 }
 
 export async function createPersonEntry(userId: string, input: CreatePersonEntryInput) {
-  const db = await getDrizzleDbForUser(userId);
-  const id = `e-${Crypto.randomUUID()}`;
-  const entryType = input.type === "note" ? "context" : "follow_up";
-  const occurredAt = input.occurredAt ?? new Date();
+  try {
+    const db = await getDrizzleDbForUser(userId);
+    const id = `e-${Crypto.randomUUID()}`;
+    const entryType = input.type === "note" ? "context" : "follow_up";
+    const occurredAt = input.occurredAt ?? new Date();
 
-  await db.insert(personEntries).values({
-    id,
-    userId,
-    personId: input.personId,
-    entryType,
-    body: input.body.trim(),
-    rawInput: input.body.trim(),
-    occurredAt,
-  });
+    await db.insert(personEntries).values({
+      id,
+      userId,
+      personId: input.personId,
+      entryType,
+      body: input.body.trim(),
+      rawInput: input.body.trim(),
+      occurredAt,
+    });
 
-  if (entryType === "context") {
-    await db
-      .update(persons)
-      .set({ lastInteractionAt: occurredAt, updatedAt: new Date() })
-      .where(and(eq(persons.userId, userId), eq(persons.id, input.personId)));
+    if (entryType === "context") {
+      await db
+        .update(persons)
+        .set({ lastInteractionAt: occurredAt, updatedAt: new Date() })
+        .where(and(eq(persons.userId, userId), eq(persons.id, input.personId)));
+    }
+
+    logger.info("person_entry_created", { userId, personId: input.personId, entryId: id });
+    return id;
+  } catch (err) {
+    logRepoError("person_entry_create_failed", err, { userId, personId: input.personId });
   }
-
-  return id;
 }
 
 export async function deletePersonEntry(userId: string, entryId: string) {
-  const db = await getDrizzleDbForUser(userId);
-  const [deleted] = await db
-    .delete(personEntries)
-    .where(and(eq(personEntries.userId, userId), eq(personEntries.id, entryId)))
-    .returning();
-  return deleted ?? null;
+  try {
+    const db = await getDrizzleDbForUser(userId);
+    const [deleted] = await db
+      .delete(personEntries)
+      .where(and(eq(personEntries.userId, userId), eq(personEntries.id, entryId)))
+      .returning();
+    logger.info("person_entry_deleted", { userId, entryId });
+    return deleted ?? null;
+  } catch (err) {
+    logRepoError("person_entry_delete_failed", err, { userId, entryId });
+  }
 }

@@ -19,6 +19,7 @@ import { deleteAllData, exportAllData } from "@/db/repos/settingsRepo";
 import { useUserDrizzleDb } from "@/db/useUserDrizzleDb";
 import { clearClerkAuthStorage } from "@/features/auth/clerk/clearAuthStorage";
 import { useMyProfile } from "@/features/me/useMyProfile";
+import { getLastErrorTimestamp } from "@/lib/logUtils";
 import { encodeRemindifierQrPayload } from "@/lib/me/qr-payload";
 import { AppShell } from "@/ui/AppShell";
 import { BottomSheet } from "@/ui/BottomSheet";
@@ -58,6 +59,7 @@ export default function MeScreen() {
   const [exporting, setExporting] = useState(false);
   const [deletingAll, setDeletingAll] = useState(false);
   const [showDeleteSheet, setShowDeleteSheet] = useState(false);
+  const [lastError, setLastError] = useState<string | null>(null);
 
   const [displayName, setDisplayName] = useState("");
   const [birthday, setBirthday] = useState("");
@@ -66,6 +68,10 @@ export default function MeScreen() {
   const [contactPreference, setContactPreference] = useState("");
 
   const appVersion = Constants.expoConfig?.version ?? "—";
+
+  useEffect(() => {
+    getLastErrorTimestamp().then(setLastError);
+  }, []);
 
   useEffect(() => {
     if (!profile && !loading) {
@@ -332,6 +338,11 @@ export default function MeScreen() {
         </Card>
 
         <SectionLabel>Dine data</SectionLabel>
+        {lastError ? (
+          <Text className="text-[12px] text-text3 font-body mb-3">
+            Siste feil registrert: {new Date(lastError).toLocaleString("nb-NO")}
+          </Text>
+        ) : null}
         <View className="gap-3">
           <Button
             variant="secondary"

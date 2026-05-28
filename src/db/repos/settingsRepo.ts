@@ -9,6 +9,9 @@ import {
   persons,
   relationships,
 } from "@/db/schema";
+import { logger } from "@/lib/logger";
+import { clearLogFiles, readLogFiles } from "@/lib/logUtils";
+import { logRepoError } from "@/lib/repoLog";
 
 type PersonEntry = typeof personEntries.$inferSelect;
 type PersonRedLetterDay = typeof personRedLetterDays.$inferSelect;
@@ -22,6 +25,7 @@ export type ExportPayload = {
   redLetterDays: PersonRedLetterDay[];
   relationships: Relationship[];
   myProfile: MyProfile | null;
+  logs: { app: string; error: string };
 };
 
 function serializeRow<T extends Record<string, unknown>>(row: T): T {
@@ -36,31 +40,49 @@ function serializeRow<T extends Record<string, unknown>>(row: T): T {
 }
 
 export async function exportAllData(db: ExpoSQLiteDatabase<typeof schema>): Promise<ExportPayload> {
-  const [people, timeline, redLetterDays, relationshipRows, profileRows] = await Promise.all([
-    db.select().from(persons),
-    db.select().from(personEntries),
-    db.select().from(personRedLetterDays),
-    db.select().from(relationships),
-    db.select().from(myProfile),
-  ]);
+  try {
+    const [people, timeline, redLetterDays, relationshipRows, profileRows, logs] =
+      await Promise.all([
+        db.select().from(persons),
+        db.select().from(personEntries),
+        db.select().from(personRedLetterDays),
+        db.select().from(relationships),
+        db.select().from(myProfile),
+        readLogFiles(),
+      ]);
 
-  return {
-    exportedAt: new Date().toISOString(),
-    version: 1,
-    people: people.map((row) => serializeRow(row)),
-    timeline: timeline.map((row) => serializeRow(row)),
-    redLetterDays: redLetterDays.map((row) => serializeRow(row)),
-    relationships: relationshipRows.map((row) => serializeRow(row)),
-    myProfile: profileRows[0] ? serializeRow(profileRows[0]) : null,
-  };
+    logger.info("data_export_succeeded", {
+      peopleCount: people.length,
+      timelineCount: timeline.length,
+    });
+
+    return {
+      exportedAt: new Date().toISOString(),
+      version: 1,
+      people: people.map((row) => serializeRow(row)),
+      timeline: timeline.map((row) => serializeRow(row)),
+      redLetterDays: redLetterDays.map((row) => serializeRow(row)),
+      relationships: relationshipRows.map((row) => serializeRow(row)),
+      myProfile: profileRows[0] ? serializeRow(profileRows[0]) : null,
+      logs,
+    };
+  } catch (err) {
+    logRepoError("data_export_failed", err);
+  }
 }
 
 export async function deleteAllData(db: ExpoSQLiteDatabase<typeof schema>): Promise<void> {
-  await db.transaction(async (tx) => {
-    await tx.delete(personEntries);
-    await tx.delete(personRedLetterDays);
-    await tx.delete(relationships);
-    await tx.delete(persons);
-    await tx.delete(myProfile);
-  });
+  try {
+    await db.transaction(async (tx) => {
+      await tx.delete(personEntries);
+      await tx.delete(personRedLetterDays);
+      await tx.delete(relationships);
+      await tx.delete(persons);
+      await tx.delete(myProfile);
+    });
+    await clearLogFiles();
+    logger.info("all_data_deleted");
+  } catch (err) {
+    logRepoError("all_data_delete_failed", err);
+  }
 }

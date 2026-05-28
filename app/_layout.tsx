@@ -10,7 +10,9 @@ import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
+import { ErrorUtils } from "react-native";
 import { tokenCache } from "@/features/auth/clerk/tokenCache";
+import { logger } from "@/lib/logger";
 import "../global.css";
 import { ThemeProvider } from "@/theme/ThemeProvider";
 import { LoadingScreen } from "@/ui/StartupScreens";
@@ -44,6 +46,15 @@ function RootStack() {
     DMSans_500Medium,
     DMSans_600SemiBold,
   });
+
+  useEffect(() => {
+    logger.info("app_launched");
+    const defaultHandler = ErrorUtils.getGlobalHandler();
+    ErrorUtils.setGlobalHandler((error: Error, isFatal?: boolean) => {
+      logger.error("unhandled_js_error", { code: error.name, fatal: Boolean(isFatal) });
+      defaultHandler?.(error, isFatal);
+    });
+  }, []);
 
   useEffect(() => {
     if (fontsLoaded) {
