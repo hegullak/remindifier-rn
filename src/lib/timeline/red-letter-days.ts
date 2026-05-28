@@ -18,6 +18,7 @@ export interface UpcomingRedLetterDay {
   personId: string | null;
   personName: string;
   kind: string;
+  eventDate: string;
   displayLabel: string;
   headline: string;
   timing: string;
@@ -142,6 +143,7 @@ export function upcomingRedLetterDays(
       personId: row.personId,
       personName: row.personName,
       kind: row.kind,
+      eventDate: row.eventDate,
       displayLabel,
       headline,
       timing,
@@ -151,7 +153,15 @@ export function upcomingRedLetterDays(
     });
   }
 
-  return results.sort((a, b) => a.daysUntil - b.daysUntil);
+  const seen = new Set<string>();
+  const deduped = results.filter((item) => {
+    const key = `${item.personId ?? item.personName}:${item.kind}:${item.daysUntil}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+
+  return deduped.sort((a, b) => a.daysUntil - b.daysUntil);
 }
 
 export function legacyBirthdayRow(

@@ -1,32 +1,26 @@
-import { useSignIn } from "@clerk/clerk-expo";
+import { useAuth, useSignIn } from "@clerk/clerk-expo";
 import type { SignInResource } from "@clerk/types";
-import { useEffect, useRef, useState } from "react";
+import { useRouter } from "expo-router";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { ActivityIndicator, Keyboard, Pressable, Text, TextInput, View } from "react-native";
 import {
-  ActivityIndicator,
-  Keyboard,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+  authCodeInputClassName,
+  authCodeInputStyle,
+  authInputClassName,
+  authLabelClassName,
+  authPlaceholderColor,
+} from "@/features/auth/authStyles";
+import { clearClerkAuthStorage } from "@/features/auth/clerk/clearAuthStorage";
+import { clerkErrorMessage } from "@/features/auth/clerk/errors";
+import {
+  activateClerkSession,
+  isSessionExistsError,
+  resolveSignInStep,
+  signInStatusMessage,
+} from "@/features/auth/clerk/session";
 
 type SecondFactor = NonNullable<SignInResource["supportedSecondFactors"]>[number];
-
-function clerkErrorMessage(error: unknown, fallback: string) {
-  if (typeof error === "object" && error !== null && "errors" in error) {
-    const first = (error as { errors?: Array<{ message?: string }> }).errors?.[0]?.message;
-    if (first) return first;
-  }
-  const asString = String(error);
-  if (asString.includes("account is locked") || asString.includes("locked")) {
-    return "Kontoen er midlertidig låst etter for mange feil forsøk. Vent litt, eller lås opp brukeren i Clerk Dashboard → Users.";
-  }
-  return fallback;
-}
+type FirstFactor = NonNullable<SignInResource["supportedFirstFactors"]>[number];
 
 function strategyLabel(strategy: string) {
   switch (strategy) {
@@ -62,11 +56,9 @@ function strategyHint(strategy: string, codeSent: boolean) {
   }
 }
 
-const inputClassName =
-  "min-h-[56px] rounded-2xl border border-bg2 bg-card px-5 text-[18px] leading-[24px] text-text1 font-body";
-const labelClassName = "text-[15px] text-text2 font-bodyMedium mb-2";
-
 export function SignInScreen() {
+  const router = useRouter();
+  const auth = useAuth();
   const { isLoaded, signIn, setActive } = useSignIn();
   const emailRef = useRef<TextInput>(null);
   const passwordRef = useRef<TextInput>(null);
@@ -76,8 +68,11 @@ export function SignInScreen() {
   const [password, setPassword] = useState("");
   const [verificationCode, setVerificationCode] = useState("");
   const [pendingSecondFactor, setPendingSecondFactor] = useState(false);
+  const [pendingFirstFactor, setPendingFirstFactor] = useState(false);
   const [supportedFactors, setSupportedFactors] = useState<SecondFactor[]>([]);
+  const [supportedFirstFactors, setSupportedFirstFactors] = useState<FirstFactor[]>([]);
   const [selectedFactor, setSelectedFactor] = useState<SecondFactor | null>(null);
+  const [selectedFirstFactor, setSelectedFirstFactor] = useState<FirstFactor | null>(null);
   const [codeSent, setCodeSent] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -85,27 +80,112 @@ export function SignInScreen() {
 
   const strategy = selectedFactor?.strategy ?? "totp";
 
+  const goToApp = useCallback(() => {
+    router.replace("/(tabs)/brief");
+  }, [router]);
+
+  const finishSignIn = useCallback(
+    async (sessionId: string) => {
+      if (!setActive) return false;
+      const active = await activateClerkSession(setActive, sessionId);
+      if (!active) {
+        setErrorMessage("Innloggingen fullførte, men økten startet ikke. Prøv igjen.");
+        return false;
+      }
+      goToApp();
+      return true;
+    },
+    [setActive, goToApp],
+  );
+
+  useEffect(() => {
+    if (auth.isLoaded && auth.isSignedIn) {
+      goToApp();
+    }
+  }, [auth.isLoaded, auth.isSignedIn, goToApp]);
+
   // biome-ignore lint/correctness/useExhaustiveDependencies: codeInputKey and strategy are intentional reset triggers
   useEffect(() => {
-    if (pendingSecondFactor) {
+    if (pendingSecondFactor || pendingFirstFactor) {
       const timer = setTimeout(() => codeRef.current?.focus(), 300);
       return () => clearTimeout(timer);
     }
-  }, [pendingSecondFactor, codeInputKey, strategy]);
+  }, [pendingSecondFactor, pendingFirstFactor, codeInputKey, strategy]);
 
   function focusCodeField() {
     Keyboard.dismiss();
     setTimeout(() => codeRef.current?.focus(), 50);
   }
 
-  function resetSecondFactorFlow() {
+  function resetVerificationFlow() {
     setPendingSecondFactor(false);
+    setPendingFirstFactor(false);
     setSupportedFactors([]);
+    setSupportedFirstFactors([]);
     setSelectedFactor(null);
+    setSelectedFirstFactor(null);
     setVerificationCode("");
     setCodeSent(false);
     setErrorMessage(null);
     setCodeInputKey((k) => k + 1);
+  }
+
+  async function prepareFirstFactorDelivery(factor: FirstFactor) {
+    if (!signIn) return;
+    setSubmitting(true);
+    setErrorMessage(null);
+    try {
+      await (
+        signIn as unknown as {
+          prepareFirstFactor: (input: {
+            strategy: string;
+            emailAddressId?: string;
+            phoneNumberId?: string;
+          }) => Promise<unknown>;
+        }
+      ).prepareFirstFactor({
+        strategy: factor.strategy,
+        emailAddressId: "emailAddressId" in factor ? factor.emailAddressId : undefined,
+        phoneNumberId: "phoneNumberId" in factor ? factor.phoneNumberId : undefined,
+      });
+      setCodeSent(true);
+    } catch (error: unknown) {
+      setErrorMessage(clerkErrorMessage(error, "Kunne ikke sende kode. Prøv igjen."));
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function selectFirstFactor(factor: FirstFactor) {
+    setSelectedFirstFactor(factor);
+    setVerificationCode("");
+    setCodeSent(false);
+    setErrorMessage(null);
+    setCodeInputKey((k) => k + 1);
+    if (factor.strategy === "email_code" || factor.strategy === "phone_code") {
+      await prepareFirstFactorDelivery(factor);
+      return;
+    }
+    setCodeSent(true);
+  }
+
+  function beginFirstFactorStep(signInResource: SignInResource) {
+    const factors = signInResource.supportedFirstFactors ?? [];
+    setSupportedFirstFactors(factors);
+    setPendingFirstFactor(true);
+    setPendingSecondFactor(false);
+    setVerificationCode("");
+    setErrorMessage(null);
+    setCodeInputKey((k) => k + 1);
+
+    const preferred =
+      factors.find((f) => f.strategy === "email_code") ??
+      factors.find((f) => f.strategy === "phone_code") ??
+      factors[0];
+
+    if (preferred) {
+      void selectFirstFactor(preferred);
+    }
   }
 
   async function prepareCodeDelivery(factor: SecondFactor) {
@@ -176,28 +256,56 @@ export function SignInScreen() {
 
   async function onSignInPress() {
     if (!isLoaded || !signIn || !setActive) return;
+    if (auth.isSignedIn) {
+      goToApp();
+      return;
+    }
     Keyboard.dismiss();
     setSubmitting(true);
     setErrorMessage(null);
-    resetSecondFactorFlow();
+    resetVerificationFlow();
     try {
       const attempt = await signIn.create({
         identifier: emailAddress.trim(),
         password,
       });
 
-      const signInState = signIn.status ? signIn : attempt;
-      if (attempt.status === "complete" && attempt.createdSessionId) {
-        await setActive({ session: attempt.createdSessionId });
-      } else if (
-        attempt.status === "needs_second_factor" ||
-        signIn.status === "needs_second_factor"
-      ) {
-        beginSecondFactorStep(signInState as SignInResource);
+      const step = resolveSignInStep(attempt as SignInResource);
+      if (step.kind === "complete") {
+        const ok = await finishSignIn(step.sessionId);
+        if (ok) setErrorMessage(null);
+      } else if (step.kind === "second_factor") {
+        beginSecondFactorStep(step.signIn);
+      } else if (step.kind === "first_factor") {
+        beginFirstFactorStep(step.signIn);
       } else {
-        setErrorMessage("Innlogging krever et ekstra steg i Clerk som ikke er støttet her ennå.");
+        setErrorMessage(signInStatusMessage(step.status));
       }
     } catch (error: unknown) {
+      if (isSessionExistsError(error)) {
+        await clearClerkAuthStorage();
+        if (auth.isSignedIn) {
+          goToApp();
+          return;
+        }
+        try {
+          const retry = await signIn.create({
+            identifier: emailAddress.trim(),
+            password,
+          });
+          const retryStep = resolveSignInStep(retry as SignInResource);
+          if (retryStep.kind === "complete") {
+            await finishSignIn(retryStep.sessionId);
+            return;
+          }
+        } catch {
+          // fall through to user-visible error
+        }
+      }
+      if (auth.isSignedIn) {
+        goToApp();
+        return;
+      }
       setErrorMessage(clerkErrorMessage(error, "Kunne ikke logge inn. Sjekk e-post og passord."));
     } finally {
       setSubmitting(false);
@@ -228,15 +336,24 @@ export function SignInScreen() {
       ).attemptSecondFactor(params);
 
       if (result.status === "complete" && result.createdSessionId) {
-        await setActive({ session: result.createdSessionId });
+        await finishSignIn(result.createdSessionId);
       } else {
-        setErrorMessage("Verifisering fullførte ikke. Prøv en ny kode eller start på nytt.");
-        setVerificationCode("");
-        setCodeInputKey((k) => k + 1);
-        focusCodeField();
+        const step = resolveSignInStep(signIn);
+        if (step.kind === "complete") {
+          await finishSignIn(step.sessionId);
+        } else {
+          setErrorMessage("Verifisering fullførte ikke. Prøv en ny kode eller start på nytt.");
+          setVerificationCode("");
+          setCodeInputKey((k) => k + 1);
+          focusCodeField();
+        }
       }
     } catch (error: unknown) {
       console.error("2FA verification failed", selectedFactor.strategy, error);
+      if (isSessionExistsError(error) || auth.isSignedIn) {
+        goToApp();
+        return;
+      }
       const clerkMsg = clerkErrorMessage(error, "");
       if (selectedFactor.strategy === "totp" && clerkMsg.toLowerCase().includes("incorrect")) {
         setErrorMessage(
@@ -253,186 +370,270 @@ export function SignInScreen() {
     }
   }
 
+  async function onVerifyFirstFactorPress() {
+    if (!isLoaded || !signIn || !setActive || !selectedFirstFactor) return;
+    setSubmitting(true);
+    setErrorMessage(null);
+    try {
+      const params: {
+        strategy: string;
+        code: string;
+        emailAddressId?: string;
+        phoneNumberId?: string;
+      } = {
+        strategy: selectedFirstFactor.strategy,
+        code: verificationCode.trim(),
+      };
+      if (
+        selectedFirstFactor.strategy === "email_code" &&
+        "emailAddressId" in selectedFirstFactor
+      ) {
+        params.emailAddressId = selectedFirstFactor.emailAddressId;
+      }
+      if (selectedFirstFactor.strategy === "phone_code" && "phoneNumberId" in selectedFirstFactor) {
+        params.phoneNumberId = selectedFirstFactor.phoneNumberId;
+      }
+
+      await (
+        signIn as unknown as {
+          attemptFirstFactor: (input: typeof params) => Promise<unknown>;
+        }
+      ).attemptFirstFactor(params);
+
+      const step = resolveSignInStep(signIn);
+      if (step.kind === "complete") {
+        await finishSignIn(step.sessionId);
+      } else if (step.kind === "second_factor") {
+        beginSecondFactorStep(step.signIn);
+      } else if (step.kind === "unsupported") {
+        setErrorMessage(signInStatusMessage(step.status));
+      }
+    } catch (error: unknown) {
+      if (isSessionExistsError(error) || auth.isSignedIn) {
+        goToApp();
+        return;
+      }
+      setErrorMessage(clerkErrorMessage(error, "Ugyldig eller utløpt kode."));
+      setVerificationCode("");
+      setCodeInputKey((k) => k + 1);
+      focusCodeField();
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
   function onBackToCredentials() {
-    resetSecondFactorFlow();
+    resetVerificationFlow();
     setTimeout(() => emailRef.current?.focus(), 200);
   }
 
-  const minCodeLength = strategy === "backup_code" ? 8 : 6;
+  const pendingVerification = pendingSecondFactor || pendingFirstFactor;
+  const activeStrategy = pendingFirstFactor
+    ? (selectedFirstFactor?.strategy ?? "email_code")
+    : strategy;
+  const minCodeLength = activeStrategy === "backup_code" ? 8 : 6;
 
   return (
-    <SafeAreaView className="flex-1 bg-bg" edges={["top", "bottom"]}>
-      <KeyboardAvoidingView
-        className="flex-1"
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 8 : 0}
-      >
-        <ScrollView
-          className="flex-1"
-          contentContainerClassName="flex-grow px-6 pt-10 pb-10"
-          keyboardShouldPersistTaps="handled"
-          keyboardDismissMode="on-drag"
-        >
-          <Text className="text-[34px] leading-[40px] text-text1 font-heading">remindifier</Text>
-          <Text className="text-[17px] leading-[24px] text-text2 font-body mt-4 max-w-[340px]">
-            {pendingSecondFactor
-              ? "Nesten ferdig — bekreft med ekstra sikkerhet."
-              : "Logg inn for å låse opp ditt lokale, krypterte minne på denne enheten."}
+    <View className="gap-5">
+      {pendingVerification ? (
+        <Text className="text-[16px] leading-[24px] text-text1 font-body mb-1">
+          {pendingFirstFactor
+            ? "Bekreft enheten — skriv inn koden du fikk på e-post (Client Trust)."
+            : "Nesten ferdig — bekreft med ekstra sikkerhet."}
+        </Text>
+      ) : null}
+      {!pendingVerification ? (
+        <>
+          <View>
+            <Text className={authLabelClassName}>E-post</Text>
+            <TextInput
+              ref={emailRef}
+              value={emailAddress}
+              onChangeText={setEmailAddress}
+              autoCapitalize="none"
+              autoCorrect={false}
+              keyboardType="email-address"
+              textContentType="emailAddress"
+              returnKeyType="next"
+              onSubmitEditing={() => passwordRef.current?.focus()}
+              placeholder="deg@eksempel.no"
+              placeholderTextColor={authPlaceholderColor}
+              className={authInputClassName}
+            />
+          </View>
+          <View>
+            <Text className={authLabelClassName}>Passord</Text>
+            <TextInput
+              ref={passwordRef}
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+              textContentType="password"
+              returnKeyType="done"
+              onSubmitEditing={onSignInPress}
+              placeholder="Ditt passord"
+              placeholderTextColor={authPlaceholderColor}
+              className={authInputClassName}
+            />
+          </View>
+        </>
+      ) : (
+        <>
+          {pendingFirstFactor && supportedFirstFactors.length > 1 ? (
+            <View className="gap-2">
+              <Text className={authLabelClassName}>Verifiseringsmetode</Text>
+              <View className="flex-row flex-wrap gap-2">
+                {supportedFirstFactors.map((factor) => {
+                  const active = selectedFirstFactor?.strategy === factor.strategy;
+                  return (
+                    <Pressable
+                      key={`first-${factor.strategy}`}
+                      onPress={() => selectFirstFactor(factor)}
+                      className={`rounded-full px-4 py-2 border ${
+                        active ? "bg-accent border-accent" : "bg-card border-bg2"
+                      }`}
+                    >
+                      <Text
+                        className={`text-[14px] font-bodyMedium ${
+                          active ? "text-card" : "text-text1"
+                        }`}
+                      >
+                        {strategyLabel(factor.strategy)}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </View>
+          ) : null}
+
+          {supportedFactors.length > 1 ? (
+            <View className="gap-2">
+              <Text className={authLabelClassName}>Verifiseringsmetode</Text>
+              <View className="flex-row flex-wrap gap-2">
+                {supportedFactors.map((factor) => {
+                  const active = selectedFactor?.strategy === factor.strategy;
+                  return (
+                    <Pressable
+                      key={factor.strategy}
+                      onPress={() => selectFactor(factor)}
+                      className={`rounded-full px-4 py-2 border ${
+                        active ? "bg-accent border-accent" : "bg-card border-bg2"
+                      }`}
+                    >
+                      <Text
+                        className={`text-[14px] font-bodyMedium ${
+                          active ? "text-card" : "text-text1"
+                        }`}
+                      >
+                        {strategyLabel(factor.strategy)}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </View>
+          ) : null}
+
+          <Text className="text-[16px] leading-[24px] text-text1 font-body">
+            {strategyHint(activeStrategy, codeSent)}
           </Text>
 
-          <View className="mt-10 gap-5">
-            {!pendingSecondFactor ? (
-              <>
-                <View>
-                  <Text className={labelClassName}>E-post</Text>
-                  <TextInput
-                    ref={emailRef}
-                    value={emailAddress}
-                    onChangeText={setEmailAddress}
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                    keyboardType="email-address"
-                    textContentType="emailAddress"
-                    returnKeyType="next"
-                    onSubmitEditing={() => passwordRef.current?.focus()}
-                    placeholder="deg@eksempel.no"
-                    placeholderTextColor="#A89E90"
-                    className={inputClassName}
-                  />
-                </View>
-                <View>
-                  <Text className={labelClassName}>Passord</Text>
-                  <TextInput
-                    ref={passwordRef}
-                    value={password}
-                    onChangeText={setPassword}
-                    secureTextEntry
-                    textContentType="password"
-                    returnKeyType="done"
-                    onSubmitEditing={onSignInPress}
-                    placeholder="Ditt passord"
-                    placeholderTextColor="#A89E90"
-                    className={inputClassName}
-                  />
-                </View>
-              </>
-            ) : (
-              <>
-                {supportedFactors.length > 1 ? (
-                  <View className="gap-2">
-                    <Text className={labelClassName}>Verifiseringsmetode</Text>
-                    <View className="flex-row flex-wrap gap-2">
-                      {supportedFactors.map((factor) => {
-                        const active = selectedFactor?.strategy === factor.strategy;
-                        return (
-                          <Pressable
-                            key={factor.strategy}
-                            onPress={() => selectFactor(factor)}
-                            className={`rounded-full px-4 py-2 border ${
-                              active ? "bg-accent border-accent" : "bg-card border-bg2"
-                            }`}
-                          >
-                            <Text
-                              className={`text-[14px] font-bodyMedium ${
-                                active ? "text-card" : "text-text1"
-                              }`}
-                            >
-                              {strategyLabel(factor.strategy)}
-                            </Text>
-                          </Pressable>
-                        );
-                      })}
-                    </View>
-                  </View>
-                ) : null}
-
-                <Text className="text-[16px] leading-[24px] text-text1 font-body">
-                  {strategyHint(strategy, codeSent)}
-                </Text>
-
-                {(strategy === "email_code" || strategy === "phone_code") && !codeSent ? (
-                  <Pressable
-                    onPress={() => selectedFactor && prepareCodeDelivery(selectedFactor)}
-                    disabled={submitting}
-                    className="self-start rounded-xl bg-card2 px-4 py-3 border border-bg2"
-                  >
-                    <Text className="text-[15px] text-accent font-bodyMedium">Send kode</Text>
-                  </Pressable>
-                ) : null}
-
-                <Pressable onPress={focusCodeField} accessibilityRole="button">
-                  <Text className={labelClassName}>
-                    {strategy === "totp" ? "Kode fra autentiseringsapp" : "Verifiseringskode"}
-                  </Text>
-                  <TextInput
-                    key={`code-${codeInputKey}-${strategy}`}
-                    ref={codeRef}
-                    value={verificationCode}
-                    onChangeText={(text) => {
-                      const maxLen = strategy === "backup_code" ? 12 : 8;
-                      setVerificationCode(
-                        strategy === "backup_code"
-                          ? text.replace(/\s/g, "").slice(0, maxLen)
-                          : text.replace(/\D/g, "").slice(0, maxLen),
-                      );
-                      if (errorMessage) setErrorMessage(null);
-                    }}
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                    autoFocus
-                    keyboardType={strategy === "backup_code" ? "default" : "number-pad"}
-                    textContentType="oneTimeCode"
-                    returnKeyType="done"
-                    onSubmitEditing={onVerifySecondFactorPress}
-                    placeholder={strategy === "backup_code" ? "backup-xxxx" : "000000"}
-                    placeholderTextColor="#A89E90"
-                    className={`${inputClassName} text-center text-[28px] tracking-[6px] font-bodySemi`}
-                    editable={!submitting && codeSent}
-                    selectTextOnFocus
-                  />
-                  <Text className="text-[14px] text-text3 font-body mt-2">
-                    Trykk her hvis tastaturet ikke vises.
-                  </Text>
-                </Pressable>
-
-                <Pressable onPress={onBackToCredentials} className="self-start py-2">
-                  <Text className="text-[15px] text-accent font-bodyMedium">
-                    ← Start innlogging på nytt
-                  </Text>
-                </Pressable>
-              </>
-            )}
-
-            {errorMessage ? (
-              <View className="rounded-xl bg-redLight px-4 py-3">
-                <Text className="text-[15px] leading-[22px] text-red font-body">
-                  {errorMessage}
-                </Text>
-              </View>
-            ) : null}
-
+          {(activeStrategy === "email_code" || activeStrategy === "phone_code") && !codeSent ? (
             <Pressable
-              onPress={pendingSecondFactor ? onVerifySecondFactorPress : onSignInPress}
-              disabled={
-                !isLoaded ||
-                submitting ||
-                (!pendingSecondFactor && (!emailAddress.trim() || !password)) ||
-                (pendingSecondFactor &&
-                  (!codeSent || !selectedFactor || verificationCode.length < minCodeLength))
-              }
-              className="min-h-[56px] rounded-2xl bg-accent px-5 py-4 justify-center disabled:opacity-50"
+              onPress={() => {
+                if (pendingFirstFactor && selectedFirstFactor) {
+                  void prepareFirstFactorDelivery(selectedFirstFactor);
+                  return;
+                }
+                if (selectedFactor) void prepareCodeDelivery(selectedFactor);
+              }}
+              disabled={submitting}
+              className="self-start rounded-xl bg-card2 px-4 py-3 border border-bg2"
             >
-              {submitting ? (
-                <ActivityIndicator color="#F7F4EF" />
-              ) : (
-                <Text className="text-center text-[17px] text-card font-bodySemi">
-                  {pendingSecondFactor ? "Bekreft og fortsett" : "Logg inn"}
-                </Text>
-              )}
+              <Text className="text-[15px] text-accent font-bodyMedium">Send kode</Text>
             </Pressable>
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+          ) : null}
+
+          <Pressable onPress={focusCodeField} accessibilityRole="button">
+            <Text className={authLabelClassName}>
+              {activeStrategy === "totp" ? "Kode fra autentiseringsapp" : "Verifiseringskode"}
+            </Text>
+            <TextInput
+              key={`code-${codeInputKey}-${activeStrategy}`}
+              ref={codeRef}
+              value={verificationCode}
+              onChangeText={(text) => {
+                const maxLen = activeStrategy === "backup_code" ? 12 : 8;
+                setVerificationCode(
+                  activeStrategy === "backup_code"
+                    ? text.replace(/\s/g, "").slice(0, maxLen)
+                    : text.replace(/\D/g, "").slice(0, maxLen),
+                );
+                if (errorMessage) setErrorMessage(null);
+              }}
+              autoCapitalize="none"
+              autoCorrect={false}
+              autoFocus
+              keyboardType={activeStrategy === "backup_code" ? "default" : "number-pad"}
+              textContentType="oneTimeCode"
+              returnKeyType="done"
+              onSubmitEditing={
+                pendingFirstFactor ? onVerifyFirstFactorPress : onVerifySecondFactorPress
+              }
+              placeholder={activeStrategy === "backup_code" ? "backup-xxxx" : "000000"}
+              placeholderTextColor={authPlaceholderColor}
+              className={authCodeInputClassName}
+              style={authCodeInputStyle}
+              editable={!submitting && codeSent}
+              selectTextOnFocus
+            />
+            <Text className="text-[14px] text-text3 font-body mt-2">
+              Trykk her hvis tastaturet ikke vises.
+            </Text>
+          </Pressable>
+
+          <Pressable onPress={onBackToCredentials} className="self-start py-2">
+            <Text className="text-[15px] text-accent font-bodyMedium">
+              ← Start innlogging på nytt
+            </Text>
+          </Pressable>
+        </>
+      )}
+
+      {errorMessage ? (
+        <View className="rounded-xl bg-redLight px-4 py-3">
+          <Text className="text-[15px] leading-[22px] text-red font-body">{errorMessage}</Text>
+        </View>
+      ) : null}
+
+      <Pressable
+        onPress={
+          pendingFirstFactor
+            ? onVerifyFirstFactorPress
+            : pendingSecondFactor
+              ? onVerifySecondFactorPress
+              : onSignInPress
+        }
+        disabled={
+          !isLoaded ||
+          submitting ||
+          (!pendingVerification && (!emailAddress.trim() || !password)) ||
+          (pendingVerification &&
+            (pendingFirstFactor
+              ? !codeSent || !selectedFirstFactor || verificationCode.length < minCodeLength
+              : !codeSent || !selectedFactor || verificationCode.length < minCodeLength))
+        }
+        className="min-h-[56px] rounded-2xl bg-accent px-5 py-4 justify-center disabled:opacity-50"
+      >
+        {submitting ? (
+          <ActivityIndicator color="#F7F4EF" />
+        ) : (
+          <Text className="text-center text-[17px] text-card font-bodySemi">
+            {pendingVerification ? "Bekreft og fortsett" : "Logg inn"}
+          </Text>
+        )}
+      </Pressable>
+    </View>
   );
 }

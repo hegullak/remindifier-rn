@@ -58,12 +58,14 @@ export async function listAllRedLetterSources(userId: string): Promise<RedLetter
     .from(persons)
     .where(eq(persons.userId, userId));
 
+  const explicitKeys = new Set(explicit.map((row) => `${row.personId}:${row.kind}`));
+
   const legacy: RedLetterDayRow[] = [];
   for (const p of people) {
-    if (p.birthday) {
+    if (p.birthday && !explicitKeys.has(`${p.id}:Birthday`)) {
       legacy.push(legacyBirthdayRow(p.id, p.displayName, p.birthday, p.birthdayYearKnown));
     }
-    if (p.anniversary) {
+    if (p.anniversary && !explicitKeys.has(`${p.id}:Anniversary`)) {
       legacy.push(legacyAnniversaryRow(p.id, p.displayName, p.anniversary));
     }
   }

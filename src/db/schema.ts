@@ -232,4 +232,14 @@ export const briefRedLetterDays = sqliteTable("brief_red_letter_days", {
   timing: text("timing").notNull(),
 });
 
+export const myProfile = sqliteTable("my_profile", {
+  userId: text("user_id").primaryKey(),
+  displayName: text("display_name").notNull(),
+  birthday: text("birthday"),
+  birthdayYearKnown: integer("birthday_year_known", { mode: "boolean" }).default(false),
+  about: text("about"),
+  contactPreference: text("contact_preference"),
+});
+
 export type Person = typeof persons.$inferSelect;
+export type MyProfile = typeof myProfile.$inferSelect;

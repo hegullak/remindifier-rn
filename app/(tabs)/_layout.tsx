@@ -1,6 +1,18 @@
-import { Tabs } from "expo-router";
+import { getClerkInstance, useAuth } from "@clerk/clerk-expo";
+import type { ExpoSQLiteDatabase } from "drizzle-orm/expo-sqlite";
+import { useMigrations } from "drizzle-orm/expo-sqlite/migrator";
+import { Redirect, Tabs } from "expo-router";
 import { Text } from "react-native";
+import { useBootstrapApp } from "@/bootstrap/useBootstrapApp";
+import migrations from "@/db/drizzle/migrations";
+import type * as schema from "@/db/schema";
+import { useUserDrizzleDb } from "@/db/useUserDrizzleDb";
 import { useAppTheme } from "@/theme/ThemeProvider";
+import { FatalScreen, LoadingScreen } from "@/ui/StartupScreens";
+
+function TabIcon({ emoji, focused }: { emoji: string; focused: boolean }) {
+  return <Text style={{ fontSize: 22, opacity: focused ? 1 : 0.42, lineHeight: 26 }}>{emoji}</Text>;
+}
 
 function TabLabel({ label, focused }: { label: string; focused: boolean }) {
   return (
@@ -10,8 +22,25 @@ function TabLabel({ label, focused }: { label: string; focused: boolean }) {
   );
 }
 
-export default function TabsLayout() {
+function TabsWithBootstrap({
+  db,
+  userId,
+}: {
+  db: ExpoSQLiteDatabase<typeof schema>;
+  userId: string;
+}) {
   const { isDark } = useAppTheme();
+  const migrationState = useMigrations(db, migrations);
+  const { ready } = useBootstrapApp(userId, migrationState.success);
+
+  if (migrationState.error) {
+    return <FatalScreen message={migrationState.error.message} />;
+  }
+
+  if (!ready) {
+    return <LoadingScreen message="Preparing your local data…" />;
+  }
+
   return (
     <Tabs
       screenOptions={{
@@ -31,16 +60,44 @@ export default function TabsLayout() {
         name="brief"
         options={{
           title: "Brief",
-          tabBarLabel: ({ focused }) => <TabLabel label="Brief" focused={focused} />,
+          tabBarIcon: ({ focused }) => <TabIcon emoji="☀️" focused={focused} />,
+          tabBarLabel: ({ focused }) => <TabLabel label="brief" focused={focused} />,
         }}
       />
       <Tabs.Screen
         name="people"
         options={{
           title: "People",
-          tabBarLabel: ({ focused }) => <TabLabel label="People" focused={focused} />,
+          tabBarIcon: ({ focused }) => <TabIcon emoji="👤" focused={focused} />,
+          tabBarLabel: ({ focused }) => <TabLabel label="people" focused={focused} />,
         }}
       />
     </Tabs>
   );
+}
+
+export default function TabsLayout() {
+  const { isSignedIn, isLoaded, userId } = useAuth();
+  const effectiveUserId = isSignedIn
+    ? (userId ?? getClerkInstance().session?.user?.id ?? null)
+    : null;
+  const { db, loading, error } = useUserDrizzleDb(effectiveUserId);
+
+  if (!isLoaded) {
+    return <LoadingScreen message="Loading…" />;
+  }
+
+  if (!isSignedIn || !effectiveUserId) {
+    return <Redirect href="/sign-in" />;
+  }
+
+  if (error) {
+    return <FatalScreen message={error.message} />;
+  }
+
+  if (loading || !db) {
+    return <LoadingScreen message="Opening your encrypted database…" />;
+  }
+
+  return <TabsWithBootstrap db={db} userId={effectiveUserId} />;
 }

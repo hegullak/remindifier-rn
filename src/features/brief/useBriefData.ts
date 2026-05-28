@@ -3,6 +3,8 @@ import { listBriefSchedule, listUpcomingRedLetterDays } from "@/db/repos/briefRe
 import { getBriefSectionOrder, setBriefSectionOrder } from "@/db/repos/userRepo";
 import type { BriefSectionId } from "@/lib/brief/sections";
 import { DEFAULT_BRIEF_SECTION_ORDER } from "@/lib/brief/sections";
+import type { BriefWeatherData } from "@/lib/brief/weather";
+import { fetchBriefWeather } from "@/lib/brief/weather";
 import type { UpcomingRedLetterDay } from "@/lib/timeline/red-letter-days";
 
 export const HEADSUP_ITEMS = [
@@ -17,16 +19,20 @@ export const HEADSUP_ITEMS = [
 export const FALLBACK_TRAINING = ["Strength Training: Pull", "Running 4x4 interval"];
 
 interface BriefState {
-  firstName: string;
-  weather: { temp: string; description: string };
+  weather: BriefWeatherData;
   schedule: { id: string; time: string; title: string; note: string }[];
   redLetterDays: UpcomingRedLetterDay[];
   sectionOrder: BriefSectionId[];
 }
 
 const initialState: BriefState = {
-  firstName: "there",
-  weather: { temp: "13°C", description: "Calm and clear" },
+  weather: {
+    temp: "13°",
+    description: "Calm and clear",
+    goodForRun: true,
+    icon: "⛅",
+    details: [],
+  },
   schedule: [],
   redLetterDays: [],
   sectionOrder: DEFAULT_BRIEF_SECTION_ORDER,
@@ -57,17 +63,18 @@ export function useBriefData(userId: string | null | undefined) {
       setBrief(initialState);
       return;
     }
-    const [schedule, redLetterDays, sectionOrder] = await Promise.all([
+    const [schedule, redLetterDays, sectionOrder, weather] = await Promise.all([
       listBriefSchedule(userId),
       listUpcomingRedLetterDays(userId, 90),
       getBriefSectionOrder(userId),
+      fetchBriefWeather(),
     ]);
     setBrief((prev) => ({
       ...prev,
-      firstName: "Helga",
       schedule,
       redLetterDays,
       sectionOrder,
+      weather,
     }));
   }, [userId]);
 
@@ -77,17 +84,15 @@ export function useBriefData(userId: string | null | undefined) {
     });
   }, [reload]);
 
-  const moveSection = async (sectionId: BriefSectionId, direction: "up" | "down") => {
-    if (!userId) return;
-    const order = [...brief.sectionOrder];
-    const index = order.indexOf(sectionId);
-    if (index < 0) return;
-    const swapWith = direction === "up" ? index - 1 : index + 1;
-    if (swapWith < 0 || swapWith >= order.length) return;
-    [order[index], order[swapWith]] = [order[swapWith], order[index]];
-    setBrief((prev) => ({ ...prev, sectionOrder: order }));
-    await setBriefSectionOrder(userId, order);
-  };
+  const setSectionOrder = useCallback(
+    async (order: BriefSectionId[]) => {
+      setBrief((prev) => ({ ...prev, sectionOrder: order }));
+      if (userId) {
+        await setBriefSectionOrder(userId, order);
+      }
+    },
+    [userId],
+  );
 
-  return { brief, reload, moveSection, dateLine: formatBriefDateLine() };
+  return { brief, reload, setSectionOrder, dateLine: formatBriefDateLine() };
 }

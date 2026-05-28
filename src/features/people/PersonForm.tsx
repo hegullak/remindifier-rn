@@ -1,8 +1,15 @@
-import { useState } from "react";
+import { forwardRef, useImperativeHandle, useState } from "react";
 import { Pressable, Switch, Text, TextInput, View } from "react-native";
 import type { UpsertPersonInput } from "@/db/repos/peopleRepo";
 import { RedLetterDaysSection } from "@/features/people/RedLetterDaysSection";
 import type { RedLetterDayInput } from "@/lib/red-letter-day";
+import { Card } from "@/ui/Card";
+
+export interface PersonFormHandle {
+  submit: () => void;
+  delete: () => void;
+  saving: boolean;
+}
 
 interface PersonFormProps {
   initial?: {
@@ -17,12 +24,26 @@ interface PersonFormProps {
   submitLabel: string;
   onSubmit: (payload: UpsertPersonInput) => Promise<void>;
   onDelete?: () => Promise<void>;
+  layout?: "default" | "cards";
+  hideActions?: boolean;
+  onSavingChange?: (saving: boolean) => void;
 }
 
 const fieldClass =
   "mt-2 bg-bg2 border border-border rounded-md px-3 py-3 text-[14px] text-text1 font-body";
 
-export function PersonForm({ initial, submitLabel, onSubmit, onDelete }: PersonFormProps) {
+export const PersonForm = forwardRef<PersonFormHandle, PersonFormProps>(function PersonForm(
+  {
+    initial,
+    submitLabel,
+    onSubmit,
+    onDelete,
+    layout = "default",
+    hideActions = false,
+    onSavingChange,
+  },
+  ref,
+) {
   const [displayName, setDisplayName] = useState(initial?.displayName ?? "");
   const [relationType, setRelationType] = useState(initial?.relationType ?? "");
   const [birthday, setBirthday] = useState(initial?.birthday ?? "");
@@ -41,6 +62,7 @@ export function PersonForm({ initial, submitLabel, onSubmit, onDelete }: PersonF
       return;
     }
     setSaving(true);
+    onSavingChange?.(true);
     setError(null);
     try {
       const funFacts = funFactsText
@@ -59,23 +81,36 @@ export function PersonForm({ initial, submitLabel, onSubmit, onDelete }: PersonF
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to save person");
       setSaving(false);
+      onSavingChange?.(false);
     }
   };
 
   const handleDelete = async () => {
     if (!onDelete) return;
     setSaving(true);
+    onSavingChange?.(true);
     setError(null);
     try {
       await onDelete();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to delete person");
       setSaving(false);
+      onSavingChange?.(false);
     }
   };
 
-  return (
-    <View className="bg-card border border-border rounded-lg px-4 py-4">
+  useImperativeHandle(ref, () => ({
+    submit: () => {
+      void handleSubmit();
+    },
+    delete: () => {
+      void handleDelete();
+    },
+    saving,
+  }));
+
+  const nameFields = (
+    <>
       <Text className="text-[11px] uppercase tracking-[1.5px] text-text3 font-bodySemi">About</Text>
       <TextInput
         value={displayName}
@@ -84,7 +119,6 @@ export function PersonForm({ initial, submitLabel, onSubmit, onDelete }: PersonF
         placeholderTextColor="#7A8CAD"
         className={fieldClass}
       />
-
       <TextInput
         value={relationType}
         onChangeText={setRelationType}
@@ -92,8 +126,12 @@ export function PersonForm({ initial, submitLabel, onSubmit, onDelete }: PersonF
         placeholderTextColor="#7A8CAD"
         className={fieldClass}
       />
+    </>
+  );
 
-      <Text className="text-[11px] uppercase tracking-[1.5px] text-text3 font-bodySemi mt-4">
+  const birthdayFields = (
+    <>
+      <Text className="text-[11px] uppercase tracking-[1.5px] text-text3 font-bodySemi">
         Birthday
       </Text>
       <TextInput
@@ -107,11 +145,12 @@ export function PersonForm({ initial, submitLabel, onSubmit, onDelete }: PersonF
         <Text className="text-[12px] text-text2 font-body">Year is known</Text>
         <Switch value={birthdayYearKnown} onValueChange={setBirthdayYearKnown} />
       </View>
+    </>
+  );
 
-      <View className="mt-5">
-        <RedLetterDaysSection items={redLetterDays} onChange={setRedLetterDays} />
-      </View>
-
+  const extraFields = (
+    <>
+      <RedLetterDaysSection items={redLetterDays} onChange={setRedLetterDays} />
       <Text className="text-[11px] uppercase tracking-[1.5px] text-text3 font-bodySemi mt-4">
         Fun facts
       </Text>
@@ -125,14 +164,15 @@ export function PersonForm({ initial, submitLabel, onSubmit, onDelete }: PersonF
         className={fieldClass}
         style={{ textAlignVertical: "top", minHeight: 110 }}
       />
-
       <View className="flex-row items-center justify-between mt-3">
         <Text className="text-[12px] text-text2 font-body">Handle with care</Text>
         <Switch value={isSensitive} onValueChange={setIsSensitive} />
       </View>
+    </>
+  );
 
-      {error ? <Text className="text-[12px] text-red font-body mt-3">{error}</Text> : null}
-
+  const actions = hideActions ? null : (
+    <>
       <Pressable
         onPress={handleSubmit}
         disabled={saving}
@@ -142,7 +182,6 @@ export function PersonForm({ initial, submitLabel, onSubmit, onDelete }: PersonF
           {saving ? "Saving..." : submitLabel}
         </Text>
       </Pressable>
-
       {onDelete ? (
         <Pressable
           onPress={handleDelete}
@@ -152,6 +191,32 @@ export function PersonForm({ initial, submitLabel, onSubmit, onDelete }: PersonF
           <Text className="text-[13px] text-red font-bodyMedium">Delete person</Text>
         </Pressable>
       ) : null}
+    </>
+  );
+
+  const errorBlock = error ? (
+    <Text className="text-[12px] text-red font-body mt-3">{error}</Text>
+  ) : null;
+
+  if (layout === "cards") {
+    return (
+      <View>
+        <Card style={{ marginBottom: 12 }}>{nameFields}</Card>
+        <Card style={{ marginBottom: 12 }}>{birthdayFields}</Card>
+        <Card style={{ marginBottom: 12 }}>{extraFields}</Card>
+        {errorBlock}
+        {actions}
+      </View>
+    );
+  }
+
+  return (
+    <View className="bg-card border border-border rounded-lg px-4 py-4">
+      {nameFields}
+      {birthdayFields}
+      <View className="mt-5">{extraFields}</View>
+      {errorBlock}
+      {actions}
     </View>
   );
-}
+});

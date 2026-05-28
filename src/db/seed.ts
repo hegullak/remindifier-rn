@@ -105,9 +105,6 @@ export async function seedLocalData(userId: string) {
   ]);
 
   await db.insert(personRedLetterDays).values([
-    { id: "r-bday-trond", userId, personId: "p-trond", kind: "Birthday", eventDate: "1956-05-27" },
-    { id: "r-bday-ida", userId, personId: "p-ida", kind: "Birthday", eventDate: "1992-06-14" },
-    { id: "r-bday-mari", userId, personId: "p-mari", kind: "Birthday", eventDate: "1989-02-03" },
     {
       id: "r-ann-ida",
       userId,

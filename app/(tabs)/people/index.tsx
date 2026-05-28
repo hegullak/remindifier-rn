@@ -65,13 +65,21 @@ export default function PeopleListScreen() {
 
   const listHeader = (
     <View className="px-4">
-      <View className="pt-1 pb-2">
-        <Text className="text-[30px] leading-[36px] text-text1 font-heading">People</Text>
-        <Text className="text-[13px] text-text2 font-body mt-1">
-          Your relationship memory space.
-        </Text>
-        <Link href="/people/new" className="text-[12px] text-accent font-bodyMedium mt-2">
-          + Add person
+      <View className="pt-1 pb-2 flex-row items-start justify-between gap-3">
+        <View className="flex-1">
+          <Text className="text-[30px] leading-[36px] text-text1 font-heading">People</Text>
+          <Text className="text-[13px] text-text2 font-body mt-1">
+            Your relationship memory space.
+          </Text>
+        </View>
+        <Link href="/people/new" asChild>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Add person"
+            className="w-[34px] h-[34px] rounded-md items-center justify-center bg-card2 border border-border active:opacity-70"
+          >
+            <Text className="text-[22px] leading-[24px] text-accent font-bodyMedium">+</Text>
+          </Pressable>
         </Link>
       </View>
       <SectionLabel>People list</SectionLabel>

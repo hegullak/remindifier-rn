@@ -23,9 +23,15 @@
 - People stack: `app/(tabs)/people/_layout.tsx` (list, detail, new, edit)
 - `app/index.tsx` → `/(tabs)/brief`
 
-## Auth
-- `src/features/auth/SignInScreen.tsx` — email/password + optional 2FA
-- Clerk dev keys; Client Trust may still require email code on new device
+## Auth (Clerk — iOS & Android ready)
+- `src/features/auth/AuthScreen.tsx` — OAuth (Google, Apple) + sign-in / sign-up tabs
+- `src/features/auth/SignInScreen.tsx` — email/password + 2FA
+- `src/features/auth/SignUpScreen.tsx` — email sign-up + verification code
+- `src/features/auth/AccountMenu.tsx` — avatar + sign out in `AppShell`
+- `src/features/auth/clerk/` — redirect URL, OAuth, Android browser warm-up
+- `app/sso-callback.tsx` — OAuth deep link (`remindifier-rn://sso-callback`)
+- Setup: `docs/CLERK_NATIVE.md`, `.env.example`
+- Expo Go: works with email; enable Google/Apple in Clerk Dashboard + redirect URLs
 
 ## Database / repos
 - Drizzle + SQLCipher per user

@@ -7,6 +7,12 @@ const migrations = {
         tag: "0000_aromatic_doctor_doom",
         breakpoints: true,
       },
+      {
+        idx: 1,
+        when: 1780001310043,
+        tag: "0001_lean_tinkerer",
+        breakpoints: true,
+      },
     ],
   },
   migrations: {
@@ -141,6 +147,14 @@ CREATE TABLE \`users\` (
 	\`brief_preferences\` text DEFAULT '{}' NOT NULL,
 	\`created_at\` integer DEFAULT (unixepoch() * 1000) NOT NULL,
 	\`updated_at\` integer DEFAULT (unixepoch() * 1000) NOT NULL
+);`,
+    m0001: `CREATE TABLE \`my_profile\` (
+	\`user_id\` text PRIMARY KEY NOT NULL,
+	\`display_name\` text NOT NULL,
+	\`birthday\` text,
+	\`birthday_year_known\` integer DEFAULT false,
+	\`about\` text,
+	\`contact_preference\` text
 );`,
   },
 };

@@ -1,13 +1,14 @@
 import { useAuth } from "@clerk/clerk-expo";
-import { Link, useLocalSearchParams } from "expo-router";
+import { Link, router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import { Pressable, ScrollView, Text, TextInput, useColorScheme, View } from "react-native";
-import { createPersonEntry, deletePersonEntry } from "@/db/repos/peopleRepo";
+import { createPersonEntry, deletePerson, deletePersonEntry } from "@/db/repos/peopleRepo";
 import { usePersonProfileData } from "@/features/people/usePersonProfileData";
 import { AppShell } from "@/ui/AppShell";
 import { BottomSheet } from "@/ui/BottomSheet";
 import { Button } from "@/ui/Button";
 import { Card } from "@/ui/Card";
+import { IconButton } from "@/ui/IconButton";
 import { SectionLabel } from "@/ui/SectionLabel";
 
 function formatDate(iso: string) {
@@ -32,6 +33,8 @@ export default function PersonDetailScreen() {
   const [entryError, setEntryError] = useState<string | null>(null);
   const [entryToDelete, setEntryToDelete] = useState<string | null>(null);
   const [deletingEntry, setDeletingEntry] = useState(false);
+  const [confirmDeletePerson, setConfirmDeletePerson] = useState(false);
+  const [deletingPerson, setDeletingPerson] = useState(false);
 
   const submitEntry = async () => {
     if (!userId || !id) {
@@ -68,26 +71,53 @@ export default function PersonDetailScreen() {
     }
   };
 
+  const handleDeletePerson = async () => {
+    if (!userId || !id) return;
+    setDeletingPerson(true);
+    try {
+      await deletePerson(userId, id);
+      setConfirmDeletePerson(false);
+      router.replace("/people");
+    } finally {
+      setDeletingPerson(false);
+    }
+  };
+
   return (
     <AppShell>
       <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}>
         <View className="pt-1 pb-2">
-          <Text className="text-[30px] leading-[36px] text-text1 font-heading">
-            {bundle?.person.displayName ?? "Person"}
-          </Text>
-          {id ? (
-            <Link
-              href={`/people/${id}/edit`}
-              className="text-[12px] text-accent font-bodyMedium mt-2"
-            >
-              Edit person →
-            </Link>
-          ) : null}
-          {bundle?.person.relationType ? (
-            <Text className="text-[11px] uppercase tracking-[1.5px] text-text3 font-bodySemi mt-1">
-              {bundle.person.relationType}
-            </Text>
-          ) : null}
+          <View className="flex-row items-start justify-between gap-2">
+            <View className="flex-1 min-w-0">
+              <Text className="text-[30px] leading-[36px] text-text1 font-heading">
+                {bundle?.person.displayName ?? "Person"}
+              </Text>
+              {bundle?.person.relationType ? (
+                <Text className="text-[11px] uppercase tracking-[1.5px] text-text3 font-bodySemi mt-1">
+                  {bundle.person.relationType}
+                </Text>
+              ) : null}
+            </View>
+            {id ? (
+              <View className="flex-row gap-2 mt-1">
+                <Link href={`/people/${id}/edit`} asChild>
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel="Edit person"
+                    className="w-[34px] h-[34px] rounded-md items-center justify-center bg-card2 border border-border active:opacity-70"
+                  >
+                    <Text className="text-[16px] text-text2 font-body">✎</Text>
+                  </Pressable>
+                </Link>
+                <IconButton
+                  accessibilityLabel="Delete person"
+                  onPress={() => setConfirmDeletePerson(true)}
+                >
+                  <Text className="text-[16px] text-red font-body">🗑</Text>
+                </IconButton>
+              </View>
+            ) : null}
+          </View>
         </View>
 
         {loading ? (
@@ -121,19 +151,39 @@ export default function PersonDetailScreen() {
               <Text className="text-[13px] text-text3 font-body">No links yet.</Text>
             ) : (
               bundle.links.map((link) => (
-                <Card key={link.id}>
-                  <Text className="text-[14px] text-text1 font-bodyMedium">
-                    {link.direction === "outgoing" ? "→" : "←"} {link.otherPersonName}
-                  </Text>
-                  <Text className="text-[12px] text-text3 font-body mt-1">{link.label}</Text>
-                  {link.notes ? (
-                    <Text className="text-[12px] text-text2 font-body mt-1">{link.notes}</Text>
-                  ) : null}
-                </Card>
+                <Link key={link.id} href={`/people/${link.otherPersonId}`} asChild>
+                  <Pressable>
+                    <Card>
+                      <Text className="text-[14px] text-text1 font-bodyMedium">
+                        {link.direction === "outgoing" ? "→" : "←"} {link.otherPersonName}
+                      </Text>
+                      <Text className="text-[12px] text-text3 font-body mt-1">{link.label}</Text>
+                      {link.notes ? (
+                        <Text className="text-[12px] text-text2 font-body mt-1">{link.notes}</Text>
+                      ) : null}
+                    </Card>
+                  </Pressable>
+                </Link>
               ))
             )}
 
             <SectionLabel>Timeline</SectionLabel>
+            {bundle.timeline.map((entry) => (
+              <View key={entry.id} className="border-l-2 border-border pl-3 py-2 mb-2">
+                <View className="flex-row items-start justify-between gap-2">
+                  <Text className="text-[10px] uppercase tracking-[1.2px] text-text3 font-bodyMedium flex-1">
+                    {formatDate(entry.occurredAt.toISOString())} · {entryTypeLabel(entry.entryType)}
+                  </Text>
+                  <Pressable onPress={() => setEntryToDelete(entry.id)} hitSlop={8}>
+                    <Text className="text-[14px] text-text3 font-body">✕</Text>
+                  </Pressable>
+                </View>
+                <Text className="text-[14px] text-text2 font-body mt-1">{entry.body}</Text>
+              </View>
+            ))}
+            {bundle.timeline.length === 0 ? (
+              <Text className="text-[13px] text-text3 font-body mb-2">No notes yet.</Text>
+            ) : null}
             <Card style={{ marginBottom: 12 }}>
               <Text className="text-[11px] uppercase tracking-[1.2px] text-text3 font-bodySemi">
                 Add note
@@ -195,24 +245,6 @@ export default function PersonDetailScreen() {
                 </Button>
               </View>
             </Card>
-            {bundle.timeline.length === 0 ? (
-              <Text className="text-[13px] text-text3 font-body">No notes yet.</Text>
-            ) : (
-              bundle.timeline.map((entry) => (
-                <View key={entry.id} className="border-l-2 border-border pl-3 py-2 mb-2">
-                  <View className="flex-row items-start justify-between gap-2">
-                    <Text className="text-[10px] uppercase tracking-[1.2px] text-text3 font-bodyMedium flex-1">
-                      {formatDate(entry.occurredAt.toISOString())} ·{" "}
-                      {entryTypeLabel(entry.entryType)}
-                    </Text>
-                    <Pressable onPress={() => setEntryToDelete(entry.id)} hitSlop={8}>
-                      <Text className="text-[14px] text-text3 font-body">✕</Text>
-                    </Pressable>
-                  </View>
-                  <Text className="text-[14px] text-text2 font-body mt-1">{entry.body}</Text>
-                </View>
-              ))
-            )}
           </>
         ) : null}
       </ScrollView>
@@ -233,6 +265,34 @@ export default function PersonDetailScreen() {
             Remove
           </Button>
           <Button variant="ghost" onPress={() => setEntryToDelete(null)} disabled={deletingEntry}>
+            Cancel
+          </Button>
+        </View>
+      </BottomSheet>
+
+      <BottomSheet
+        visible={confirmDeletePerson}
+        onDismiss={() => setConfirmDeletePerson(false)}
+        title="Delete person?"
+      >
+        <Text className="text-[14px] text-text2 font-body mb-4">
+          This removes {bundle?.person.displayName ?? "this person"} and their local notes. This
+          cannot be undone.
+        </Text>
+        <View className="gap-2">
+          <Button
+            variant="primary"
+            onPress={handleDeletePerson}
+            loading={deletingPerson}
+            disabled={deletingPerson}
+          >
+            Delete person
+          </Button>
+          <Button
+            variant="ghost"
+            onPress={() => setConfirmDeletePerson(false)}
+            disabled={deletingPerson}
+          >
             Cancel
           </Button>
         </View>
