@@ -7,19 +7,19 @@ export const NORSK_BRYLLUPSDAG: ReadonlyMap<number, string> = new Map([
   [1, "Papirbryllup"],
   [2, "Bomullsbryllup"],
   [3, "Lærbryllup"],
-  [4, "Fruktbryllup"],
+  [4, "Blomsterbryllup"],
   [5, "Trebryllup"],
   [6, "Sukkerbryllup"],
   [7, "Ullbryllup"],
   [8, "Bronsebryllup"],
-  [9, "Porselensbryllup"],
+  [9, "Keramikkbryllup"],
   [10, "Tinnbryllup"],
   [11, "Stålbryllup"],
   [12, "Silkebryllup"],
   [13, "Blondebryllup"],
   [14, "Elfenbensbryllup"],
   [15, "Krystallbryllup"],
-  [20, "Kinabryllup"],
+  [20, "Porselensbryllup"],
   [25, "Sølvbryllup"],
   [30, "Perlebryllup"],
   [35, "Korallbryllup"],
@@ -28,8 +28,9 @@ export const NORSK_BRYLLUPSDAG: ReadonlyMap<number, string> = new Map([
   [50, "Gullbryllup"],
   [55, "Smaragdbryllup"],
   [60, "Diamantbryllup"],
-  [65, "Blå diamantbryllup"],
-  [70, "Nådebryllup"],
+  [65, "Kronjuvelbryllup"],
+  [70, "Jernbryllup"],
+  [75, "Atombryllup"],
 ]);
 
 export const ENGLISH_WEDDING_ANNIVERSARY: ReadonlyMap<number, string> = new Map([
@@ -121,6 +122,11 @@ export function currentAnniversaryName(
 
   const name = NORSK_BRYLLUPSDAG.get(years);
   return name ? { years, name } : null;
+}
+
+export function weddingAnniversaryName(years: number, locale: "en" | "no"): string | null {
+  const map = locale === "no" ? NORSK_BRYLLUPSDAG : ENGLISH_WEDDING_ANNIVERSARY;
+  return map.get(years) ?? null;
 }
 
 export function weddingAnniversaryYears(

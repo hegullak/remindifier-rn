@@ -101,6 +101,14 @@ function TabsWithBootstrap({
         }}
       />
       <Tabs.Screen
+        name="gather"
+        options={{
+          title: "Events",
+          tabBarIcon: ({ focused }) => <TabIcon emoji="🌿" focused={focused} />,
+          tabBarLabel: ({ focused }) => <TabLabel label={t("tabs.gather")} focused={focused} />,
+        }}
+      />
+      <Tabs.Screen
         name="people"
         options={{
           title: "People",

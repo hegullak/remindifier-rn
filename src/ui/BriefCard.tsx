@@ -6,6 +6,7 @@ const stripeClass: Record<string, string> = {
   green: "bg-green",
   dusk: "bg-dusk",
   sage: "bg-sage",
+  accent: "bg-accent",
 };
 
 export function BriefCard({
@@ -13,7 +14,7 @@ export function BriefCard({
   stripeColor,
 }: {
   children: React.ReactNode;
-  stripeColor: "blue" | "amber" | "green" | "dusk" | "sage";
+  stripeColor: "blue" | "amber" | "green" | "dusk" | "sage" | "accent";
 }) {
   return (
     <View className="relative bg-card border border-border rounded-lg px-4 py-3 mb-1 overflow-hidden">

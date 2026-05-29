@@ -1,0 +1,111 @@
+import { Link, router, useFocusEffect } from "expo-router";
+import { useCallback, useState } from "react";
+import { ActivityIndicator, Pressable, ScrollView, Text, View } from "react-native";
+import { listGatheringsForUser, getGatheringTalkingPointCount } from "@/db/repos/gatheringsRepo";
+import type { GatheringListItem } from "@/db/repos/gatheringsRepo";
+import { useAppAuth } from "@/features/auth/useAppAuth";
+import { useTranslation } from "@/i18n";
+import type { Locale } from "@/i18n/types";
+import { AppShell } from "@/ui/AppShell";
+import { Card } from "@/ui/Card";
+
+function formatDate(iso: Date | null, locale: Locale) {
+  if (!iso) return null;
+  const dateLocale = locale === "no" ? "nb-NO" : "en-GB";
+  return iso.toLocaleDateString(dateLocale, {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+  });
+}
+
+export default function GatherListScreen() {
+  const { userId } = useAppAuth();
+  const { t, locale } = useTranslation();
+  const [items, setItems] = useState<GatheringListItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const reload = useCallback(async () => {
+    if (!userId) {
+      setItems([]);
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    try {
+      const rows = await listGatheringsForUser(userId);
+      setItems(rows);
+    } finally {
+      setLoading(false);
+    }
+  }, [userId]);
+
+  useFocusEffect(
+    useCallback(() => {
+      void reload();
+    }, [reload]),
+  );
+
+  return (
+    <AppShell>
+      <View className="flex-1 px-4">
+        <Text className="text-[30px] leading-[36px] text-text1 font-heading pt-1">
+          {t("gathering.title")}
+        </Text>
+        <Text className="text-[14px] text-text2 font-body mt-1 mb-4">{t("gathering.subtitle")}</Text>
+
+        {loading ? (
+          <ActivityIndicator color="#C4784A" />
+        ) : items.length === 0 ? (
+          <View className="mt-8">
+            <Text className="text-[14px] text-text2 font-body">{t("gathering.noEvents")}</Text>
+            <Text className="text-[13px] text-text3 font-body mt-2">{t("gathering.createFirst")}</Text>
+          </View>
+        ) : (
+          <ScrollView contentContainerStyle={{ paddingBottom: 100 }} keyboardShouldPersistTaps="handled">
+            {items.map((item) => {
+              const count = getGatheringTalkingPointCount(item.description);
+              const dateLabel = formatDate(item.scheduledAt, locale);
+              return (
+                <Link key={item.id} href={`/gather/${item.id}`} asChild>
+                  <Pressable>
+                    <Card style={{ marginBottom: 8 }}>
+                      <Text className="text-[15px] text-text1 font-bodyMedium">{item.title}</Text>
+                      {item.participants.length > 0 ? (
+                        <Text className="text-[12px] text-text3 font-body mt-1">
+                          {item.participants.join(", ")}
+                        </Text>
+                      ) : null}
+                      <Text className="text-[11px] text-text3 font-body mt-1">
+                        {t("gathering.talkingPointCount", { count })}
+                      </Text>
+                      {dateLabel ? (
+                        <Text className="text-[11px] text-text3 font-body mt-0.5">{dateLabel}</Text>
+                      ) : null}
+                    </Card>
+                  </Pressable>
+                </Link>
+              );
+            })}
+          </ScrollView>
+        )}
+
+        <Pressable
+          onPress={() => router.push("/gather/new")}
+          accessibilityRole="button"
+          accessibilityLabel={t("gathering.createButton")}
+          className="absolute right-5 bottom-8 w-14 h-14 rounded-full bg-accent items-center justify-center"
+          style={{
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.12,
+            shadowRadius: 16,
+            elevation: 6,
+          }}
+        >
+          <Text className="text-[22px] text-card font-body">✦</Text>
+        </Pressable>
+      </View>
+    </AppShell>
+  );
+}

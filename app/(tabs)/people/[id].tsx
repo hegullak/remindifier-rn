@@ -148,24 +148,45 @@ export default function PersonDetailScreen() {
 
             {bundle.gatherings.length > 0 ? (
               <>
-                <SectionLabel>{t("people.events")}</SectionLabel>
+                <View className="flex-row items-center justify-between mb-1">
+                  <SectionLabel>{t("people.events")}</SectionLabel>
+                  <Pressable
+                    onPress={() => router.push(`/gather/new?personId=${id}`)}
+                    hitSlop={8}
+                    accessibilityRole="button"
+                    accessibilityLabel={t("people.addEvent")}
+                  >
+                    <Text className="text-[16px] text-accent font-body">✦</Text>
+                  </Pressable>
+                </View>
                 {bundle.gatherings.map((g) => (
-                  <Card key={g.id} style={{ marginBottom: 4 }}>
-                    <Text className="text-[14px] text-text1 font-bodyMedium">{g.title}</Text>
-                    {g.description ? (
-                      <Text className="text-[13px] text-text2 font-body mt-1 leading-[19px]">
-                        {g.description}
-                      </Text>
-                    ) : null}
-                    {g.scheduledAt ? (
-                      <Text className="text-[11px] text-text3 font-body mt-1">
-                        {formatDate(g.scheduledAt.toISOString(), locale)}
-                      </Text>
-                    ) : null}
-                  </Card>
+                  <Link key={g.id} href={`/gather/${g.id}`} asChild>
+                    <Pressable>
+                      <Card style={{ marginBottom: 4 }}>
+                        <Text className="text-[14px] text-text1 font-bodyMedium">{g.title}</Text>
+                        {g.scheduledAt ? (
+                          <Text className="text-[11px] text-text3 font-body mt-1">
+                            {formatDate(g.scheduledAt.toISOString(), locale)}
+                          </Text>
+                        ) : null}
+                      </Card>
+                    </Pressable>
+                  </Link>
                 ))}
               </>
-            ) : null}
+            ) : (
+              <View className="flex-row items-center justify-between mb-1">
+                <SectionLabel>{t("people.events")}</SectionLabel>
+                <Pressable
+                  onPress={() => router.push(`/gather/new?personId=${id}`)}
+                  hitSlop={8}
+                  accessibilityRole="button"
+                  accessibilityLabel={t("people.addEvent")}
+                >
+                  <Text className="text-[16px] text-accent font-body">✦</Text>
+                </Pressable>
+              </View>
+            )}
 
             <SectionLabel>{t("people.redLetterDays")}</SectionLabel>
             {bundle.redLetterDays.length === 0 ? (

@@ -1,6 +1,7 @@
 import { redLetterDisplayLabel } from "@/i18n/redLetterKinds";
 import { translate } from "@/i18n/translate";
 import type { Locale } from "@/i18n/types";
+import { weddingAnniversaryName } from "@/lib/milestones/anniversaries";
 import { nextBirthdayOccurrence } from "@/lib/timeline/birthdays";
 
 const SENTINEL_YEAR = 1;
@@ -89,14 +90,11 @@ function elapsedSinceStart(startDate: string, asOf: Date, locale: Locale): strin
 function anniversaryHeadline(row: RedLetterDayRow, refDate: Date, locale: Locale): string {
   const years = refDate.getFullYear() - parseYmd(row.eventDate).getFullYear();
   const names = row.label?.trim();
-  if (years >= 1) {
-    if (names) {
-      return translate(locale, "merkedager.headline.anniversaryNamedYears", {
-        names,
-        count: years,
-      });
-    }
-    return translate(locale, "merkedager.headline.anniversaryYears", { count: years });
+  const milestoneName = weddingAnniversaryName(years, locale);
+
+  if (years >= 1 && milestoneName) {
+    if (names) return `${names} — ${milestoneName}`;
+    return milestoneName;
   }
   if (names) {
     return translate(locale, "merkedager.headline.anniversaryNamed", { names });

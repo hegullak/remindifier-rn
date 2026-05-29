@@ -1,6 +1,9 @@
 import {
   currentAnniversaryName,
+  ENGLISH_WEDDING_ANNIVERSARY,
+  NORSK_BRYLLUPSDAG,
   upcomingAnniversaryMilestone,
+  weddingAnniversaryName,
   weddingAnniversaryYears,
 } from "@/lib/milestones/anniversaries";
 
@@ -72,6 +75,15 @@ describe("currentAnniversaryName", () => {
     // 22 years — no name in the map
     const today = date(2024, 6, 1);
     expect(currentAnniversaryName("2002-06-01", today)).toBeNull();
+  });
+});
+
+describe("weddingAnniversaryName", () => {
+  it("uses porselensbryllup and china at 20 years", () => {
+    expect(NORSK_BRYLLUPSDAG.get(20)).toBe("Porselensbryllup");
+    expect(ENGLISH_WEDDING_ANNIVERSARY.get(20)).toBe("China");
+    expect(weddingAnniversaryName(20, "no")).toBe("Porselensbryllup");
+    expect(weddingAnniversaryName(20, "en")).toBe("China");
   });
 });
 

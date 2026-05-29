@@ -16,7 +16,6 @@ import type { UpcomingRedLetterDay } from "@/lib/timeline/red-letter-days";
 import { AppShell } from "@/ui/AppShell";
 import { BottomSheet } from "@/ui/BottomSheet";
 import { BriefCard } from "@/ui/BriefCard";
-import { IconButton } from "@/ui/IconButton";
 import { SectionLabel } from "@/ui/SectionLabel";
 
 export default function BriefScreen() {
@@ -264,19 +263,22 @@ export default function BriefScreen() {
 
   const listHeader = (
     <View className="pb-2">
-      <View className="flex-row items-center justify-between mb-2">
-        <IconButton
-          accessibilityLabel={t("brief.weekPrev")}
+      <View className="flex-row items-center justify-center gap-2 mb-2">
+        <Pressable
           onPress={() => shiftWeek(-1)}
+          accessibilityRole="button"
+          accessibilityLabel={t("brief.weekPrev")}
+          hitSlop={8}
+          className="px-1 py-0.5 active:opacity-60"
         >
-          <Text className="text-[20px] leading-[22px] text-text2 font-body">‹</Text>
-        </IconButton>
+          <Text className="text-[22px] leading-[24px] text-text1 font-body">‹</Text>
+        </Pressable>
         <Pressable
           onPress={resetWeek}
           disabled={weekOffset === 0}
           accessibilityRole="button"
           accessibilityLabel={t("brief.weekThis")}
-          className="flex-1 mx-2 items-center"
+          className="active:opacity-70"
         >
           <Text
             className={`text-[12px] font-bodySemi ${weekOffset === 0 ? "text-text3" : "text-accent"}`}
@@ -284,12 +286,15 @@ export default function BriefScreen() {
             {dateLine}
           </Text>
         </Pressable>
-        <IconButton
-          accessibilityLabel={t("brief.weekNext")}
+        <Pressable
           onPress={() => shiftWeek(1)}
+          accessibilityRole="button"
+          accessibilityLabel={t("brief.weekNext")}
+          hitSlop={8}
+          className="px-1 py-0.5 active:opacity-60"
         >
-          <Text className="text-[20px] leading-[22px] text-text2 font-body">›</Text>
-        </IconButton>
+          <Text className="text-[22px] leading-[24px] text-text1 font-body">›</Text>
+        </Pressable>
       </View>
       <View className="pt-1 pb-2">
         <Text className="text-[30px] leading-[36px] text-text1 font-heading mt-1">

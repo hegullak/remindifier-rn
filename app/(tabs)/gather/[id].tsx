@@ -1,0 +1,371 @@
+import { Link, router, useFocusEffect, useLocalSearchParams } from "expo-router";
+import * as Crypto from "expo-crypto";
+import { useCallback, useState } from "react";
+import {
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  useColorScheme,
+  View,
+} from "react-native";
+import {
+  addGatheringParticipant,
+  deleteGathering,
+  getGathering,
+  updateGatheringContent,
+  updateGatheringTitle,
+} from "@/db/repos/gatheringsRepo";
+import { listPeopleSummaries } from "@/db/repos/peopleRepo";
+import { useAppAuth } from "@/features/auth/useAppAuth";
+import { useTranslation } from "@/i18n";
+import type { Locale } from "@/i18n/types";
+import {
+  parseGatheringContent,
+  TALKING_POINT_KINDS,
+  talkingPointLabel,
+  talkingPointMeta,
+  type GatheringContent,
+  type TalkingPoint,
+  type TalkingPointKind,
+} from "@/lib/gatherings/talkingPoints";
+import { AppShell } from "@/ui/AppShell";
+import { BottomSheet } from "@/ui/BottomSheet";
+import { BriefCard } from "@/ui/BriefCard";
+import { Button } from "@/ui/Button";
+import { IconButton } from "@/ui/IconButton";
+
+function formatDate(date: Date | null, locale: Locale) {
+  if (!date) return null;
+  const dateLocale = locale === "no" ? "nb-NO" : "en-GB";
+  return date.toLocaleDateString(dateLocale, {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  });
+}
+
+export default function GatheringDetailScreen() {
+  const { userId } = useAppAuth();
+  const { t, locale } = useTranslation();
+  const colorScheme = useColorScheme();
+  const { id } = useLocalSearchParams<{ id: string }>();
+
+  const [title, setTitle] = useState("");
+  const [editingTitle, setEditingTitle] = useState(false);
+  const [content, setContent] = useState<GatheringContent>({ talkingPoints: [] });
+  const [participants, setParticipants] = useState<{ personId: string; displayName: string }[]>([]);
+  const [scheduledAt, setScheduledAt] = useState<Date | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [selectedKind, setSelectedKind] = useState<TalkingPointKind>("topic");
+  const [newPointText, setNewPointText] = useState("");
+  const [showDelete, setShowDelete] = useState(false);
+  const [showPersonPicker, setShowPersonPicker] = useState(false);
+  const [allPeople, setAllPeople] = useState<{ id: string; displayName: string }[]>([]);
+  const [deleting, setDeleting] = useState(false);
+
+  const reload = useCallback(async () => {
+    if (!userId || !id) return;
+    setLoading(true);
+    try {
+      const data = await getGathering(userId, id);
+      if (!data) {
+        setTitle("");
+        setContent({ talkingPoints: [] });
+        setParticipants([]);
+        return;
+      }
+      setTitle(data.gathering.title);
+      setContent(parseGatheringContent(data.gathering.description));
+      setParticipants(data.participants);
+      setScheduledAt(data.gathering.scheduledAt);
+    } finally {
+      setLoading(false);
+    }
+  }, [userId, id]);
+
+  useFocusEffect(
+    useCallback(() => {
+      void reload();
+      if (userId) {
+        listPeopleSummaries(userId).then((rows) =>
+          setAllPeople(rows.map((p) => ({ id: p.id, displayName: p.displayName }))),
+        );
+      }
+    }, [reload, userId]),
+  );
+
+  async function persistContent(next: GatheringContent) {
+    if (!userId || !id) return;
+    setContent(next);
+    await updateGatheringContent(userId, id, next);
+  }
+
+  async function saveTitle(next: string) {
+    if (!userId || !id) return;
+    const trimmed = next.trim();
+    if (!trimmed) return;
+    setTitle(trimmed);
+    await updateGatheringTitle(userId, id, trimmed);
+  }
+
+  function toggleDone(pointId: string) {
+    const next = {
+      talkingPoints: content.talkingPoints.map((p) =>
+        p.id === pointId ? { ...p, done: !p.done } : p,
+      ),
+    };
+    void persistContent(next);
+  }
+
+  function removePoint(pointId: string) {
+    void persistContent({
+      talkingPoints: content.talkingPoints.filter((p) => p.id !== pointId),
+    });
+  }
+
+  async function addPoint() {
+    const text = newPointText.trim();
+    if (!text) return;
+    Keyboard.dismiss();
+    const point: TalkingPoint = {
+      id: Crypto.randomUUID(),
+      kind: selectedKind,
+      text,
+      done: false,
+    };
+    setNewPointText("");
+    await persistContent({ talkingPoints: [...content.talkingPoints, point] });
+  }
+
+  async function handleAddParticipant(personId: string) {
+    if (!userId || !id) return;
+    if (participants.some((p) => p.personId === personId)) {
+      setShowPersonPicker(false);
+      return;
+    }
+    await addGatheringParticipant(userId, id, personId);
+    setShowPersonPicker(false);
+    await reload();
+  }
+
+  async function handleDelete() {
+    if (!userId || !id) return;
+    setDeleting(true);
+    try {
+      await deleteGathering(userId, id);
+      setShowDelete(false);
+      router.replace("/gather");
+    } finally {
+      setDeleting(false);
+    }
+  }
+
+  const dateLabel = formatDate(scheduledAt, locale);
+  const placeholderColor = colorScheme === "dark" ? "#7A8CAD" : "#A89E90";
+  const participantIds = new Set(participants.map((p) => p.personId));
+
+  return (
+    <AppShell>
+      <KeyboardAvoidingView
+        className="flex-1"
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        keyboardVerticalOffset={8}
+      >
+        <View className="flex-1 px-4">
+          <View className="flex-row items-center justify-between pt-1 pb-2">
+            <Pressable onPress={() => router.back()} hitSlop={8}>
+              <Text className="text-[12px] text-accent font-bodyMedium">{t("common.back")}</Text>
+            </Pressable>
+            <IconButton accessibilityLabel={t("gathering.deleteEvent")} onPress={() => setShowDelete(true)}>
+              <Text className="text-[16px] text-red font-body">🗑</Text>
+            </IconButton>
+          </View>
+
+          {loading ? (
+            <Text className="text-[13px] text-text3 font-body">{t("common.loading")}</Text>
+          ) : !title && content.talkingPoints.length === 0 ? (
+            <Text className="text-[13px] text-text3 font-body">{t("gathering.notFound")}</Text>
+          ) : (
+            <>
+              <View className="flex-row items-start gap-2 mb-2">
+                {editingTitle ? (
+                  <TextInput
+                    value={title}
+                    onChangeText={setTitle}
+                    autoFocus
+                    onBlur={() => {
+                      setEditingTitle(false);
+                      void saveTitle(title);
+                    }}
+                    className="flex-1 text-[28px] leading-[34px] text-text1 font-heading border-b border-accent pb-1"
+                  />
+                ) : (
+                  <Pressable onPress={() => setEditingTitle(true)} className="flex-1 flex-row items-start gap-2">
+                    <Text className="text-[28px] leading-[34px] text-text1 font-heading flex-1">{title}</Text>
+                    <Text className="text-[14px] text-text3 font-body mt-2">✎</Text>
+                  </Pressable>
+                )}
+              </View>
+
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={{ gap: 8, paddingBottom: 8 }}
+                className="mb-2"
+              >
+                {participants.map((p) => (
+                  <Link key={p.personId} href={`/people/${p.personId}`} asChild>
+                    <Pressable className="px-3 py-1.5 rounded-full bg-bg2 border border-border">
+                      <Text className="text-[12px] text-text2 font-body">{p.displayName}</Text>
+                    </Pressable>
+                  </Link>
+                ))}
+                <Pressable
+                  onPress={() => setShowPersonPicker(true)}
+                  className="px-3 py-1.5 rounded-full bg-bg2 border border-dashed border-border"
+                >
+                  <Text className="text-[12px] text-accent font-bodyMedium">{t("gathering.addPerson")}</Text>
+                </Pressable>
+              </ScrollView>
+
+              {dateLabel ? (
+                <Text className="text-[11px] text-text3 font-body mb-3">{dateLabel}</Text>
+              ) : null}
+
+              <ScrollView
+                className="flex-1"
+                keyboardDismissMode="on-drag"
+                keyboardShouldPersistTaps="handled"
+                contentContainerStyle={{ paddingBottom: 16 }}
+              >
+                {content.talkingPoints.length === 0 ? (
+                  <View className="mb-4">
+                    <Text className="text-[14px] text-text2 font-body">{t("gathering.noTalkingPoints")}</Text>
+                    <Text className="text-[13px] text-text3 font-body mt-1">
+                      {t("gathering.noTalkingPointsSub")}
+                    </Text>
+                  </View>
+                ) : (
+                  TALKING_POINT_KINDS.map((kind) => {
+                    const items = content.talkingPoints.filter((p) => p.kind === kind);
+                    if (items.length === 0) return null;
+                    const meta = talkingPointMeta(kind);
+                    return (
+                      <View key={kind} className="mb-3">
+                        <Text className="text-[11px] uppercase tracking-wide text-text3 font-bodySemi mb-1">
+                          {meta.icon} {talkingPointLabel(kind, locale)}
+                        </Text>
+                        {items.map((point) => (
+                          <BriefCard key={point.id} stripeColor={meta.stripeColor}>
+                            <View className="flex-row items-start gap-2">
+                              <Pressable onPress={() => toggleDone(point.id)} className="flex-1">
+                                <Text
+                                  className={`text-[15px] text-text1 font-body ${
+                                    point.done ? "opacity-50 line-through" : ""
+                                  }`}
+                                >
+                                  {point.text}
+                                </Text>
+                              </Pressable>
+                              <Pressable onPress={() => removePoint(point.id)} hitSlop={8}>
+                                <Text className="text-[14px] text-text3 font-body">✕</Text>
+                              </Pressable>
+                            </View>
+                          </BriefCard>
+                        ))}
+                      </View>
+                    );
+                  })
+                )}
+              </ScrollView>
+
+              <View className="border-t border-border pt-3 pb-4">
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={{ gap: 8, paddingBottom: 8 }}
+                >
+                  {TALKING_POINT_KINDS.map((kind) => {
+                    const meta = talkingPointMeta(kind);
+                    const active = selectedKind === kind;
+                    return (
+                      <Pressable
+                        key={kind}
+                        onPress={() => setSelectedKind(kind)}
+                        className={`flex-row items-center gap-1.5 px-3 py-1.5 rounded-full ${
+                          active ? "bg-accent" : "bg-bg2"
+                        }`}
+                      >
+                        <Text className="text-[14px]">{meta.icon}</Text>
+                        <Text
+                          className={`text-[12px] font-bodyMedium ${
+                            active ? "text-card" : "text-text2"
+                          }`}
+                        >
+                          {talkingPointLabel(kind, locale)}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
+                </ScrollView>
+                <View className="flex-row items-center gap-2">
+                  <TextInput
+                    value={newPointText}
+                    onChangeText={setNewPointText}
+                    placeholder={t("gathering.addPlaceholder")}
+                    placeholderTextColor={placeholderColor}
+                    returnKeyType="done"
+                    onSubmitEditing={() => void addPoint()}
+                    className="flex-1 bg-bg2 border border-border rounded-lg px-3 py-2.5 text-[15px] text-text1 font-body"
+                  />
+                  <Pressable
+                    onPress={() => void addPoint()}
+                    className="w-10 h-10 rounded-lg bg-accent items-center justify-center active:opacity-80"
+                  >
+                    <Text className="text-[20px] text-card font-body">+</Text>
+                  </Pressable>
+                </View>
+              </View>
+            </>
+          )}
+        </View>
+      </KeyboardAvoidingView>
+
+      <BottomSheet visible={showDelete} onDismiss={() => setShowDelete(false)} title={t("gathering.deleteEvent")}>
+        <Text className="text-[14px] text-text2 font-body mb-4">{t("gathering.deleteEventBody")}</Text>
+        <View className="gap-2">
+          <Button variant="primary" onPress={() => void handleDelete()} loading={deleting} disabled={deleting}>
+            {t("common.delete")}
+          </Button>
+          <Button variant="ghost" onPress={() => setShowDelete(false)} disabled={deleting}>
+            {t("common.cancel")}
+          </Button>
+        </View>
+      </BottomSheet>
+
+      <BottomSheet
+        visible={showPersonPicker}
+        onDismiss={() => setShowPersonPicker(false)}
+        title={t("gathering.pickPerson")}
+      >
+        <View className="gap-2">
+          {allPeople
+            .filter((p) => !participantIds.has(p.id))
+            .map((p) => (
+              <Pressable
+                key={p.id}
+                onPress={() => void handleAddParticipant(p.id)}
+                className="py-2 border-b border-border"
+              >
+                <Text className="text-[15px] text-text1 font-body">{p.displayName}</Text>
+              </Pressable>
+            ))}
+        </View>
+      </BottomSheet>
+    </AppShell>
+  );
+}

@@ -106,7 +106,7 @@ describe("upcomingRedLetterDays", () => {
       yearKnown: true,
     });
     const result = upcomingRedLetterDays([row], date(2026, 5, 29), WINDOW, NO);
-    expect(result[0].headline).toBe("Jonas og Kari — 20 år gift");
+    expect(result[0].headline).toBe("Jonas og Kari — Porselensbryllup");
   });
 
   it('builds headline as just "Birthday" when year unknown', () => {
