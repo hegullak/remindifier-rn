@@ -383,6 +383,12 @@ export const en = {
     exportTitle: "Export",
     deleteTitle: "Delete data",
   },
+  eventNudge: {
+    title: "Upcoming event?",
+    body: "It looks like you have something coming up with {name}. Create an event with these talking points?",
+    create: "Yes, create event",
+    skip: "Not now",
+  },
 };
 
 export type Translations = typeof en;

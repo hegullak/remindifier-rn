@@ -14,6 +14,7 @@ type ApiDraftPayload = {
   birthday?: unknown;
   birthdayYearKnown?: unknown;
   funFacts?: unknown;
+  pendingActions?: unknown;
 };
 
 function isIsoDate(value: string): boolean {
@@ -57,6 +58,7 @@ export function normalizeApiDraftPayload(
     birthday,
     birthdayYearKnown,
     funFacts: asFunFacts(data.funFacts),
+    pendingActions: asFunFacts(data.pendingActions),
     rawInput,
   };
 }
@@ -85,7 +87,8 @@ Return ONLY valid JSON with this shape:
   "relationType": string | null,
   "birthday": string | null,
   "birthdayYearKnown": boolean,
-  "funFacts": string[]
+  "funFacts": string[],
+  "pendingActions": string[]
 }
 
 Rules:
@@ -94,7 +97,8 @@ Rules:
 - birthday: ISO YYYY-MM-DD when year is known; 0001-MM-DD when year unknown; 0001-MM-01 if only month known; null if no date found
 - birthdayYearKnown: true only when you have a specific birth year — either stated directly or reliably inferred from age + date
 - infer birth year from age clues: "feirer 50 årsdag i morgen" + "bursdag 12 mars" → born 12 March 1976 (using today ${todayIso})
-- funFacts: memory fragments worth keeping, one idea per item, under 15 words each. Only facts about the main person. Do NOT include names or facts about other people mentioned (siblings, children, parents). Do not reword — keep the user's phrasing.
+- funFacts: permanent memory fragments about the person — things worth remembering long-term. One idea per item, under 15 words. Only facts about the main person. Do NOT include action items or intentions here.
+- pendingActions: things the user intends to do or ask — action items, follow-ups, reminders tied to an upcoming interaction. Examples: "Spørre om barna hans", "Snakke med moren hans på festen", "Husk å følge opp jobben". Keep the user's phrasing, under 15 words each. Empty array if none.
 - do not invent facts not in the text
 
 Today's date: ${todayIso}`;

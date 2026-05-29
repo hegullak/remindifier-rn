@@ -328,6 +328,32 @@ function inferYearFromAge(age: number, birthdayIso: string): string {
   return `${year}-${pad2(month)}-${pad2(day)}`;
 }
 
+const ACTION_PATTERNS = [
+  /\bjeg\s+må\b/i,
+  /\bmå\s+huske\b/i,
+  /\bhusk\s+å\b/i,
+  /\bhusker?\s+på\b/i,
+  /\bspørre?\s+om\b/i,
+  /\bsnakke\s+med\b/i,
+  /\bfølge\s+opp\b/i,
+  /\bremember\s+to\b/i,
+  /\bneed\s+to\b/i,
+  /\bmust\s+ask\b/i,
+];
+
+function extractPendingActions(fragments: string[]): { actions: string[]; facts: string[] } {
+  const actions: string[] = [];
+  const facts: string[] = [];
+  for (const fragment of fragments) {
+    if (ACTION_PATTERNS.some((p) => p.test(fragment))) {
+      actions.push(fragment);
+    } else {
+      facts.push(fragment);
+    }
+  }
+  return { actions, facts };
+}
+
 function extractFunFacts(text: string): string[] {
   return text
     .split(/[,.]+/)
@@ -344,6 +370,7 @@ export function parseNaturalPersonInputLocal(input: string): ParsedPersonDraft {
       birthday: null,
       birthdayYearKnown: false,
       funFacts: [],
+      pendingActions: [],
       rawInput,
     };
   }
@@ -364,7 +391,8 @@ export function parseNaturalPersonInputLocal(input: string): ParsedPersonDraft {
   const { name, rest: afterName } = extractName(working);
   working = afterName;
 
-  const funFacts = extractFunFacts(working);
+  const rawFragments = extractFunFacts(working);
+  const { actions: pendingActions, facts: funFacts } = extractPendingActions(rawFragments);
 
   let birthdayIso = birthdayHit?.iso ?? null;
   let birthdayYearKnown = birthdayHit?.yearKnown ?? false;
@@ -380,6 +408,7 @@ export function parseNaturalPersonInputLocal(input: string): ParsedPersonDraft {
     birthday: birthdayIso,
     birthdayYearKnown,
     funFacts,
+    pendingActions,
     rawInput,
   };
 }

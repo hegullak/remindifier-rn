@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { createPerson } from "@/db/repos/peopleRepo";
 import { useAppAuth } from "@/features/auth/useAppAuth";
+import { EventNudgeSheet } from "@/features/people/EventNudgeSheet";
 import { NaturalLanguageInputStep } from "@/features/people/NaturalLanguageInputStep";
 import { draftToFormInitial } from "@/features/people/naturalIntake";
 import { ParsedPersonPreviewCard } from "@/features/people/ParsedPersonPreviewCard";
@@ -61,6 +62,7 @@ export default function NewPersonScreen() {
     intakeMode === "form" || (intakeMode === "natural" && naturalStep === "preview");
 
   const [parsing, setParsing] = useState(false);
+  const [nudge, setNudge] = useState<{ personId: string; personName: string; actions: string[] } | null>(null);
 
   async function handleNaturalContinue() {
     setParsing(true);
@@ -149,12 +151,29 @@ export default function NewPersonScreen() {
             submitLabel={t("people.createPerson")}
             onSubmit={async (payload) => {
               if (!userId) throw new Error("Not signed in");
-              const id = await createPerson(userId, payload);
-              router.replace(`/people/${id}`);
+              const personId = await createPerson(userId, payload);
+              const actions = parsedDraft?.pendingActions ?? [];
+              if (personId && actions.length > 0) {
+                setNudge({ personId, personName: payload.displayName, actions });
+              } else if (personId) {
+                router.replace(`/people/${personId}`);
+              }
             }}
           />
         ) : null}
       </ScrollView>
+
+      {nudge && userId ? (
+        <EventNudgeSheet
+          visible={true}
+          userId={userId}
+          personId={nudge.personId}
+          personName={nudge.personName}
+          pendingActions={nudge.actions}
+          onDismiss={() => router.replace(`/people/${nudge.personId}`)}
+          onCreated={() => router.replace(`/people/${nudge.personId}`)}
+        />
+      ) : null}
     </AppShell>
   );
 }

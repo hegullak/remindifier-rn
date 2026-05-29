@@ -386,4 +386,10 @@ export const no = {
     exportTitle: "Eksporter",
     deleteTitle: "Slett data",
   },
+  eventNudge: {
+    title: "Noe på gang?",
+    body: "Det høres ut som du har noe på gang med {name}. Vil du opprette en event med disse samtalepunktene?",
+    create: "Ja, opprett event",
+    skip: "Ikke nå",
+  },
 } satisfies Translations;

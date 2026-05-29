@@ -11,6 +11,7 @@ import { completeOnboarding, hasCompletedOnboarding } from "@/db/repos/userRepo"
 import type * as schema from "@/db/schema";
 import { useUserDrizzleDb } from "@/db/useUserDrizzleDb";
 import { useAppAuth } from "@/features/auth/useAppAuth";
+import { EventNudgeSheet } from "@/features/people/EventNudgeSheet";
 import { NaturalLanguageInputStep } from "@/features/people/NaturalLanguageInputStep";
 import { draftToFormInitial } from "@/features/people/naturalIntake";
 import { ParsedPersonPreviewCard } from "@/features/people/ParsedPersonPreviewCard";
@@ -40,6 +41,7 @@ function OnboardingContent({
   const [parsedDraft, setParsedDraft] = useState<ParsedPersonDraft | null>(null);
   const [alreadyCompleted, setAlreadyCompleted] = useState<boolean | null>(null);
   const [parsing, setParsing] = useState(false);
+  const [nudge, setNudge] = useState<{ personId: string; personName: string; actions: string[] } | null>(null);
 
   useEffect(() => {
     if (!ready) return;
@@ -115,13 +117,34 @@ function OnboardingContent({
               initial={parsedDraft ? draftToFormInitial(parsedDraft) : undefined}
               submitLabel={t("people.createPerson")}
               onSubmit={async (payload) => {
-                await createPerson(userId, payload);
-                await finishOnboarding();
+                const personId = await createPerson(userId, payload);
+                const actions = parsedDraft?.pendingActions ?? [];
+                if (personId && actions.length > 0) {
+                  setNudge({
+                    personId,
+                    personName: payload.displayName,
+                    actions,
+                  });
+                } else {
+                  await finishOnboarding();
+                }
               }}
             />
           </>
         )}
       </ScrollView>
+
+      {nudge ? (
+        <EventNudgeSheet
+          visible={true}
+          userId={userId}
+          personId={nudge.personId}
+          personName={nudge.personName}
+          pendingActions={nudge.actions}
+          onDismiss={() => void finishOnboarding()}
+          onCreated={() => void finishOnboarding()}
+        />
+      ) : null}
     </View>
   );
 }

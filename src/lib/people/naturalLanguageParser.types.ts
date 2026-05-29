@@ -4,6 +4,7 @@ export type ParsedPersonDraft = {
   birthday: string | null;
   birthdayYearKnown: boolean;
   funFacts: string[];
+  pendingActions: string[];
   rawInput: string;
 };
 
@@ -13,5 +14,6 @@ export const EMPTY_PARSED_PERSON_DRAFT: ParsedPersonDraft = {
   birthday: null,
   birthdayYearKnown: false,
   funFacts: [],
+  pendingActions: [],
   rawInput: "",
 };
