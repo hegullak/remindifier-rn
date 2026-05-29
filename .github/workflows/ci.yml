@@ -2,8 +2,10 @@ name: ci
 
 on:
   push:
-    branches: [sandbox, develop, master]
+    branches: [develop, master]
   pull_request:
+    branches: [develop, master]
+  workflow_dispatch:
 
 jobs:
   # ── 1. Lint ────────────────────────────────────────────────────────────────
