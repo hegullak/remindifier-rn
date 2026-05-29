@@ -1,18 +1,19 @@
 ---
-description: remindifier-rn project context — read PROJECT_MEMORY.md before exploring
+description: remindifier-rn project context — read memory files before exploring
 alwaysApply: true
 ---
 
 # remindifier-rn context
 
-**Read `PROJECT_MEMORY.md` in the repo root** for full architecture, routes, i18n, and pitfalls. Update that file when you change project conventions.
+**Session start:** read `claude-current-remindifier-state.md` then `PROJECT_MEMORY.md`.  
+**Session end:** update state file; see `.cursor/rules/session-handoff.mdc`.
 
 ## Essentials (keep in sync with PROJECT_MEMORY.md)
 
 - Expo 54 + expo-router; **Expo v56 docs** before coding (`AGENTS.md`)
 - **All UI strings** via `useTranslation()` / `src/i18n/locales/{en,no}.ts` — code in English
 - NO: **Merkedager**; EN: **Red-letter days**; section titles include “denne uken” / “this week”
-- Tabs: `brief` | `people` | `myself`; settings at `/settings` (avatar); QR on myself tab (Show/Hide)
+- Tabs: `brief` | `gather` (events) | `people` | `myself`; settings at `/settings` (avatar)
 - Local encrypted SQLite (Drizzle); Clerk = auth only
 - Weather: GPS → env lat/lon → Hagavik; Open-Meteo + `expo-location`
 - Pass `locale` to `upcomingRedLetterDays`, `fetchBriefWeather`, `formatBriefDateLine`
@@ -20,7 +21,7 @@ alwaysApply: true
 
 ## Git workflow (each agent session)
 
-1. **Start:** `git pull --rebase origin sandbox` (on branch `sandbox`)
-2. **End:** if there are code changes, stage relevant files and `git commit` with a clear message (do not commit `.env`, `coverage/`, `expo-output.log`). Push only when the user asks.
+1. **Start:** `git pull --rebase origin sandbox`
+2. **End:** commit relevant changes + **`git push origin sandbox`**
 
 When unsure about structure or naming, open `PROJECT_MEMORY.md` instead of broad repo search.

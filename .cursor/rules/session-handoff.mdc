@@ -1,0 +1,36 @@
+---
+description: Session start/end — read and update project memory files (mandatory)
+alwaysApply: true
+---
+
+# Session handoff (mandatory)
+
+## Two memory files — do not confuse them
+
+| File | Purpose | When to update |
+|------|---------|----------------|
+| **`claude-current-remindifier-state.md`** | Living session snapshot: status, recent commits, agreements, in-progress work, user preferences | **End of every meaningful session** |
+| **`PROJECT_MEMORY.md`** | Stable architecture: routes, i18n, data layer, pitfalls | Only when conventions or structure change |
+
+**Never** create ad-hoc context files (`AI_PROJECT_CONTEXT.md`, etc.) unless the user explicitly asks.
+
+## Session START (before any work)
+
+1. Read **`claude-current-remindifier-state.md`**
+2. Read **`PROJECT_MEMORY.md`**
+3. `git pull --rebase origin sandbox`
+
+## Session END (after meaningful work)
+
+1. Update **`claude-current-remindifier-state.md`**: latest commit, what was done, uncommitted changes, new user agreements
+2. Update **`PROJECT_MEMORY.md`** only if architecture/routes/conventions changed
+3. Stage, commit, **`git push origin sandbox`** (user rule: always push after task)
+4. Do not commit: `.env`, `coverage/`, `expo-output.log`
+
+## User agreements → always record in state file
+
+New preferences (git workflow, UX choices, naming) go under **User Preferences** in `claude-current-remindifier-state.md`.
+
+## Skill
+
+For explicit memory updates, follow `.cursor/skills/project-memory/SKILL.md`.

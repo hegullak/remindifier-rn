@@ -3,6 +3,15 @@
 Living context for AI agents. **Update this file** when architecture, UX, or conventions change.
 Last updated: 2026-05-29.
 
+## Session handoff (read every time)
+
+| File | Role |
+|------|------|
+| **`claude-current-remindifier-state.md`** | Session snapshot — status, commits, user agreements, in-progress work. **Update at end of session.** |
+| **`PROJECT_MEMORY.md`** (this file) | Stable architecture — update only when conventions change. |
+
+Agent protocol: `.cursor/rules/session-handoff.mdc` · Skill: `.cursor/skills/project-memory/SKILL.md`
+
 ## What this app is
 
 **Samvittighet-as-a-Service. Gets opened every morning.**
@@ -22,6 +31,7 @@ A contextual memory and heads-up assistant for the people in your life — not a
 | Route | Purpose |
 |-------|---------|
 | `app/(tabs)/brief.tsx` | Home — draggable sections (weather, schedule, headsup, training, merkedager) |
+| `app/(tabs)/gather/` | Events — list, create (AI prep), detail, talking points |
 | `app/(tabs)/people/` | People list, detail, new, edit |
 | `app/(tabs)/myself.tsx` | User profile + QR (toggle Show/Hide QR) |
 | `app/settings.tsx` | Clerk account, privacy accordion, data export/delete, about |
@@ -30,7 +40,7 @@ A contextual memory and heads-up assistant for the people in your life — not a
 
 **Header** (`src/ui/AppShell.tsx`): 🇳🇴/🇬🇧 `LanguagePicker` left; theme + avatar (→ `/settings`) right. No ⋯ menu.
 
-**Tabs**: `brief`, `people`, `myself` (not “me” / “meg” as route name).
+**Tabs**: `brief`, `gather`, `people`, `myself` (not “me” / “meg” as route name).
 
 ## i18n (mandatory for UI strings)
 
@@ -96,7 +106,7 @@ A contextual memory and heads-up assistant for the people in your life — not a
 - **Tests**: Jest (`npm test`) — lib tests under `src/lib/__tests__/`
 - **Styling**: NativeWind class names; fonts Lora (headings) + DM Sans (body)
 - **Commits**: end each agent session with a commit if there are code changes; never commit `.env`, `expo-output.log`, `coverage/`, `node_modules/`
-- **Session git**: start with `git pull --rebase origin sandbox`; push only when the user asks
+- **Session git**: start with `git pull --rebase origin sandbox`; end with commit + `git push origin sandbox`
 - **Scope**: minimal diffs; match existing patterns; no over-engineering
 
 ## Env vars (optional)

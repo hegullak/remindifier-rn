@@ -6,6 +6,14 @@ Read the exact versioned docs at https://docs.expo.dev/versions/v56.0.0/ before 
 
 ## Project memory
 
-**Start here:** [`PROJECT_MEMORY.md`](./PROJECT_MEMORY.md) — architecture, navigation, i18n rules, data layer, env vars, and common pitfalls.
+**Every session — read both:**
 
-Keep `PROJECT_MEMORY.md` updated when you introduce lasting conventions or structural changes.
+1. [`claude-current-remindifier-state.md`](./claude-current-remindifier-state.md) — current status, agreements, recent work
+2. [`PROJECT_MEMORY.md`](./PROJECT_MEMORY.md) — architecture, navigation, i18n, pitfalls
+
+**Every session — update at end:**
+
+- `claude-current-remindifier-state.md` if anything meaningful changed
+- `PROJECT_MEMORY.md` only when conventions or structure change
+
+Cursor rules: `.cursor/rules/session-handoff.mdc` · Skill: `.cursor/skills/project-memory/SKILL.md`
