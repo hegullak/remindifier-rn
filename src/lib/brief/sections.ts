@@ -21,7 +21,7 @@ export const DEFAULT_BRIEF_SECTION_ORDER: BriefSectionId[] = [
 export const BRIEF_SECTION_LABELS: Record<BriefSectionId, string> = {
   weather: "Weather",
   schedule: "Today's schedule",
-  calendar: "Calendar",
+  calendar: "My week",
   headsup: "Heads up this week",
   training: "Today's training",
   red_letter: "Red-letter days",

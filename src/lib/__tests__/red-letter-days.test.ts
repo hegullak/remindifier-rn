@@ -95,7 +95,18 @@ describe("upcomingRedLetterDays", () => {
   it("builds headline with age for Birthday with known year", () => {
     const row = makeRow({ eventDate: "1990-05-01", yearKnown: true }); // turning 34 today
     const result = upcomingRedLetterDays([row], TODAY, WINDOW, EN);
-    expect(result[0].headline).toBe("Birthday · 34 years");
+    expect(result[0].headline).toBe("Turning 34");
+  });
+
+  it("builds Norwegian anniversary headline with couple names", () => {
+    const row = makeRow({
+      kind: "Anniversary",
+      label: "Jonas og Kari",
+      eventDate: "2006-06-04",
+      yearKnown: true,
+    });
+    const result = upcomingRedLetterDays([row], date(2026, 5, 29), WINDOW, NO);
+    expect(result[0].headline).toBe("Jonas og Kari — 20 år gift");
   });
 
   it('builds headline as just "Birthday" when year unknown', () => {
@@ -107,6 +118,12 @@ describe("upcomingRedLetterDays", () => {
   it('timing is "Today" when daysUntil is 0 in English', () => {
     const row = makeRow({ eventDate: "1990-05-01" });
     expect(upcomingRedLetterDays([row], TODAY, WINDOW, EN)[0].timing).toBe("Today");
+  });
+
+  it("builds Norwegian birthday age headline", () => {
+    const row = makeRow({ eventDate: "1956-05-27", yearKnown: true });
+    const result = upcomingRedLetterDays([row], date(2026, 5, 27), WINDOW, NO);
+    expect(result[0].headline).toBe("Fyller 70 år");
   });
 
   it('timing is "I dag" when daysUntil is 0 in Norwegian', () => {
@@ -136,7 +153,7 @@ describe("upcomingRedLetterDays", () => {
   it("uses Norwegian birthday headline", () => {
     const row = makeRow({ eventDate: "1990-05-01", yearKnown: true });
     const result = upcomingRedLetterDays([row], TODAY, WINDOW, NO);
-    expect(result[0].headline).toContain("Bursdag");
+    expect(result[0].headline).toBe("Fyller 34 år");
   });
 });
 

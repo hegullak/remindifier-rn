@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { ensureDefaultBriefPreferences } from "@/db/repos/userRepo";
-import { seedLocalData } from "@/db/seed";
+import { patchDevMilestoneSeed, seedLocalData } from "@/db/seed";
 import { seedDevCalendar } from "@/db/seedCalendar";
 import { logger } from "@/lib/logger";
 
@@ -18,6 +18,7 @@ export function useBootstrapApp(userId: string | null | undefined, migrationsRea
 
     async function boot() {
       await seedLocalData(activeUserId);
+      await patchDevMilestoneSeed(activeUserId);
       await seedDevCalendar();
       await ensureDefaultBriefPreferences(activeUserId);
       if (!cancelled) setReady(true);

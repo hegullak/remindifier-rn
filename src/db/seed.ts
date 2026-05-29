@@ -21,6 +21,30 @@ async function hasSeedData(userId: string) {
   return value > 0;
 }
 
+/** Keeps demo merkedager in sync for existing dev installs (idempotent). */
+export async function patchDevMilestoneSeed(userId: string) {
+  if (!__DEV__) return;
+  const db = await getDrizzleDbForUser(userId);
+
+  await db
+    .update(persons)
+    .set({ birthdayYearKnown: true })
+    .where(eq(persons.id, "p-trond"));
+
+  await db
+    .insert(personRedLetterDays)
+    .values({
+      id: "r-ann-jonas-kari",
+      userId,
+      personId: "p-jonas",
+      kind: "Anniversary",
+      label: "Jonas og Kari",
+      eventDate: "2006-06-04",
+      yearKnown: true,
+    })
+    .onConflictDoNothing();
+}
+
 export async function seedLocalData(userId: string) {
   if (await hasSeedData(userId)) return;
   const db = await getDrizzleDbForUser(userId);
@@ -52,6 +76,7 @@ export async function seedLocalData(userId: string) {
       displayName: "Trond Hansen",
       relationType: "Uncle / Aunt",
       birthday: "1956-05-27",
+      birthdayYearKnown: true,
       interests: ["Still makes sourdough every Sunday morning."],
     },
     {
@@ -112,6 +137,15 @@ export async function seedLocalData(userId: string) {
       kind: "Anniversary",
       label: "Wedding day",
       eventDate: "2016-08-20",
+    },
+    {
+      id: "r-ann-jonas-kari",
+      userId,
+      personId: "p-jonas",
+      kind: "Anniversary",
+      label: "Jonas og Kari",
+      eventDate: "2006-06-04",
+      yearKnown: true,
     },
   ]);
 

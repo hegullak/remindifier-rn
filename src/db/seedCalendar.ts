@@ -21,26 +21,12 @@ function nextWeekday(weekday: number): Date {
 
 const SEED_EVENTS = [
   {
-    key: "birthday-ida",
-    title: "Ida Nilsen fyller år 🎂",
-    notes: "Nær venn. Løper. Vurderer å flytte til København.",
-    allDay: true,
-    offsetDays: 2,
-  },
-  {
     key: "visit-ivan",
     title: "Helgebesøk Ivan 🏡",
     notes: "Spør om barna hans. Han nevnte ny jobb sist.",
     allDay: false,
     nextFriday: true,
     durationHours: 3,
-  },
-  {
-    key: "anniversary-jonas",
-    title: "Jonas og Kari — 20 år gift 🥂",
-    notes: "Jubileum. Kanskje en melding?",
-    allDay: true,
-    offsetDays: 6,
   },
   {
     key: "followup-eirik",
@@ -50,11 +36,34 @@ const SEED_EVENTS = [
     offsetDays: 4,
   },
   {
-    key: "birthday-trond",
-    title: "Onkel Trond fyller år 🎂",
-    notes: "70 år. Liker sourdough. Skulderen gjør vondt — ikke press på det.",
+    key: "prev-week-lunch",
+    title: "Lunsj med teamet 🍽",
+    notes: "Forrige uke — seed for brief-navigasjon.",
+    allDay: false,
+    offsetDays: -4,
+    durationHours: 1,
+  },
+  {
+    key: "prev-week-review",
+    title: "Kvartalsgjennomgang 📋",
+    notes: "Forrige uke — seed.",
     allDay: true,
-    offsetDays: 9,
+    offsetDays: -6,
+  },
+  {
+    key: "next-week-workshop",
+    title: "Produktworkshop 🧭",
+    notes: "Neste uke — seed.",
+    allDay: false,
+    offsetDays: 10,
+    durationHours: 2,
+  },
+  {
+    key: "next-week-dinner",
+    title: "Middag med naboene 🍷",
+    notes: "Neste uke — seed.",
+    allDay: true,
+    offsetDays: 12,
   },
 ] as const;
 
@@ -78,17 +87,15 @@ async function findOrCreateSeedCalendar(): Promise<string> {
   });
 }
 
-async function clearSeedEvents(calendarId: string) {
+async function clearSeedEvents(calendarId: string): Promise<number> {
   const start = new Date();
   start.setFullYear(start.getFullYear() - 1);
   const end = new Date();
   end.setFullYear(end.getFullYear() + 2);
 
   const events = await Calendar.getEventsAsync([calendarId], start, end);
-  const seedEvents = events.filter(
-    (e) => e.title?.includes("remindifier-seed-") || SEED_EVENTS.some((s) => e.title === s.title),
-  );
-  await Promise.all(seedEvents.map((e) => Calendar.deleteEventAsync(e.id).catch(() => {})));
+  await Promise.all(events.map((e) => Calendar.deleteEventAsync(e.id).catch(() => {})));
+  return events.length;
 }
 
 async function createSeedEvents(calendarId: string) {
@@ -96,8 +103,10 @@ async function createSeedEvents(calendarId: string) {
     let startDate: Date;
     if ("nextFriday" in event) {
       startDate = nextWeekday(5);
-    } else {
+    } else if ("offsetDays" in event) {
       startDate = daysFromToday(event.offsetDays);
+    } else {
+      startDate = daysFromToday(0);
     }
 
     const endDate = new Date(startDate);
@@ -118,24 +127,30 @@ async function createSeedEvents(calendarId: string) {
   }
 }
 
-export async function seedDevCalendar(): Promise<void> {
-  if (!__DEV__) return;
+export type SeedCalendarResult =
+  | { ok: true; removed: number; created: number }
+  | { ok: false; reason: "not_dev" | "no_permission" | "error"; message?: string };
+
+export async function seedDevCalendar(): Promise<SeedCalendarResult> {
+  if (!__DEV__) return { ok: false, reason: "not_dev" };
 
   try {
     const { status } = await Calendar.requestCalendarPermissionsAsync();
     if (status !== "granted") {
       logger.info("seed_calendar_skipped_no_permission");
-      return;
+      return { ok: false, reason: "no_permission" };
     }
 
     const calendarId = await findOrCreateSeedCalendar();
-    await clearSeedEvents(calendarId);
+    const removed = await clearSeedEvents(calendarId);
     await createSeedEvents(calendarId);
-    logger.info("seed_calendar_refreshed", { calendarId });
+    const created = SEED_EVENTS.length;
+    logger.info("seed_calendar_refreshed", { calendarId, removed, created });
+    return { ok: true, removed, created };
   } catch (err) {
-    logger.error("seed_calendar_failed", {
-      error: err instanceof Error ? err.message : "unknown",
-    });
+    const message = err instanceof Error ? err.message : "unknown";
+    logger.error("seed_calendar_failed", { error: message });
+    return { ok: false, reason: "error", message };
   }
 }
 

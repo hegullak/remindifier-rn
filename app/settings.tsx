@@ -7,6 +7,7 @@ import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View } from "rea
 import { deleteAllData, exportAllData } from "@/db/repos/settingsRepo";
 import { resetOnboarding } from "@/db/repos/userRepo";
 import { deleteSeedCalendar, seedDevCalendar } from "@/db/seedCalendar";
+import { notifyBriefReload } from "@/lib/brief/briefRefresh";
 import { useUserDrizzleDb } from "@/db/useUserDrizzleDb";
 import { AccountSettingsSection } from "@/features/auth/AccountSettingsSection";
 import { clearClerkAuthStorage } from "@/features/auth/clerk/clearAuthStorage";
@@ -157,10 +158,36 @@ export default function SettingsScreen() {
               <Button variant="secondary" onPress={() => void handleResetOnboarding()}>
                 Reset onboarding
               </Button>
-              <Button variant="secondary" onPress={() => void seedDevCalendar()}>
+              <Button
+                variant="secondary"
+                onPress={async () => {
+                  const result = await seedDevCalendar();
+                  if (result.ok) {
+                    notifyBriefReload();
+                    Alert.alert(
+                      "Seed calendar",
+                      `Removed ${result.removed} events, created ${result.created}.`,
+                    );
+                  } else if (result.reason === "no_permission") {
+                    Alert.alert("Seed calendar", "Calendar permission not granted.");
+                  } else {
+                    Alert.alert(
+                      "Seed calendar",
+                      result.message ?? `Failed (${result.reason}).`,
+                    );
+                  }
+                }}
+              >
                 Refresh seed calendar
               </Button>
-              <Button variant="secondary" onPress={() => void deleteSeedCalendar()}>
+              <Button
+                variant="secondary"
+                onPress={async () => {
+                  await deleteSeedCalendar();
+                  notifyBriefReload();
+                  Alert.alert("Seed calendar", "Deleted remindifier (test) calendar.");
+                }}
+              >
                 Delete seed calendar
               </Button>
             </View>

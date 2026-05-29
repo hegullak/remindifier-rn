@@ -1,6 +1,7 @@
 import * as Calendar from "expo-calendar";
 import { PermissionStatus } from "expo-modules-core";
 import { fetchCalendarBriefEvents } from "@/lib/brief/calendarEvents";
+import { getCalendarWeekBounds } from "@/lib/brief/calendarWeek";
 
 jest.mock("expo-calendar", () => ({
   requestCalendarPermissionsAsync: jest.fn(),
@@ -63,8 +64,14 @@ describe("fetchCalendarBriefEvents", () => {
       } as never,
     ]);
 
-    const events = await fetchCalendarBriefEvents();
+    const weekBounds = getCalendarWeekBounds();
+    const events = await fetchCalendarBriefEvents(weekBounds);
     expect(events).toHaveLength(2);
+    expect(mockCalendar.getEventsAsync).toHaveBeenCalledWith(
+      ["cal-1"],
+      weekBounds.start,
+      weekBounds.end,
+    );
     expect(events[0].id).toBe("a");
     expect(events[1].id).toBe("b");
     expect(events[0].allDay).toBe(true);

@@ -113,7 +113,7 @@ export const no = {
     sections: {
       weather: "Værvarsel",
       schedule: "Dagens program",
-      calendar: "Kalender",
+      calendar: "Uken min",
       headsup: "Ting å huske denne uken",
       training: "Dagens trening",
       redLetter: "Merkedager denne uken",
@@ -127,6 +127,9 @@ export const no = {
     greetingAfternoon: "God ettermiddag",
     greetingEvening: "God kveld",
     dateWeek: "Uke {week}",
+    weekPrev: "Forrige uke",
+    weekNext: "Neste uke",
+    weekThis: "Gå til denne uken",
     reorderHint: "Hold og dra en seksjon for å endre rekkefølge",
     tapForDetails: "Trykk for detaljer",
     hideDetails: "Skjul detaljer",
@@ -203,9 +206,11 @@ export const no = {
     },
     headline: {
       birthday: "Bursdag",
-      birthdayYears: "Bursdag · {count} år",
+      birthdayYears: "Fyller {count} år",
       anniversary: "Bryllupsdag",
-      anniversaryYears: "Bryllupsdag · {count} år",
+      anniversaryYears: "{count} år gift",
+      anniversaryNamed: "{names}",
+      anniversaryNamedYears: "{names} — {count} år gift",
       withElapsed: "{label} · {elapsed}",
     },
     timing: {

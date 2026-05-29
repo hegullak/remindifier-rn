@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { getCalendarWeekBounds, formatCalendarWeekRange } from "@/lib/brief/calendarWeek";
 import { listBriefSchedule, listUpcomingRedLetterDays } from "@/db/repos/briefRepo";
 import { getBriefSectionOrder, setBriefSectionOrder } from "@/db/repos/userRepo";
 import {
@@ -17,6 +18,7 @@ import type { BriefSectionId } from "@/lib/brief/sections";
 import { DEFAULT_BRIEF_SECTION_ORDER } from "@/lib/brief/sections";
 import type { BriefWeatherData } from "@/lib/brief/weather";
 import { fetchBriefWeather } from "@/lib/brief/weather";
+import { subscribeBriefReload } from "@/lib/brief/briefRefresh";
 import { logger } from "@/lib/logger";
 import type { UpcomingRedLetterDay } from "@/lib/timeline/red-letter-days";
 
@@ -53,21 +55,18 @@ function getISOWeek(date: Date): number {
   return Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
 }
 
-export function formatBriefDateLine(locale: Locale, date = new Date()) {
-  const dateLocale = locale === "no" ? "nb-NO" : "en-GB";
-  const raw = date.toLocaleDateString(dateLocale, {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-  });
-  const dateStr = raw.charAt(0).toUpperCase() + raw.slice(1);
-  const week = getISOWeek(date);
-  return `${dateStr} · ${translate(locale, "brief.dateWeek", { week })}`;
+export function formatBriefDateLine(locale: Locale, weekBounds: { start: Date; end: Date }) {
+  const week = getISOWeek(weekBounds.start);
+  const range = formatCalendarWeekRange(weekBounds, locale);
+  return `${range} · ${translate(locale, "brief.dateWeek", { week })}`;
 }
 
 export function useBriefData(userId: string | null | undefined) {
   const { locale } = useTranslation();
   const [brief, setBrief] = useState<BriefState>(initialState);
+  const [weekOffset, setWeekOffset] = useState(0);
+
+  const weekBounds = useMemo(() => getCalendarWeekBounds(new Date(), weekOffset), [weekOffset]);
 
   const headsupItems = useMemo(() => getHeadsupItems(locale), [locale]);
   const trainingLines = useMemo(() => getFallbackTraining(locale), [locale]);
@@ -79,10 +78,10 @@ export function useBriefData(userId: string | null | undefined) {
     }
     const [scheduleRaw, redLetterDays, sectionOrder, weather, calendarEvents] = await Promise.all([
       listBriefSchedule(userId),
-      listUpcomingRedLetterDays(userId, 14, locale),
+      listUpcomingRedLetterDays(userId, 60, locale),
       getBriefSectionOrder(userId),
       fetchBriefWeather(locale),
-      fetchCalendarBriefEvents(),
+      fetchCalendarBriefEvents(weekBounds),
     ]);
     const schedule = scheduleRaw.map((item) => localizeScheduleItem(item, locale));
     setBrief((prev) => ({
@@ -93,13 +92,23 @@ export function useBriefData(userId: string | null | undefined) {
       sectionOrder,
       weather,
     }));
-  }, [userId, locale]);
+  }, [userId, locale, weekBounds]);
 
   useEffect(() => {
     reload().catch((error) => {
       logger.error("brief_load_failed", { error: error instanceof Error ? error.name : "unknown" });
     });
   }, [reload]);
+
+  useEffect(() => subscribeBriefReload(() => void reload()), [reload]);
+
+  const shiftWeek = useCallback((delta: number) => {
+    setWeekOffset((prev) => prev + delta);
+  }, []);
+
+  const resetWeek = useCallback(() => {
+    setWeekOffset(0);
+  }, []);
 
   const setSectionOrder = useCallback(
     async (order: BriefSectionId[]) => {
@@ -115,7 +124,11 @@ export function useBriefData(userId: string | null | undefined) {
     brief,
     reload,
     setSectionOrder,
-    dateLine: formatBriefDateLine(locale),
+    weekOffset,
+    weekBounds,
+    shiftWeek,
+    resetWeek,
+    dateLine: formatBriefDateLine(locale, weekBounds),
     headsupItems,
     trainingLines,
   };

@@ -86,10 +86,20 @@ function elapsedSinceStart(startDate: string, asOf: Date, locale: Locale): strin
   return null;
 }
 
-function anniversaryHeadline(eventDate: string, refDate: Date, locale: Locale): string {
-  const years = refDate.getFullYear() - parseYmd(eventDate).getFullYear();
+function anniversaryHeadline(row: RedLetterDayRow, refDate: Date, locale: Locale): string {
+  const years = refDate.getFullYear() - parseYmd(row.eventDate).getFullYear();
+  const names = row.label?.trim();
   if (years >= 1) {
+    if (names) {
+      return translate(locale, "merkedager.headline.anniversaryNamedYears", {
+        names,
+        count: years,
+      });
+    }
     return translate(locale, "merkedager.headline.anniversaryYears", { count: years });
+  }
+  if (names) {
+    return translate(locale, "merkedager.headline.anniversaryNamed", { names });
   }
   return translate(locale, "merkedager.headline.anniversary");
 }
@@ -113,7 +123,7 @@ function buildHeadline(
   }
 
   if (row.kind === "Anniversary") {
-    return anniversaryHeadline(row.eventDate, refDate, locale);
+    return anniversaryHeadline(row, refDate, locale);
   }
 
   if (row.kind === "Smoke-free" || row.kind === "Snus-free" || row.kind === "Other") {

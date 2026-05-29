@@ -6,33 +6,34 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { useAppAuth, useAppUser } from "@/features/auth/useAppAuth";
 import { useBriefData } from "@/features/brief/useBriefData";
 import { useTranslation } from "@/i18n";
-import { getCalendarWeekBounds, isDateInCalendarWeek } from "@/lib/brief/calendarWeek";
+import { formatCalendarEventTiming } from "@/lib/brief/calendarEvents";
+import { isDateInCalendarWeek } from "@/lib/brief/calendarWeek";
 import { briefGreetingLine } from "@/lib/brief/greeting";
 import { briefSectionLabelKey } from "@/lib/brief/sectionLabels";
 import type { BriefSectionId } from "@/lib/brief/sections";
 import { anniversaryMilestoneDetail } from "@/lib/milestones/anniversaries";
-import type { CalendarBriefEvent } from "@/lib/brief/calendarEvents";
 import type { UpcomingRedLetterDay } from "@/lib/timeline/red-letter-days";
-import type { Locale } from "@/i18n/types";
 import { AppShell } from "@/ui/AppShell";
 import { BottomSheet } from "@/ui/BottomSheet";
 import { BriefCard } from "@/ui/BriefCard";
+import { IconButton } from "@/ui/IconButton";
 import { SectionLabel } from "@/ui/SectionLabel";
-
-function timingLabel(
-  event: CalendarBriefEvent,
-  t: (path: string, params?: Record<string, string | number>) => string,
-): string {
-  if (event.daysUntil === 0) return t("brief.calendar.today");
-  if (event.daysUntil === 1) return t("brief.calendar.tomorrow");
-  return t("brief.calendar.inDays", { days: event.daysUntil });
-}
 
 export default function BriefScreen() {
   const { t, locale } = useTranslation();
   const { user } = useAppUser();
   const { userId } = useAppAuth();
-  const { brief, setSectionOrder, dateLine, headsupItems, trainingLines } = useBriefData(userId);
+  const {
+    brief,
+    setSectionOrder,
+    dateLine,
+    headsupItems,
+    trainingLines,
+    weekOffset,
+    weekBounds,
+    shiftWeek,
+    resetWeek,
+  } = useBriefData(userId);
   const [weatherExpanded, setWeatherExpanded] = useState(false);
   const [anniversaryDetail, setAnniversaryDetail] = useState<{
     personName: string;
@@ -45,7 +46,6 @@ export default function BriefScreen() {
   const greeting = briefGreetingLine(firstName, locale);
   const [greetingLead, greetingName] = greeting.split("\n");
 
-  const weekBounds = getCalendarWeekBounds();
   const redLettersThisWeek = brief.redLetterDays.filter((item) => {
     const next = new Date();
     next.setHours(0, 0, 0, 0);
@@ -119,6 +119,7 @@ export default function BriefScreen() {
             </View>
           );
         case "schedule":
+          if (weekOffset !== 0) return null;
           return (
             <View>
               <SectionLabel>{t(briefSectionLabelKey(sectionId))}</SectionLabel>
@@ -160,7 +161,7 @@ export default function BriefScreen() {
                     className={i < brief.calendarEvents.length - 1 ? "mb-3" : ""}
                   >
                     <Text className="text-[11px] uppercase tracking-[1.2px] text-sage font-bodySemi">
-                      {timingLabel(event, t)}
+                      {formatCalendarEventTiming(event, weekOffset, locale, t)}
                     </Text>
                     <Text className="text-[15px] text-text1 font-bodyMedium mt-1">
                       {event.title}
@@ -179,6 +180,7 @@ export default function BriefScreen() {
             </View>
           );
         case "headsup":
+          if (weekOffset !== 0) return null;
           return (
             <View>
               <SectionLabel>{t(briefSectionLabelKey(sectionId))}</SectionLabel>
@@ -195,6 +197,7 @@ export default function BriefScreen() {
             </View>
           );
         case "training":
+          if (weekOffset !== 0) return null;
           return (
             <View>
               <SectionLabel>{t(briefSectionLabelKey(sectionId))}</SectionLabel>
@@ -253,6 +256,7 @@ export default function BriefScreen() {
       trainingLines,
       upcomingRedLetters,
       weatherExpanded,
+      weekOffset,
       locale,
       t,
     ],
@@ -260,8 +264,34 @@ export default function BriefScreen() {
 
   const listHeader = (
     <View className="pb-2">
+      <View className="flex-row items-center justify-between mb-2">
+        <IconButton
+          accessibilityLabel={t("brief.weekPrev")}
+          onPress={() => shiftWeek(-1)}
+        >
+          <Text className="text-[20px] leading-[22px] text-text2 font-body">‹</Text>
+        </IconButton>
+        <Pressable
+          onPress={resetWeek}
+          disabled={weekOffset === 0}
+          accessibilityRole="button"
+          accessibilityLabel={t("brief.weekThis")}
+          className="flex-1 mx-2 items-center"
+        >
+          <Text
+            className={`text-[12px] font-bodySemi ${weekOffset === 0 ? "text-text3" : "text-accent"}`}
+          >
+            {dateLine}
+          </Text>
+        </Pressable>
+        <IconButton
+          accessibilityLabel={t("brief.weekNext")}
+          onPress={() => shiftWeek(1)}
+        >
+          <Text className="text-[20px] leading-[22px] text-text2 font-body">›</Text>
+        </IconButton>
+      </View>
       <View className="pt-1 pb-2">
-        <Text className="text-[12px] text-text3 font-body">{dateLine}</Text>
         <Text className="text-[30px] leading-[36px] text-text1 font-heading mt-1">
           {greetingLead}
           {"\n"}

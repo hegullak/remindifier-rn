@@ -1,5 +1,7 @@
 import type { Event } from "expo-calendar";
 import * as Calendar from "expo-calendar";
+import type { Locale } from "@/i18n/types";
+import { getCalendarWeekBounds, type CalendarWeekBounds } from "@/lib/brief/calendarWeek";
 import { logger } from "@/lib/logger";
 
 export type CalendarBriefEvent = {
@@ -39,7 +41,29 @@ export function mapToCalendarBriefEvent(event: Event, todayStart: Date): Calenda
   };
 }
 
-export async function fetchCalendarBriefEvents(): Promise<CalendarBriefEvent[]> {
+export function formatCalendarEventTiming(
+  event: CalendarBriefEvent,
+  weekOffset: number,
+  locale: Locale,
+  t: (path: string, params?: Record<string, string | number>) => string,
+): string {
+  if (weekOffset === 0) {
+    if (event.daysUntil === 0) return t("brief.calendar.today");
+    if (event.daysUntil === 1) return t("brief.calendar.tomorrow");
+    return t("brief.calendar.inDays", { days: event.daysUntil });
+  }
+
+  const dateLocale = locale === "no" ? "nb-NO" : "en-GB";
+  return event.startDate.toLocaleDateString(dateLocale, {
+    weekday: "long",
+    day: "numeric",
+    month: "short",
+  });
+}
+
+export async function fetchCalendarBriefEvents(
+  weekBounds: CalendarWeekBounds = getCalendarWeekBounds(),
+): Promise<CalendarBriefEvent[]> {
   try {
     const { status } = await Calendar.requestCalendarPermissionsAsync();
     if (status !== "granted") return [];
@@ -50,12 +74,14 @@ export async function fetchCalendarBriefEvents(): Promise<CalendarBriefEvent[]> 
     if (!match) return [];
 
     const todayStart = startOfToday();
-    const rangeEnd = new Date(todayStart);
-    rangeEnd.setDate(rangeEnd.getDate() + 7);
-
-    const events = await Calendar.getEventsAsync([match.id], todayStart, rangeEnd);
+    const events = await Calendar.getEventsAsync(
+      [match.id],
+      weekBounds.start,
+      weekBounds.end,
+    );
     return events
       .map((event) => mapToCalendarBriefEvent(event, todayStart))
+      .filter((event) => event.startDate >= weekBounds.start && event.startDate <= weekBounds.end)
       .sort((a, b) => a.startDate.getTime() - b.startDate.getTime());
   } catch (err) {
     logger.warn("calendar_brief_fetch_failed", {

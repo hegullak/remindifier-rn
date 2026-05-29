@@ -111,7 +111,7 @@ export const en = {
     sections: {
       weather: "Forecast",
       schedule: "Today's schedule",
-      calendar: "Calendar",
+      calendar: "My week",
       headsup: "Heads up this week",
       training: "Today's training",
       redLetter: "Red-letter days this week",
@@ -125,6 +125,9 @@ export const en = {
     greetingAfternoon: "Good afternoon",
     greetingEvening: "Good evening",
     dateWeek: "Week {week}",
+    weekPrev: "Previous week",
+    weekNext: "Next week",
+    weekThis: "Go to this week",
     reorderHint: "Hold and drag a section to reorder",
     tapForDetails: "Tap for details",
     hideDetails: "Hide details",
@@ -201,9 +204,11 @@ export const en = {
     },
     headline: {
       birthday: "Birthday",
-      birthdayYears: "Birthday · {count} years",
+      birthdayYears: "Turning {count}",
       anniversary: "Anniversary",
-      anniversaryYears: "Anniversary · {count} years",
+      anniversaryYears: "{count} years married",
+      anniversaryNamed: "{names}",
+      anniversaryNamedYears: "{names} — {count} years married",
       withElapsed: "{label} · {elapsed}",
     },
     timing: {
