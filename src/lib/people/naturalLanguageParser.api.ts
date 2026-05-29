@@ -78,7 +78,7 @@ function extractJsonObject(text: string): unknown {
 }
 
 function buildSystemPrompt(todayIso: string): string {
-  return `You extract structured fields about ONE person from free-text memory fragments.
+  return `You extract structured fields about ONE person from free-text memory fragments written by the user about someone they know.
 Return ONLY valid JSON with this shape:
 {
   "displayName": string | null,
@@ -89,12 +89,13 @@ Return ONLY valid JSON with this shape:
 }
 
 Rules:
-- birthday must be ISO YYYY-MM-DD when year is known
-- when year is unknown use 0001-MM-DD (use 0001-MM-01 if only month is known)
-- funFacts: leftover memory fragments verbatim; do not reword
-- relationType: short label in the user's language (e.g. "beste venn", "sister")
-- infer birth year from age or milestone clues using today's date
-- do not invent facts not supported by the text
+- displayName: the name of the person being described (the first/main person mentioned)
+- relationType: how this person relates TO THE WRITER — e.g. "beste venn", "bror", "kollega". NOT roles the person has in their own life. If the text says "Han er min beste venn" the relationType is "beste venn". If the text later mentions "Søsteren hans, Marianne" that is about the person's own sister — ignore it for relationType.
+- birthday: ISO YYYY-MM-DD when year is known; 0001-MM-DD when year unknown; 0001-MM-01 if only month known; null if no date found
+- birthdayYearKnown: true only when you have a specific birth year — either stated directly or reliably inferred from age + date
+- infer birth year from age clues: "feirer 50 årsdag i morgen" + "bursdag 12 mars" → born 12 March 1976 (using today ${todayIso})
+- funFacts: memory fragments worth keeping, one idea per item, under 15 words each. Only facts about the main person. Do NOT include names or facts about other people mentioned (siblings, children, parents). Do not reword — keep the user's phrasing.
+- do not invent facts not in the text
 
 Today's date: ${todayIso}`;
 }

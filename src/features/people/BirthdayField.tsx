@@ -47,6 +47,7 @@ export function BirthdayField({
       </Pressable>
       {showPicker ? (
         <DateTimePicker
+          key={`${birthday}-${String(birthdayYearKnown)}`}
           value={pickerValue}
           mode="date"
           display={Platform.OS === "ios" ? "spinner" : "default"}
