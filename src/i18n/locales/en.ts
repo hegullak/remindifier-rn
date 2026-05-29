@@ -190,12 +190,6 @@ export const en = {
     },
     notFound: "Event not found.",
     pickPerson: "Add participant",
-    kinds: {
-      question: "Ask",
-      topic: "Topic",
-      smalltalk: "Small talk",
-      headsup: "Heads up",
-    },
   },
   weather: {
     currentForecast: "{condition} now",

@@ -205,9 +205,12 @@ export default function NewGatheringScreen() {
           </>
         ) : (
           <>
-            <Pressable onPress={() => setStep("input")} className="self-start mt-1 mb-3">
+            <Pressable onPress={() => setStep("input")} className="self-start mt-1 mb-2">
               <Text className="text-[12px] text-accent font-bodyMedium">{t("common.back")}</Text>
             </Pressable>
+            <Text className="text-[12px] text-amber font-bodyMedium mb-3">
+              {t("people.parsePreviewNotice")}
+            </Text>
             <TextInput
               value={title}
               onChangeText={setTitle}
@@ -251,10 +254,14 @@ export default function NewGatheringScreen() {
                         <Pressable
                           onPress={() => setMentionChoice(name, "skip")}
                           className={`px-3 py-2 rounded-pill border ${
-                            choice === "skip" ? "bg-bg2 border-border" : "bg-bg2 border-border"
+                            choice === "skip" ? "bg-bg2 border-accent" : "bg-bg2 border-border"
                           }`}
                         >
-                          <Text className="text-[12px] text-text2 font-bodyMedium">
+                          <Text
+                            className={`text-[12px] font-bodyMedium ${
+                              choice === "skip" ? "text-accent" : "text-text2"
+                            }`}
+                          >
                             {t("gathering.eventOnly")}
                           </Text>
                         </Pressable>

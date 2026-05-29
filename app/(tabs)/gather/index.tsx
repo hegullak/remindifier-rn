@@ -49,7 +49,7 @@ export default function GatherListScreen() {
 
   return (
     <AppShell>
-      <View className="flex-1 px-4">
+      <View className="flex-1 px-4 relative">
         <Text className="text-[30px] leading-[36px] text-text1 font-heading pt-1">
           {t("gathering.title")}
         </Text>

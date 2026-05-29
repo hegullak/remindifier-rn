@@ -192,12 +192,6 @@ export const no = {
     },
     notFound: "Fant ikke eventen.",
     pickPerson: "Legg til deltaker",
-    kinds: {
-      question: "Spør",
-      topic: "Tema",
-      smalltalk: "Small-talk",
-      headsup: "Heads-up",
-    },
   },
   weather: {
     currentForecast: "{condition} nå",
