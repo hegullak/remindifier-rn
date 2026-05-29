@@ -50,6 +50,7 @@
       "!android",
       "!ios",
       "!drizzle",
+      "!coverage",
       "!global.css"
     ]
   }

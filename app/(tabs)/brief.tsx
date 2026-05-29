@@ -6,10 +6,10 @@ import DraggableFlatList, { ScaleDecorator } from "react-native-draggable-flatli
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { useBriefData } from "@/features/brief/useBriefData";
 import { useTranslation } from "@/i18n";
+import { getCalendarWeekBounds, isDateInCalendarWeek } from "@/lib/brief/calendarWeek";
 import { briefGreetingLine } from "@/lib/brief/greeting";
 import { briefSectionLabelKey } from "@/lib/brief/sectionLabels";
 import type { BriefSectionId } from "@/lib/brief/sections";
-import { getCalendarWeekBounds, isDateInCalendarWeek } from "@/lib/brief/calendarWeek";
 import { anniversaryMilestoneDetail } from "@/lib/milestones/anniversaries";
 import type { UpcomingRedLetterDay } from "@/lib/timeline/red-letter-days";
 import { AppShell } from "@/ui/AppShell";
@@ -204,7 +204,16 @@ export default function BriefScreen() {
           return null;
       }
     },
-    [brief, headsupItems, redLettersThisWeek, todayRedLetters, trainingLines, upcomingRedLetters, weatherExpanded, t],
+    [
+      brief,
+      headsupItems,
+      redLettersThisWeek,
+      todayRedLetters,
+      trainingLines,
+      upcomingRedLetters,
+      weatherExpanded,
+      t,
+    ],
   );
 
   const listHeader = (

@@ -19,10 +19,7 @@ function configuredCoordinates(): WeatherCoordinates | null {
   return { lat, lon, source: "configured" };
 }
 
-function formatReverseGeocode(
-  hit: Location.LocationGeocodedAddress,
-  locale: "en" | "no",
-): string | null {
+function formatReverseGeocode(hit: Location.LocationGeocodedAddress): string | null {
   const city = hit.city ?? hit.subregion ?? hit.district ?? hit.name;
   const region = hit.region ?? hit.country;
   if (city && region && city !== region) return `${city}, ${region}`;
@@ -64,7 +61,7 @@ export async function resolvePlaceName(
 
   try {
     const places = await Location.reverseGeocodeAsync({ latitude: lat, longitude: lon });
-    const label = places[0] ? formatReverseGeocode(places[0], locale) : null;
+    const label = places[0] ? formatReverseGeocode(places[0]) : null;
     if (label) return label;
   } catch {
     // fall through
