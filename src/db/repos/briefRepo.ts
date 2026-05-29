@@ -1,6 +1,7 @@
 import { asc, eq } from "drizzle-orm";
 import { getDrizzleDbForUser } from "@/db/drizzleClient";
 import { briefSchedule, personRedLetterDays, persons } from "@/db/schema";
+import type { Locale } from "@/i18n/types";
 import {
   legacyAnniversaryRow,
   legacyBirthdayRow,
@@ -75,8 +76,9 @@ export async function listAllRedLetterSources(userId: string): Promise<RedLetter
 
 export async function listUpcomingRedLetterDays(
   userId: string,
-  windowDays = 90,
+  windowDays: number,
+  locale: Locale,
 ): Promise<UpcomingRedLetterDay[]> {
   const rows = await listAllRedLetterSources(userId);
-  return upcomingRedLetterDays(rows, new Date(), windowDays);
+  return upcomingRedLetterDays(rows, new Date(), windowDays, locale);
 }

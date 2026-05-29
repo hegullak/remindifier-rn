@@ -21,6 +21,7 @@ export interface RedLetterDayInput {
   recurring: boolean;
 }
 
+/** @deprecated Use redLetterDisplayLabel from @/i18n/redLetterKinds with locale */
 export function redLetterDisplayLabel(kind: string, label: string | null): string {
   if (kind === "Other" && label?.trim()) return label;
   return label?.trim() ? label : kind;

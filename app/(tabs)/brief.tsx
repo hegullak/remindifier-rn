@@ -4,7 +4,7 @@ import { useCallback, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import DraggableFlatList, { ScaleDecorator } from "react-native-draggable-flatlist";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { FALLBACK_TRAINING, HEADSUP_ITEMS, useBriefData } from "@/features/brief/useBriefData";
+import { useBriefData } from "@/features/brief/useBriefData";
 import { useTranslation } from "@/i18n";
 import { briefGreetingLine } from "@/lib/brief/greeting";
 import { briefSectionLabelKey } from "@/lib/brief/sectionLabels";
@@ -20,7 +20,7 @@ export default function BriefScreen() {
   const { t, locale } = useTranslation();
   const { user } = useUser();
   const { userId } = useAuth();
-  const { brief, setSectionOrder, dateLine } = useBriefData(userId);
+  const { brief, setSectionOrder, dateLine, headsupItems, trainingLines } = useBriefData(userId);
   const [showAllRedLetters, setShowAllRedLetters] = useState(false);
   const [weatherExpanded, setWeatherExpanded] = useState(false);
   const [anniversaryDetail, setAnniversaryDetail] = useState<{
@@ -48,32 +48,50 @@ export default function BriefScreen() {
               <SectionLabel>{t(briefSectionLabelKey(sectionId))}</SectionLabel>
               <Pressable onPress={() => setWeatherExpanded((v) => !v)}>
                 <BriefCard stripeColor="blue">
-                  <View className="flex-row items-start justify-between">
+                  <View className="flex-row items-start justify-between gap-3">
                     <View className="flex-1">
-                      <Text className="text-[28px] text-text1 font-heading">
-                        {brief.weather.temp}
+                      <Text className="text-[11px] text-text3 font-body mb-1">
+                        📍 {brief.weather.locationLabel}
                       </Text>
+                      <View className="flex-row items-end gap-2">
+                        <Text className="text-[36px] leading-[40px] text-text1 font-heading">
+                          {brief.weather.temp}
+                        </Text>
+                        <Text className="text-[28px] pb-1">{brief.weather.icon}</Text>
+                      </View>
                       <Text className="text-[13px] text-text2 font-body mt-1">
                         {brief.weather.description}
                       </Text>
                     </View>
-                    <Text className="text-[28px]">{brief.weather.icon}</Text>
                   </View>
                   {weatherExpanded ? (
                     <View className="mt-3 pt-3 border-t border-border">
                       {brief.weather.goodForRun ? (
-                        <Text className="text-[12px] text-green font-bodyMedium mb-3">
-                          {t("brief.goodForRun")}
-                        </Text>
-                      ) : null}
-                      {brief.weather.details.map((d) => (
-                        <View key={d.label} className="mb-2">
-                          <Text className="text-[12px] text-text3 font-body">{d.label}</Text>
-                          <Text className="text-[13px] text-text2 font-bodyMedium mt-0.5">
-                            {d.value}
+                        <View className="flex-row items-center gap-2 mb-3">
+                          <Text className="text-[16px]">🏃</Text>
+                          <Text className="text-[12px] text-green font-bodyMedium flex-1">
+                            {t("brief.goodForRun")}
                           </Text>
                         </View>
-                      ))}
+                      ) : null}
+                      <View className="flex-row flex-wrap gap-x-4 gap-y-3">
+                        {brief.weather.details.map((d) => (
+                          <View key={`${d.icon}-${d.label}`} className="w-[46%] min-w-[140px]">
+                            <View className="flex-row items-center gap-1.5 mb-0.5">
+                              <Text className="text-[15px]">{d.icon}</Text>
+                              <Text className="text-[11px] text-text3 font-bodySemi uppercase tracking-wide">
+                                {d.label}
+                              </Text>
+                            </View>
+                            <Text className="text-[14px] text-text1 font-bodyMedium pl-5">
+                              {d.value}
+                            </Text>
+                          </View>
+                        ))}
+                      </View>
+                      <Text className="text-[12px] text-accent font-bodyMedium mt-3">
+                        {t("brief.hideDetails")}
+                      </Text>
                     </View>
                   ) : (
                     <Text className="text-[12px] text-accent font-bodyMedium mt-2">
@@ -90,15 +108,24 @@ export default function BriefScreen() {
               <SectionLabel>{t(briefSectionLabelKey(sectionId))}</SectionLabel>
               <BriefCard stripeColor="blue">
                 {brief.schedule.length === 0 ? (
-                  <Text className="text-[13px] text-text3 font-body">Nothing scheduled.</Text>
+                  <Text className="text-[13px] text-text3 font-body">
+                    {t("brief.scheduleEmpty")}
+                  </Text>
                 ) : (
                   brief.schedule.map((item, i) => (
                     <View key={item.id} className={i < brief.schedule.length - 1 ? "mb-3" : ""}>
-                      <Text className="text-[12px] text-text3 font-bodyMedium">{item.time}</Text>
-                      <Text className="text-[15px] text-text1 font-bodyMedium mt-1">
+                      <View className="flex-row items-center gap-2">
+                        <Text className="text-[14px]">🕐</Text>
+                        <Text className="text-[12px] text-text3 font-bodyMedium">{item.time}</Text>
+                      </View>
+                      <Text className="text-[15px] text-text1 font-bodyMedium mt-1 pl-6">
                         {item.title}
                       </Text>
-                      <Text className="text-[12px] text-text3 font-body mt-1">{item.note}</Text>
+                      {item.note ? (
+                        <Text className="text-[12px] text-text3 font-body mt-1 pl-6">
+                          {item.note}
+                        </Text>
+                      ) : null}
                     </View>
                   ))
                 )}
@@ -110,8 +137,8 @@ export default function BriefScreen() {
             <View>
               <SectionLabel>{t(briefSectionLabelKey(sectionId))}</SectionLabel>
               <BriefCard stripeColor="dusk">
-                {HEADSUP_ITEMS.map((item, i) => (
-                  <View key={item.day} className={i < HEADSUP_ITEMS.length - 1 ? "mb-3" : ""}>
+                {headsupItems.map((item, i) => (
+                  <View key={item.day} className={i < headsupItems.length - 1 ? "mb-3" : ""}>
                     <Text className="text-[11px] uppercase tracking-[1.2px] text-dusk font-bodySemi">
                       {item.day}
                     </Text>
@@ -126,13 +153,14 @@ export default function BriefScreen() {
             <View>
               <SectionLabel>{t(briefSectionLabelKey(sectionId))}</SectionLabel>
               <BriefCard stripeColor="green">
-                {FALLBACK_TRAINING.map((line, i) => (
-                  <Text
+                {trainingLines.map((line, i) => (
+                  <View
                     key={line}
-                    className={`text-[15px] text-text1 font-bodyMedium${i < FALLBACK_TRAINING.length - 1 ? " mb-2" : ""}`}
+                    className={`flex-row items-start gap-2${i < trainingLines.length - 1 ? " mb-3" : ""}`}
                   >
-                    {line}
-                  </Text>
+                    <Text className="text-[16px]">{i === 0 ? "🏋️" : "🏃"}</Text>
+                    <Text className="text-[15px] text-text1 font-bodyMedium flex-1">{line}</Text>
+                  </View>
                 ))}
               </BriefCard>
             </View>
@@ -144,7 +172,7 @@ export default function BriefScreen() {
               <BriefCard stripeColor="amber">
                 {brief.redLetterDays.length === 0 ? (
                   <Text className="text-[13px] text-text3 font-body">
-                    No red-letter days coming up.
+                    {t("brief.merkedagerEmpty")}
                   </Text>
                 ) : (
                   <>
@@ -178,7 +206,16 @@ export default function BriefScreen() {
           return null;
       }
     },
-    [brief, hiddenUpcomingCount, todayRedLetters, visibleUpcoming, weatherExpanded, t],
+    [
+      brief,
+      headsupItems,
+      hiddenUpcomingCount,
+      todayRedLetters,
+      trainingLines,
+      visibleUpcoming,
+      weatherExpanded,
+      t,
+    ],
   );
 
   const listHeader = (
@@ -191,9 +228,7 @@ export default function BriefScreen() {
           <Text className="text-accent">{greetingName}</Text>
         </Text>
       </View>
-      <Text className="text-[11px] text-text3 font-body mb-3">
-        Hold and drag a section to reorder
-      </Text>
+      <Text className="text-[11px] text-text3 font-body mb-3">{t("brief.reorderHint")}</Text>
     </View>
   );
 
@@ -228,7 +263,7 @@ export default function BriefScreen() {
       <BottomSheet
         visible={anniversaryDetail !== null}
         onDismiss={() => setAnniversaryDetail(null)}
-        title="Wedding anniversary"
+        title={t("brief.anniversarySheet.title")}
       >
         {anniversaryDetail ? (
           <View className="gap-3">
@@ -236,12 +271,12 @@ export default function BriefScreen() {
               {anniversaryDetail.personName}
             </Text>
             <Text className="text-[13px] text-text2 font-body">
-              {anniversaryDetail.years} years
+              {t("brief.anniversarySheet.years", { count: anniversaryDetail.years })}
             </Text>
             {anniversaryDetail.norwegian ? (
               <View>
                 <Text className="text-[10px] uppercase tracking-[1.2px] text-text3 font-bodySemi">
-                  Norwegian
+                  {t("brief.anniversarySheet.norwegianLabel")}
                 </Text>
                 <Text className="text-[15px] text-amber font-bodySemi mt-1">
                   {anniversaryDetail.norwegian}
@@ -251,7 +286,7 @@ export default function BriefScreen() {
             {anniversaryDetail.english ? (
               <View>
                 <Text className="text-[10px] uppercase tracking-[1.2px] text-text3 font-bodySemi">
-                  English
+                  {t("brief.anniversarySheet.englishLabel")}
                 </Text>
                 <Text className="text-[15px] text-text1 font-bodyMedium mt-1">
                   {anniversaryDetail.english}

@@ -1,0 +1,21 @@
+---
+description: remindifier-rn project context — read PROJECT_MEMORY.md before exploring
+alwaysApply: true
+---
+
+# remindifier-rn context
+
+**Read `PROJECT_MEMORY.md` in the repo root** for full architecture, routes, i18n, and pitfalls. Update that file when you change project conventions.
+
+## Essentials (keep in sync with PROJECT_MEMORY.md)
+
+- Expo 54 + expo-router; **Expo v56 docs** before coding (`AGENTS.md`)
+- **All UI strings** via `useTranslation()` / `src/i18n/locales/{en,no}.ts` — code in English
+- NO: **Merkedager**; EN: **Red-letter days**; section titles include “denne uken” / “this week”
+- Tabs: `brief` | `people` | `myself`; settings at `/settings` (avatar); QR on myself tab (Show/Hide)
+- Local encrypted SQLite (Drizzle); Clerk = auth only
+- Weather: GPS → env lat/lon → Hagavik; Open-Meteo + `expo-location`
+- Pass `locale` to `upcomingRedLetterDays`, `fetchBriefWeather`, `formatBriefDateLine`
+- Biome + Jest; branch `sandbox`; don’t commit `.env` / logs / coverage
+
+When unsure about structure or naming, open `PROJECT_MEMORY.md` instead of broad repo search.

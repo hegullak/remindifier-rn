@@ -31,6 +31,12 @@
         }
       ],
       [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Allow Remindifier to show weather for your current location."
+        }
+      ],
+      [
         "expo-sqlite",
         {
           "useSQLCipher": true
