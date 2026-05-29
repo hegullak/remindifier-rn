@@ -1,3 +1,4 @@
+jest.mock("@/lib/logger");
 import { parseEventInput } from "@/lib/gatherings/eventParser";
 
 describe("parseEventInput", () => {
