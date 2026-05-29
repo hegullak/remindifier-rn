@@ -233,6 +233,8 @@ export const no = {
     lastSeenMonths: "for {count} måneder siden",
     note: "notat",
     followUp: "oppfølging",
+    funFacts: "Minne",
+    events: "Events",
     redLetterDays: "Merkedager",
     relationships: "Relasjoner",
     timeline: "Tidslinje",

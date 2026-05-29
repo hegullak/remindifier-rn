@@ -62,9 +62,13 @@ function OnboardingContent({
     return <Redirect href="/(tabs)/brief" />;
   }
 
-  async function finishOnboarding() {
+  async function finishOnboarding(personId?: string) {
     await completeOnboarding(userId);
-    router.replace("/(tabs)/brief");
+    if (personId) {
+      router.replace(`/(tabs)/people/${personId}`);
+    } else {
+      router.replace("/(tabs)/brief");
+    }
   }
 
   async function handleContinue() {
@@ -126,7 +130,7 @@ function OnboardingContent({
                     actions,
                   });
                 } else {
-                  await finishOnboarding();
+                  await finishOnboarding(personId);
                 }
               }}
             />
@@ -141,8 +145,8 @@ function OnboardingContent({
           personId={nudge.personId}
           personName={nudge.personName}
           pendingActions={nudge.actions}
-          onDismiss={() => void finishOnboarding()}
-          onCreated={() => void finishOnboarding()}
+          onDismiss={() => void finishOnboarding(nudge.personId)}
+          onCreated={() => void finishOnboarding(nudge.personId)}
         />
       ) : null}
     </View>

@@ -1,7 +1,7 @@
-import { and, asc, desc, eq, notInArray } from "drizzle-orm";
+import { and, asc, desc, eq, notInArray, inArray } from "drizzle-orm";
 import * as Crypto from "expo-crypto";
 import { getDrizzleDbForUser } from "@/db/drizzleClient";
-import { personEntries, personRedLetterDays, persons, relationships } from "@/db/schema";
+import { gatheringParticipants, gatherings, personEntries, personRedLetterDays, persons, relationships } from "@/db/schema";
 import { logger } from "@/lib/logger";
 import type { RedLetterDayInput } from "@/lib/red-letter-day";
 import { normalizeRedLetterDay } from "@/lib/red-letter-day";
@@ -137,16 +137,40 @@ export async function listPersonRelationships(
   ].sort((a, b) => a.otherPersonName.localeCompare(b.otherPersonName));
 }
 
+async function listPersonGatherings(userId: string, personId: string) {
+  const db = await getDrizzleDbForUser(userId);
+  const participantRows = await db
+    .select({ gatheringId: gatheringParticipants.gatheringId })
+    .from(gatheringParticipants)
+    .where(
+      and(eq(gatheringParticipants.userId, userId), eq(gatheringParticipants.personId, personId)),
+    );
+  if (participantRows.length === 0) return [];
+  const ids = participantRows.map((r) => r.gatheringId);
+  return db
+    .select({
+      id: gatherings.id,
+      title: gatherings.title,
+      description: gatherings.description,
+      scheduledAt: gatherings.scheduledAt,
+      status: gatherings.status,
+    })
+    .from(gatherings)
+    .where(and(eq(gatherings.userId, userId), inArray(gatherings.id, ids)))
+    .orderBy(desc(gatherings.scheduledAt));
+}
+
 export async function getPersonProfileBundle(userId: string, personId: string) {
-  const [person, redLetterDays, timeline, links] = await Promise.all([
+  const [person, redLetterDays, timeline, links, personGatherings] = await Promise.all([
     getPersonById(userId, personId),
     listPersonRedLetterDays(userId, personId),
     listPersonTimeline(userId, personId),
     listPersonRelationships(userId, personId),
+    listPersonGatherings(userId, personId),
   ]);
 
   if (!person) return null;
-  return { person, redLetterDays, timeline, links };
+  return { person, redLetterDays, timeline, links, gatherings: personGatherings };
 }
 
 async function upsertRedLetterDays(userId: string, personId: string, days: RedLetterDayInput[]) {
@@ -228,9 +252,18 @@ export async function createPerson(userId: string, input: UpsertPersonInput) {
       sensitiveTopics: input.isSensitive ? ["handle_with_care"] : [],
       interests: input.funFacts ?? [],
     });
-    if (input.redLetterDays) {
-      await upsertRedLetterDays(userId, id, input.redLetterDays);
+    const redLetterDays = [...(input.redLetterDays ?? [])];
+    // Auto-add birthday as a red-letter day if not already present
+    if (input.birthday && !redLetterDays.some((d) => d.kind === "Birthday")) {
+      redLetterDays.push({
+        kind: "Birthday",
+        label: null,
+        eventDate: input.birthday,
+        yearKnown: input.birthdayYearKnown ?? true,
+        recurring: true,
+      });
     }
+    await upsertRedLetterDays(userId, id, redLetterDays);
     logger.info("person_created", { userId, personId: id });
     return id;
   } catch (err) {

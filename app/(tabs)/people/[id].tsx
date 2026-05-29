@@ -130,6 +130,43 @@ export default function PersonDetailScreen() {
 
         {bundle ? (
           <>
+            {bundle.person.interests.length > 0 ? (
+              <>
+                <SectionLabel>{t("people.funFacts")}</SectionLabel>
+                <Card style={{ marginBottom: 4 }}>
+                  {bundle.person.interests.map((fact, i) => (
+                    <Text
+                      key={i}
+                      className={`text-[14px] text-text2 font-body leading-[21px] ${i > 0 ? "mt-1" : ""}`}
+                    >
+                      · {fact}
+                    </Text>
+                  ))}
+                </Card>
+              </>
+            ) : null}
+
+            {bundle.gatherings.length > 0 ? (
+              <>
+                <SectionLabel>{t("people.events")}</SectionLabel>
+                {bundle.gatherings.map((g) => (
+                  <Card key={g.id} style={{ marginBottom: 4 }}>
+                    <Text className="text-[14px] text-text1 font-bodyMedium">{g.title}</Text>
+                    {g.description ? (
+                      <Text className="text-[13px] text-text2 font-body mt-1 leading-[19px]">
+                        {g.description}
+                      </Text>
+                    ) : null}
+                    {g.scheduledAt ? (
+                      <Text className="text-[11px] text-text3 font-body mt-1">
+                        {formatDate(g.scheduledAt.toISOString(), locale)}
+                      </Text>
+                    ) : null}
+                  </Card>
+                ))}
+              </>
+            ) : null}
+
             <SectionLabel>{t("people.redLetterDays")}</SectionLabel>
             {bundle.redLetterDays.length === 0 ? (
               <Text className="text-[13px] text-text3 font-body">

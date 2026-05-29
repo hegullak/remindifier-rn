@@ -231,6 +231,8 @@ export const en = {
     lastSeenMonths: "{count} months ago",
     note: "note",
     followUp: "follow-up",
+    funFacts: "Memory",
+    events: "Events",
     redLetterDays: "Red-letter days",
     relationships: "Relationships",
     timeline: "Timeline",
