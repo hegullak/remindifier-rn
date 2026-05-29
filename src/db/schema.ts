@@ -23,7 +23,7 @@ export const users = sqliteTable("users", {
   morningBriefTime: text("morning_brief_time").notNull().default("06:00:00"),
   consentAcceptedAt: integer("consent_accepted_at", { mode: "timestamp_ms" }),
   briefPreferences: text("brief_preferences", { mode: "json" })
-    .$type<{ sectionOrder?: string[] }>()
+    .$type<UserBriefPreferences>()
     .notNull()
     .default(sql`'{}'`),
   createdAt: integer("created_at", { mode: "timestamp_ms" })
@@ -240,6 +240,11 @@ export const myProfile = sqliteTable("my_profile", {
   about: text("about"),
   contactPreference: text("contact_preference"),
 });
+
+export type UserBriefPreferences = {
+  sectionOrder?: string[];
+  onboardingCompletedAt?: number;
+};
 
 export type Person = typeof persons.$inferSelect;
 export type MyProfile = typeof myProfile.$inferSelect;

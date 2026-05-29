@@ -2,9 +2,11 @@ import { getClerkInstance, useAuth } from "@clerk/clerk-expo";
 import type { ExpoSQLiteDatabase } from "drizzle-orm/expo-sqlite";
 import { useMigrations } from "drizzle-orm/expo-sqlite/migrator";
 import { Redirect, Tabs } from "expo-router";
+import { useEffect, useState } from "react";
 import { Text } from "react-native";
 import { useBootstrapApp } from "@/bootstrap/useBootstrapApp";
 import migrations from "@/db/drizzle/migrations";
+import { hasCompletedOnboarding } from "@/db/repos/userRepo";
 import type * as schema from "@/db/schema";
 import { useUserDrizzleDb } from "@/db/useUserDrizzleDb";
 import { useTranslation } from "@/i18n";
@@ -34,13 +36,43 @@ function TabsWithBootstrap({
   const { t } = useTranslation();
   const migrationState = useMigrations(db, migrations);
   const { ready } = useBootstrapApp(userId, migrationState.success);
+  const [onboardingChecked, setOnboardingChecked] = useState(false);
+  const [needsOnboarding, setNeedsOnboarding] = useState(false);
+
+  useEffect(() => {
+    if (!ready) {
+      setOnboardingChecked(false);
+      return;
+    }
+    let cancelled = false;
+    hasCompletedOnboarding(userId)
+      .then((completed) => {
+        if (!cancelled) {
+          setNeedsOnboarding(!completed);
+          setOnboardingChecked(true);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setNeedsOnboarding(false);
+          setOnboardingChecked(true);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [ready, userId]);
 
   if (migrationState.error) {
     return <FatalScreen message={migrationState.error.message} />;
   }
 
-  if (!ready) {
+  if (!ready || !onboardingChecked) {
     return <LoadingScreen message={t("startup.preparingData")} />;
+  }
+
+  if (needsOnboarding) {
+    return <Redirect href="/onboarding" />;
   }
 
   return (

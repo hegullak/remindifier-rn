@@ -17,6 +17,11 @@ export const no = {
     people: "people",
     myself: "myself",
   },
+  onboarding: {
+    title: "Hvem vil du huske bedre?",
+    subtitle: "Begynn med noen som betyr noe for deg.",
+    skip: "Hopp over for nå",
+  },
   language: {
     switchToNo: "Bytt til norsk",
     switchToEn: "Bytt til engelsk",
@@ -246,7 +251,7 @@ export const no = {
     newPersonTitle: "Ny person",
     newPersonSubtitle: "Legg til noen du vil huske å følge opp.",
     newPersonFromQr: "Fra QR-kode — sjekk og lagre når det ser riktig ut.",
-    naturalInputLabel: "Fortell meg om personen...",
+    naturalInputPlaceholder: "Trine. Søsteren min. Bursdag i mars. Liker ikke sene samtaler.",
     naturalInputButton: "Fortsett →",
     naturalModeTab: "Naturlig",
     formModeTab: "Skjema",

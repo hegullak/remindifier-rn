@@ -81,4 +81,29 @@ describe("parseNaturalPersonInput", () => {
     expect(result.birthday).toBe("0001-03-14");
     expect(result.birthdayYearKnown).toBe(false);
   });
+
+  it("parses Norwegian memory fragments with month-only birthday", () => {
+    const result = parseNaturalPersonInput(
+      "Trine. Søsteren min. Bursdag i mars. Liker ikke sene samtaler.",
+    );
+    expect(result.displayName).toBe("Trine");
+    expect(result.relationType).toBe("søster");
+    expect(result.birthday).toBe("0001-03-01");
+    expect(result.birthdayYearKnown).toBe(false);
+    expect(result.funFacts).toContain("Liker ikke sene samtaler");
+  });
+
+  it("parses English month-only birthday", () => {
+    const result = parseNaturalPersonInput("Alex. Friend. Birthday in March. Football parent.");
+    expect(result.displayName).toBe("Alex");
+    expect(result.relationType).toBe("friend");
+    expect(result.birthday).toBe("0001-03-01");
+    expect(result.funFacts).toContain("Football parent");
+  });
+
+  it("keeps unmapped memory fragments as-is", () => {
+    const result = parseNaturalPersonInput("Maya. football parent");
+    expect(result.displayName).toBe("Maya");
+    expect(result.funFacts).toContain("football parent");
+  });
 });

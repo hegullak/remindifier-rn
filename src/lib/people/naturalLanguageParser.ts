@@ -95,41 +95,6 @@ function preferNorwegianLabels(text: string): boolean {
   );
 }
 
-const STOP_WORDS = new Set([
-  "er",
-  "is",
-  "min",
-  "mitt",
-  "mine",
-  "my",
-  "the",
-  "og",
-  "and",
-  "a",
-  "an",
-  "en",
-  "et",
-  "ei",
-  "den",
-  "det",
-  "de",
-  "hun",
-  "han",
-  "ho",
-  "jeg",
-  "i",
-  "som",
-  "at",
-  "named",
-  "heter",
-  "called",
-  "bursdag",
-  "birthday",
-  "born",
-  "født",
-  "fodt",
-]);
-
 function pad2(n: number): string {
   return String(n).padStart(2, "0");
 }
@@ -229,7 +194,7 @@ function extractBirthday(text: string): { birthday: BirthdayHit | null; rest: st
 
   if (!hit) {
     const hintThenDate = rest.match(
-      /\b(?:bursdag|birthday|born|født|fodt|fyller\s+år|fyller\s+ar|turns)\s*[:-]?\s*(\d{1,2})\.?\s*([a-zæøåé.]+)(?:\s+((?:19|20)\d{2}))?/i,
+      /\b(?:bursdag|birthday|born|født|fodt|fyller\s+år|fyller\s+ar|turns)\s*[:-]?\s*(\d{1,2})\.?\s*([a-zæøåé]+)(?:\s+((?:19|20)\d{2}))?/i,
     );
     if (hintThenDate) {
       const day = Number(hintThenDate[1]);
@@ -241,6 +206,22 @@ function extractBirthday(text: string): { birthday: BirthdayHit | null; rest: st
         if (iso) {
           hit = { iso, yearKnown, match: hintThenDate[0] };
           rest = rest.replace(hintThenDate[0], " ");
+        }
+      }
+    }
+  }
+
+  if (!hit) {
+    const monthOnly = rest.match(
+      new RegExp(`\\b(?:bursdag|birthday)\\s+(?:i\\s+|in\\s+)?(${MONTH_NAME_PATTERN})\\b`, "i"),
+    );
+    if (monthOnly) {
+      const month = parseMonthName(monthOnly[1]);
+      if (month) {
+        const iso = toIsoDate(UNKNOWN_BIRTH_YEAR, month, 1, false);
+        if (iso) {
+          hit = { iso, yearKnown: false, match: monthOnly[0] };
+          rest = rest.replace(monthOnly[0], " ");
         }
       }
     }
@@ -269,6 +250,14 @@ function extractRelation(text: string): { relation: string | null; rest: string 
 }
 
 function extractName(text: string): { name: string | null; rest: string } {
+  const fragmentName = text.match(/^([A-ZÆØÅ][\wæøåéÆØÅÉ'-]+)\s*\./u);
+  if (fragmentName) {
+    return {
+      name: fragmentName[1].trim(),
+      rest: normalizeSpaces(text.replace(fragmentName[0], " ")),
+    };
+  }
+
   const namedMatch = text.match(
     /\b(?:heter|named|called)\s+([A-ZÆØÅ][\wæøåéÆØÅÉ'-]*(?:\s+[A-ZÆØÅ][\wæøåéÆØÅÉ'-]*)*)/iu,
   );
@@ -308,18 +297,10 @@ function normalizeSpaces(value: string): string {
 }
 
 function extractFunFacts(text: string): string[] {
-  const chunks = text
-    .split(/[,;.!?]+/)
+  return text
+    .split(/[,.]+/)
     .map((part) => part.trim())
     .filter(Boolean);
-
-  const facts: string[] = [];
-  for (const chunk of chunks) {
-    const words = chunk.split(/\s+/).filter((w) => !STOP_WORDS.has(w.toLowerCase()));
-    const cleaned = words.join(" ").trim();
-    if (cleaned.length >= 3) facts.push(cleaned);
-  }
-  return facts;
 }
 
 export function parseNaturalPersonInput(input: string): ParsedPersonDraft {
@@ -335,7 +316,9 @@ export function parseNaturalPersonInput(input: string): ParsedPersonDraft {
     };
   }
 
-  let working = normalizeSpaces(rawInput.replace(/[,;]+/g, ", "));
+  let working = normalizeSpaces(
+    rawInput.replace(/([A-Za-zæøåéÆØÅÉ])\.\s+/g, "$1, ").replace(/[,;]+/g, ", "),
+  );
 
   const { birthday: birthdayHit, rest: afterBirthday } = extractBirthday(working);
   working = afterBirthday;

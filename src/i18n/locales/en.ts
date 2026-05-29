@@ -15,6 +15,11 @@ export const en = {
     people: "people",
     myself: "myself",
   },
+  onboarding: {
+    title: "Who do you want to remember better?",
+    subtitle: "Start with someone who matters to you.",
+    skip: "Skip for now",
+  },
   language: {
     switchToNo: "Switch to Norwegian",
     switchToEn: "Switch to English",
@@ -244,7 +249,7 @@ export const en = {
     newPersonTitle: "New person",
     newPersonSubtitle: "Add someone you want to keep showing up for.",
     newPersonFromQr: "From QR code — review and save when it looks right.",
-    naturalInputLabel: "Tell me about this person...",
+    naturalInputPlaceholder: "Trine. My sister. Birthday in March. Doesn't like late calls.",
     naturalInputButton: "Continue →",
     naturalModeTab: "Natural",
     formModeTab: "Form",

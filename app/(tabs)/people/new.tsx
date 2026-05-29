@@ -1,8 +1,11 @@
 import { useAuth } from "@clerk/clerk-expo";
 import { router, useLocalSearchParams } from "expo-router";
 import { useMemo, useState } from "react";
-import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
 import { createPerson } from "@/db/repos/peopleRepo";
+import { NaturalLanguageInputStep } from "@/features/people/NaturalLanguageInputStep";
+import { draftToFormInitial } from "@/features/people/naturalIntake";
+import { ParsedPersonPreviewCard } from "@/features/people/ParsedPersonPreviewCard";
 import { PersonForm } from "@/features/people/PersonForm";
 import { useTranslation } from "@/i18n/LanguageContext";
 import { qrPayloadToPersonPrefill } from "@/lib/me/qr-payload";
@@ -11,22 +14,9 @@ import {
   parseNaturalPersonInput,
 } from "@/lib/people/naturalLanguageParser";
 import { AppShell } from "@/ui/AppShell";
-import { Card } from "@/ui/Card";
 
 type IntakeMode = "natural" | "form";
 type NaturalStep = "input" | "preview";
-
-function draftToFormInitial(draft: ParsedPersonDraft) {
-  return {
-    displayName: draft.displayName ?? "",
-    relationType: draft.relationType,
-    birthday: draft.birthday ?? "",
-    birthdayYearKnown: draft.birthdayYearKnown,
-    isSensitive: false,
-    funFacts: draft.funFacts,
-    redLetterDays: [],
-  };
-}
 
 export default function NewPersonScreen() {
   const { userId } = useAuth();
@@ -122,25 +112,11 @@ export default function NewPersonScreen() {
 
         {intakeMode === "natural" && naturalStep === "input" && !scannedInitial ? (
           <View className="mb-4">
-            <TextInput
+            <NaturalLanguageInputStep
               value={naturalText}
               onChangeText={setNaturalText}
-              placeholder={t("people.naturalInputLabel")}
-              placeholderTextColor="#7A8CAD"
-              multiline
-              numberOfLines={6}
-              textAlignVertical="top"
-              className="min-h-[160px] bg-bg2 border border-border rounded-xl px-4 py-3 text-[15px] text-text1 font-body"
+              onContinue={handleNaturalContinue}
             />
-            <Pressable
-              onPress={handleNaturalContinue}
-              disabled={!naturalText.trim()}
-              className="mt-3 min-h-[48px] rounded-xl bg-accent items-center justify-center opacity-100 disabled:opacity-50"
-            >
-              <Text className="text-[16px] text-card font-bodySemi">
-                {t("people.naturalInputButton")}
-              </Text>
-            </Pressable>
           </View>
         ) : null}
 
@@ -151,34 +127,7 @@ export default function NewPersonScreen() {
         ) : null}
 
         {showPreviewForm && parsedDraft && intakeMode === "natural" ? (
-          <Card style={{ marginBottom: 12, borderRadius: 18 }}>
-            <Text className="text-[11px] uppercase tracking-[1.5px] text-text3 font-bodySemi">
-              {t("people.parsedFrom")}
-            </Text>
-            <View className="mt-3 gap-2">
-              {parsedDraft.displayName ? (
-                <PreviewRow label={t("personForm.fullName")} value={parsedDraft.displayName} />
-              ) : null}
-              {parsedDraft.relationType ? (
-                <PreviewRow label={t("personForm.relationType")} value={parsedDraft.relationType} />
-              ) : null}
-              {parsedDraft.birthday ? (
-                <PreviewRow label={t("personForm.birthday")} value={parsedDraft.birthday} />
-              ) : null}
-              {parsedDraft.funFacts.length > 0 ? (
-                <View>
-                  <Text className="text-[11px] uppercase tracking-[1.2px] text-text3 font-bodySemi">
-                    {t("personForm.funFacts")}
-                  </Text>
-                  {parsedDraft.funFacts.map((fact) => (
-                    <Text key={fact} className="text-[14px] text-text2 font-body mt-1">
-                      · {fact}
-                    </Text>
-                  ))}
-                </View>
-              ) : null}
-            </View>
-          </Card>
+          <ParsedPersonPreviewCard draft={parsedDraft} />
         ) : null}
 
         {showPreviewForm ? (
@@ -199,16 +148,5 @@ export default function NewPersonScreen() {
         ) : null}
       </ScrollView>
     </AppShell>
-  );
-}
-
-function PreviewRow({ label, value }: { label: string; value: string }) {
-  return (
-    <View>
-      <Text className="text-[11px] uppercase tracking-[1.2px] text-text3 font-bodySemi">
-        {label}
-      </Text>
-      <Text className="text-[15px] text-text1 font-bodyMedium mt-0.5">{value}</Text>
-    </View>
   );
 }
