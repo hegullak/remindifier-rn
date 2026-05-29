@@ -194,7 +194,7 @@ export default function PersonDetailScreen() {
                     accessibilityRole="button"
                     accessibilityLabel={t("people.addEvent")}
                   >
-                    <Text className="text-[16px] text-accent font-body">✦</Text>
+                    <Text className="text-[18px] text-accent font-body leading-[18px]">+</Text>
                   </Pressable>
                 </View>
                 {bundle.gatherings.map((g) => (

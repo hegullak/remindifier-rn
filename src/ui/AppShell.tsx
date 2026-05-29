@@ -19,7 +19,7 @@ export function AppShell({
   const showHeader = showThemeToggle || showProfileLink || showLanguagePicker;
 
   return (
-    <SafeAreaView className="flex-1 bg-bg" edges={["top"]}>
+    <SafeAreaView className="flex-1 bg-bg" edges={["top", "bottom"]}>
       {showHeader ? (
         <View className="flex-row items-center justify-between px-4 pt-1 pb-1">
           {showLanguagePicker ? <LanguagePicker /> : <View />}

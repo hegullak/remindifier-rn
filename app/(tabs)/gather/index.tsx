@@ -114,7 +114,7 @@ export default function GatherListScreen() {
             elevation: 6,
           }}
         >
-          <Text className="text-[22px] text-card font-body">✦</Text>
+          <Text className="text-[24px] text-card font-body leading-[24px]">+</Text>
         </Pressable>
       </View>
     </AppShell>

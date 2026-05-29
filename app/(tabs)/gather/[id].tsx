@@ -413,6 +413,14 @@ export default function GatheringDetailScreen() {
                               onPress={() => {
                                 triggerSelection();
                                 setSelectedKind(kind);
+                                LayoutAnimation.configureNext({
+                                  duration: 200,
+                                  delete: {
+                                    type: LayoutAnimation.Types.easeInEaseOut,
+                                    property: LayoutAnimation.Properties.opacity,
+                                  },
+                                });
+                                setShowKindPicker(false);
                               }}
                               className={`flex-row items-center gap-2 px-3 py-2 rounded-lg ${
                                 active ? "bg-accent" : "bg-transparent"
