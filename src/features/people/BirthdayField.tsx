@@ -25,7 +25,7 @@ export function BirthdayField({
   fieldClass,
 }: Props) {
   const { t, locale } = useTranslation();
-  const [showPicker, setShowPicker] = useState(Platform.OS === "ios");
+  const [showPicker, setShowPicker] = useState(false);
 
   const pickerValue = birthday
     ? isoToPickerDate(birthday, birthdayYearKnown)
@@ -37,7 +37,7 @@ export function BirthdayField({
   return (
     <>
       <Pressable
-        onPress={() => setShowPicker(true)}
+        onPress={() => setShowPicker((v) => !v)}
         className={`${fieldClass} justify-center`}
         accessibilityRole="button"
       >
