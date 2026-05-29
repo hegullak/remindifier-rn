@@ -231,10 +231,15 @@ function extractBirthday(text: string): { birthday: BirthdayHit | null; rest: st
   return { birthday: hit, rest: normalizeSpaces(rest) };
 }
 
-function extractRelation(text: string): { relation: string | null; rest: string } {
-  // Only look in the first two sentences to avoid picking up relation words
-  // that describe other people mentioned later ("Søsteren hans, Marianne...")
-  const firstSentences = text.split(/(?<=[.!?])\s+/).slice(0, 2).join(" ");
+function extractRelation(
+  text: string,
+  rawScope?: string,
+): { relation: string | null; rest: string } {
+  // Scope relation lookup to first 2 sentences of the ORIGINAL text (before
+  // preprocessing converts ". " to ", "). This prevents picking up relation
+  // words that describe other people mentioned later in the text.
+  const scope = rawScope ?? text;
+  const firstSentences = scope.split(/(?<=[.!?])\s+/).slice(0, 2).join(" ");
   const useNo = preferNorwegianLabels(text);
   for (const entry of RELATION_ENTRIES) {
     entry.pattern.lastIndex = 0;
@@ -353,7 +358,7 @@ export function parseNaturalPersonInputLocal(input: string): ParsedPersonDraft {
   const { birthday: birthdayHit, rest: afterBirthday } = extractBirthday(working);
   working = afterBirthday;
 
-  const { relation, rest: afterRelation } = extractRelation(working);
+  const { relation, rest: afterRelation } = extractRelation(working, rawInput);
   working = afterRelation;
 
   const { name, rest: afterName } = extractName(working);

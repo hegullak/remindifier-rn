@@ -6,7 +6,7 @@ import {
 import { BIRTHDAY_SENTINEL_YEAR } from "@/lib/red-letter-day";
 
 const ANTHROPIC_API_URL = "https://api.anthropic.com/v1/messages";
-const MODEL = "claude-sonnet-4-20250514";
+const MODEL = "claude-haiku-4-5-20251001";
 
 type ApiDraftPayload = {
   displayName?: unknown;
