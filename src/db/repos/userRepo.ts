@@ -53,6 +53,22 @@ export async function completeOnboarding(userId: string) {
   }
 }
 
+export async function resetOnboarding(userId: string) {
+  try {
+    const db = await getDrizzleDbForUser(userId);
+    const prefs = await getUserBriefPreferences(userId);
+    const { onboardingCompletedAt: _removed, ...rest } = prefs as Record<string, unknown>;
+    await db
+      .update(users)
+      .set({ briefPreferences: rest as typeof prefs, updatedAt: new Date() })
+      .where(eq(users.id, userId));
+    logger.info("onboarding_reset", { userId });
+  } catch (err) {
+    logRepoError("onboarding_reset_failed", err, { userId });
+    throw err;
+  }
+}
+
 export async function setBriefSectionOrder(userId: string, order: BriefSectionId[]) {
   try {
     const db = await getDrizzleDbForUser(userId);

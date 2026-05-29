@@ -1,4 +1,4 @@
-import { useAuth } from "@clerk/clerk-expo";
+import { useAppAuth } from "@/features/auth/useAppAuth";
 import { FlashList } from "@shopify/flash-list";
 import { Link } from "expo-router";
 import { Pressable, Text, View } from "react-native";
@@ -78,7 +78,7 @@ function PersonRowCard({
 }
 
 export default function PeopleListScreen() {
-  const { userId } = useAuth();
+  const { userId } = useAppAuth();
   const { t, locale } = useTranslation();
   const { people, loading, error } = usePeopleData(userId);
   const activePeople = people.filter((p) => !p.archived);

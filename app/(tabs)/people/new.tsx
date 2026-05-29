@@ -1,4 +1,4 @@
-import { useAuth } from "@clerk/clerk-expo";
+import { useAppAuth } from "@/features/auth/useAppAuth";
 import { router, useLocalSearchParams } from "expo-router";
 import { useMemo, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
@@ -19,7 +19,7 @@ type IntakeMode = "natural" | "form";
 type NaturalStep = "input" | "preview";
 
 export default function NewPersonScreen() {
-  const { userId } = useAuth();
+  const { userId } = useAppAuth();
   const { t } = useTranslation();
   const params = useLocalSearchParams<{
     prefillName?: string;

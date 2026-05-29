@@ -1,4 +1,4 @@
-import { useAuth } from "@clerk/clerk-expo";
+import { useAppAuth } from "@/features/auth/useAppAuth";
 import { router } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -35,7 +35,7 @@ function formatBirthday(birthday: string | null, yearKnown: boolean | null, loca
 
 export function MyselfProfileScreen() {
   const { t, locale } = useTranslation();
-  const { userId } = useAuth();
+  const { userId } = useAppAuth();
   const colorScheme = useColorScheme();
   const { profile, loading, error, save, defaultDisplayName } = useMyProfile(userId);
   const [editing, setEditing] = useState(false);

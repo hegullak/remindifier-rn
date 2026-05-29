@@ -1,4 +1,4 @@
-import { useAuth, useUser } from "@clerk/clerk-expo";
+import { useAppAuth, useAppUser } from "@/features/auth/useAppAuth";
 import { Link } from "expo-router";
 import { useCallback, useState } from "react";
 import { Pressable, Text, View } from "react-native";
@@ -19,8 +19,8 @@ import { SectionLabel } from "@/ui/SectionLabel";
 
 export default function BriefScreen() {
   const { t, locale } = useTranslation();
-  const { user } = useUser();
-  const { userId } = useAuth();
+  const { user } = useAppUser();
+  const { userId } = useAppAuth();
   const { brief, setSectionOrder, dateLine, headsupItems, trainingLines } = useBriefData(userId);
   const [weatherExpanded, setWeatherExpanded] = useState(false);
   const [anniversaryDetail, setAnniversaryDetail] = useState<{

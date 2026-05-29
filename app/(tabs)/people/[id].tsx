@@ -1,4 +1,4 @@
-import { useAuth } from "@clerk/clerk-expo";
+import { useAppAuth } from "@/features/auth/useAppAuth";
 import { Link, router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import { Pressable, ScrollView, Text, TextInput, useColorScheme, View } from "react-native";
@@ -22,7 +22,7 @@ function formatDate(iso: string, locale: Locale) {
 }
 
 export default function PersonDetailScreen() {
-  const { userId } = useAuth();
+  const { userId } = useAppAuth();
   const { t, locale } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { bundle, loading, error, reload } = usePersonProfileData(userId, id);

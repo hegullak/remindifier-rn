@@ -1,4 +1,4 @@
-import { useAuth } from "@clerk/clerk-expo";
+import { useAppAuth } from "@/features/auth/useAppAuth";
 import Constants from "expo-constants";
 import * as FileSystem from "expo-file-system/legacy";
 import { router } from "expo-router";
@@ -6,6 +6,8 @@ import * as Sharing from "expo-sharing";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View } from "react-native";
 import { deleteAllData, exportAllData } from "@/db/repos/settingsRepo";
+import { resetOnboarding } from "@/db/repos/userRepo";
+import { DEV_BYPASS_AUTH } from "@/features/auth/devBypass";
 import { useUserDrizzleDb } from "@/db/useUserDrizzleDb";
 import { AccountSettingsSection } from "@/features/auth/AccountSettingsSection";
 import { clearClerkAuthStorage } from "@/features/auth/clerk/clearAuthStorage";
@@ -21,7 +23,7 @@ const PRIVACY_KEYS = ["privacy.p1", "privacy.p2", "privacy.p3"] as const;
 
 export default function SettingsScreen() {
   const { t, locale } = useTranslation();
-  const { userId, signOut } = useAuth();
+  const { userId, signOut } = useAppAuth();
   const { db, loading: dbLoading } = useUserDrizzleDb(userId);
   const [exporting, setExporting] = useState(false);
   const [deletingAll, setDeletingAll] = useState(false);
@@ -66,6 +68,12 @@ export default function SettingsScreen() {
     } finally {
       setExporting(false);
     }
+  }
+
+  async function handleResetOnboarding() {
+    if (!userId) return;
+    await resetOnboarding(userId);
+    router.replace("/onboarding");
   }
 
   async function handleDeleteAll() {
@@ -138,6 +146,17 @@ export default function SettingsScreen() {
             </Button>
           </View>
         </SettingsAccordion>
+
+        {__DEV__ ? (
+          <Card style={{ marginTop: 8 }}>
+            <Text className="text-[11px] uppercase tracking-[1.5px] text-text3 font-bodySemi mb-3">
+              DEV {DEV_BYPASS_AUTH ? "· bypass active" : ""}
+            </Text>
+            <Button variant="secondary" onPress={() => void handleResetOnboarding()}>
+              Reset onboarding
+            </Button>
+          </Card>
+        ) : null}
 
         <Card style={{ marginTop: 8 }}>
           <Text className="text-[11px] uppercase tracking-[1.5px] text-text3 font-bodySemi">

@@ -1,4 +1,4 @@
-import { useAuth } from "@clerk/clerk-expo";
+import { useAppAuth } from "@/features/auth/useAppAuth";
 import type { ExpoSQLiteDatabase } from "drizzle-orm/expo-sqlite";
 import { useMigrations } from "drizzle-orm/expo-sqlite/migrator";
 import { Redirect, router } from "expo-router";
@@ -117,7 +117,7 @@ function OnboardingContent({
 
 export default function OnboardingScreen() {
   const { t } = useTranslation();
-  const { isSignedIn, isLoaded, userId } = useAuth();
+  const { isSignedIn, isLoaded, userId } = useAppAuth();
   const { db, loading, error } = useUserDrizzleDb(userId);
 
   if (!isLoaded) {

@@ -1,4 +1,4 @@
-import { useAuth } from "@clerk/clerk-expo";
+import { useAppAuth } from "@/features/auth/useAppAuth";
 import { Link, router, useLocalSearchParams } from "expo-router";
 import { useRef, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
@@ -10,7 +10,7 @@ import type { RedLetterKind } from "@/lib/red-letter-day";
 import { AppShell } from "@/ui/AppShell";
 
 export default function EditPersonScreen() {
-  const { userId } = useAuth();
+  const { userId } = useAppAuth();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { bundle, loading, error } = usePersonProfileData(userId, id);
   const formRef = useRef<PersonFormHandle>(null);

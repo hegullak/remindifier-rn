@@ -1,4 +1,6 @@
-import { getClerkInstance, useAuth } from "@clerk/clerk-expo";
+import { getClerkInstance } from "@clerk/clerk-expo";
+import { useAppAuth } from "@/features/auth/useAppAuth";
+import { DEV_BYPASS_AUTH, DEV_USER_ID } from "@/features/auth/devBypass";
 import type { ExpoSQLiteDatabase } from "drizzle-orm/expo-sqlite";
 import { useMigrations } from "drizzle-orm/expo-sqlite/migrator";
 import { Redirect, Tabs } from "expo-router";
@@ -120,9 +122,9 @@ function TabsWithBootstrap({
 
 export default function TabsLayout() {
   const { t } = useTranslation();
-  const { isSignedIn, isLoaded, userId } = useAuth();
+  const { isSignedIn, isLoaded, userId } = useAppAuth();
   const effectiveUserId = isSignedIn
-    ? (userId ?? getClerkInstance().session?.user?.id ?? null)
+    ? (DEV_BYPASS_AUTH ? DEV_USER_ID : (userId ?? getClerkInstance().session?.user?.id ?? null))
     : null;
   const { db, loading, error } = useUserDrizzleDb(effectiveUserId);
 

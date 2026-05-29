@@ -1,10 +1,10 @@
-import { useAuth } from "@clerk/clerk-expo";
 import { Redirect } from "expo-router";
+import { useAppAuth } from "@/features/auth/useAppAuth";
 import { useTranslation } from "@/i18n/LanguageContext";
 import { LoadingScreen } from "@/ui/StartupScreens";
 
 export default function IndexScreen() {
-  const { isSignedIn, isLoaded } = useAuth();
+  const { isSignedIn, isLoaded } = useAppAuth();
   const { t } = useTranslation();
 
   if (!isLoaded) {
