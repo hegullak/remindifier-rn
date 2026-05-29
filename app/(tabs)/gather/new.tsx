@@ -37,7 +37,10 @@ export default function NewGatheringScreen() {
   const { userId } = useAppAuth();
   const { t, locale } = useTranslation();
   const colorScheme = useColorScheme();
-  const { personId: preselectedPersonId } = useLocalSearchParams<{ personId?: string }>();
+  const { personId: preselectedPersonId, prefill } = useLocalSearchParams<{
+    personId?: string;
+    prefill?: string;
+  }>();
 
   const [step, setStep] = useState<Step>("input");
   const [inputText, setInputText] = useState("");
@@ -50,6 +53,12 @@ export default function NewGatheringScreen() {
   const [people, setPeople] = useState<{ id: string; displayName: string }[]>([]);
   const [mentionChoices, setMentionChoices] = useState<Record<string, MentionChoice>>({});
   const [addToLibraryAfter, setAddToLibraryAfter] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (prefill?.trim() && !inputText) {
+      setInputText(prefill.trim());
+    }
+  }, [prefill, inputText]);
 
   useEffect(() => {
     hasSeenEventParserPrivacy()

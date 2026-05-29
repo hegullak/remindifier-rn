@@ -16,7 +16,7 @@ const RESPONSE_SCHEMA = {
         properties: {
           kind: {
             type: "string",
-            enum: ["topic", "question", "plan", "watch", "smalltalk"],
+            enum: ["question", "topic", "smalltalk", "headsup"],
           },
           text: { type: "string" },
         },
@@ -79,11 +79,10 @@ function normalizeApiPayload(payload: unknown, rawInput: string): ParsedEventDra
       const text = asNullableString(row.text);
       if (!text) return null;
       const validKind =
-        kind === "topic" ||
         kind === "question" ||
-        kind === "plan" ||
-        kind === "watch" ||
-        kind === "smalltalk"
+        kind === "topic" ||
+        kind === "smalltalk" ||
+        kind === "headsup"
           ? kind
           : "topic";
       return {
@@ -113,12 +112,11 @@ function normalizeApiPayload(payload: unknown, rawInput: string): ParsedEventDra
 const SYSTEM_PROMPT = `You extract structured fields from a note about an upcoming social event or gathering.
 
 title: a short event title (3-6 words). Infer from context if not stated explicitly.
-talkingPoints: classify each item the user wants to do, discuss, ask or plan:
-  - topic: something to discuss or bring up
+talkingPoints: classify each item the user wants to do, discuss, ask or remember:
   - question: something to ask the other person
-  - plan: something to arrange or organize together
-  - watch: a film, show, sport or activity to experience together
+  - topic: something to discuss or bring up
   - smalltalk: a light conversation topic, icebreaker or shared interest
+  - headsup: something to remember, prepare for, watch for, or plan ahead of the meeting
 mentionedPeople: first names or full names of people mentioned (not the user themselves).
 Do not invent items not in the text. Return ONLY valid JSON. No markdown.`;
 

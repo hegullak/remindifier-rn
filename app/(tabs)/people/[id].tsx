@@ -24,7 +24,7 @@ function formatDate(iso: string, locale: Locale) {
 export default function PersonDetailScreen() {
   const { userId } = useAppAuth();
   const { t, locale } = useTranslation();
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, returnTo } = useLocalSearchParams<{ id: string; returnTo?: string }>();
   const { bundle, loading, error, reload } = usePersonProfileData(userId, id);
   const colorScheme = useColorScheme();
   const [entryType, setEntryType] = useState<"note" | "follow_up">("note");
@@ -87,6 +87,15 @@ export default function PersonDetailScreen() {
     <AppShell>
       <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}>
         <View className="pt-1 pb-2">
+          {returnTo ? (
+            <Pressable
+              onPress={() => router.replace(returnTo)}
+              className="mb-2 self-start"
+              hitSlop={8}
+            >
+              <Text className="text-[12px] text-accent font-bodyMedium">{t("gathering.breadcrumbBack")}</Text>
+            </Pressable>
+          ) : null}
           <View className="flex-row items-start justify-between gap-2">
             <View className="flex-1 min-w-0">
               <Text className="text-[30px] leading-[36px] text-text1 font-heading">

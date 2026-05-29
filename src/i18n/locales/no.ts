@@ -186,14 +186,17 @@ export const no = {
     addPerson: "+ Legg til person",
     deleteEvent: "Slett event",
     deleteEventBody: "Fjerne denne eventen og alle samtalepunktene?",
+    breadcrumbBack: "← Tilbake til event",
+    demo: {
+      g1: { title: "Middag hos Ida" },
+    },
     notFound: "Fant ikke eventen.",
     pickPerson: "Legg til deltaker",
     kinds: {
-      topic: "Tema",
       question: "Spør",
-      plan: "Plan",
-      watch: "Se · Gjøre",
-      smalltalk: "Samtaleemne",
+      topic: "Tema",
+      smalltalk: "Small-talk",
+      headsup: "Heads-up",
     },
   },
   weather: {

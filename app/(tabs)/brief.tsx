@@ -11,6 +11,8 @@ import { isDateInCalendarWeek } from "@/lib/brief/calendarWeek";
 import { briefGreetingLine } from "@/lib/brief/greeting";
 import { briefSectionLabelKey } from "@/lib/brief/sectionLabels";
 import type { BriefSectionId } from "@/lib/brief/sections";
+import { briefGatheringHref } from "@/lib/gatherings/briefLinks";
+import { localizeGatheringTitle } from "@/lib/gatherings/localizeGathering";
 import { anniversaryMilestoneDetail } from "@/lib/milestones/anniversaries";
 import type { UpcomingRedLetterDay } from "@/lib/timeline/red-letter-days";
 import { AppShell } from "@/ui/AppShell";
@@ -128,22 +130,36 @@ export default function BriefScreen() {
                     {t("brief.scheduleEmpty")}
                   </Text>
                 ) : (
-                  brief.schedule.map((item, i) => (
-                    <View key={item.id} className={i < brief.schedule.length - 1 ? "mb-3" : ""}>
-                      <View className="flex-row items-center gap-2">
-                        <Text className="text-[14px]">🕐</Text>
-                        <Text className="text-[12px] text-text3 font-bodyMedium">{item.time}</Text>
-                      </View>
-                      <Text className="text-[15px] text-text1 font-bodyMedium mt-1 pl-6">
-                        {item.title}
-                      </Text>
-                      {item.note ? (
-                        <Text className="text-[12px] text-text3 font-body mt-1 pl-6">
-                          {item.note}
+                  brief.schedule.map((item, i) => {
+                    const title = item.gatheringId
+                      ? localizeGatheringTitle(item.gatheringId, item.title, locale)
+                      : item.title;
+                    const row = (
+                      <View className={i < brief.schedule.length - 1 ? "mb-3" : ""}>
+                        <View className="flex-row items-center gap-2">
+                          <Text className="text-[14px]">🕐</Text>
+                          <Text className="text-[12px] text-text3 font-bodyMedium">{item.time}</Text>
+                        </View>
+                        <Text className="text-[15px] text-text1 font-bodyMedium mt-1 pl-6">
+                          {title}
                         </Text>
-                      ) : null}
-                    </View>
-                  ))
+                        {item.note ? (
+                          <Text className="text-[12px] text-text3 font-body mt-1 pl-6">
+                            {item.note}
+                          </Text>
+                        ) : null}
+                      </View>
+                    );
+                    return (
+                      <Link
+                        key={item.id}
+                        href={briefGatheringHref(item.gatheringId, title)}
+                        asChild
+                      >
+                        <Pressable className="active:opacity-70">{row}</Pressable>
+                      </Link>
+                    );
+                  })
                 )}
               </BriefCard>
             </View>
@@ -154,27 +170,36 @@ export default function BriefScreen() {
             <View>
               <SectionLabel>{t(briefSectionLabelKey(sectionId))}</SectionLabel>
               <BriefCard stripeColor="sage">
-                {brief.calendarEvents.map((event, i) => (
-                  <View
-                    key={event.id}
-                    className={i < brief.calendarEvents.length - 1 ? "mb-3" : ""}
-                  >
-                    <Text className="text-[11px] uppercase tracking-[1.2px] text-sage font-bodySemi">
-                      {formatCalendarEventTiming(event, weekOffset, locale, t)}
-                    </Text>
-                    <Text className="text-[15px] text-text1 font-bodyMedium mt-1">
-                      {event.title}
-                    </Text>
-                    {!event.allDay ? (
-                      <Text className="text-[12px] text-text3 font-body mt-0.5">
-                        {event.startDate.toLocaleTimeString(
-                          locale === "no" ? "nb-NO" : "en-GB",
-                          { hour: "2-digit", minute: "2-digit" },
-                        )}
+                {brief.calendarEvents.map((event, i) => {
+                  const title = event.gatheringId
+                    ? localizeGatheringTitle(event.gatheringId, event.title, locale)
+                    : event.title;
+                  const row = (
+                    <View className={i < brief.calendarEvents.length - 1 ? "mb-3" : ""}>
+                      <Text className="text-[11px] uppercase tracking-[1.2px] text-sage font-bodySemi">
+                        {formatCalendarEventTiming(event, weekOffset, locale, t)}
                       </Text>
-                    ) : null}
-                  </View>
-                ))}
+                      <Text className="text-[15px] text-text1 font-bodyMedium mt-1">{title}</Text>
+                      {!event.allDay ? (
+                        <Text className="text-[12px] text-text3 font-body mt-0.5">
+                          {event.startDate.toLocaleTimeString(
+                            locale === "no" ? "nb-NO" : "en-GB",
+                            { hour: "2-digit", minute: "2-digit" },
+                          )}
+                        </Text>
+                      ) : null}
+                    </View>
+                  );
+                  return (
+                    <Link
+                      key={event.id}
+                      href={briefGatheringHref(event.gatheringId, title)}
+                      asChild
+                    >
+                      <Pressable className="active:opacity-70">{row}</Pressable>
+                    </Link>
+                  );
+                })}
               </BriefCard>
             </View>
           );

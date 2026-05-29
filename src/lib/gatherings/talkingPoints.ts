@@ -1,6 +1,9 @@
 import * as Crypto from "expo-crypto";
 
-export type TalkingPointKind = "topic" | "question" | "plan" | "watch" | "smalltalk";
+export type TalkingPointKind = "question" | "topic" | "smalltalk" | "headsup";
+
+/** @deprecated Legacy kinds stored in older events — mapped on read. */
+export type LegacyTalkingPointKind = "plan" | "watch";
 
 export type TalkingPoint = {
   id: string;
@@ -14,11 +17,10 @@ export type GatheringContent = {
 };
 
 export const TALKING_POINT_KINDS: TalkingPointKind[] = [
-  "topic",
   "question",
-  "plan",
-  "watch",
+  "topic",
   "smalltalk",
+  "headsup",
 ];
 
 type TalkingPointMeta = {
@@ -29,12 +31,19 @@ type TalkingPointMeta = {
 };
 
 const META: Record<TalkingPointKind, TalkingPointMeta> = {
-  topic: { icon: "💬", stripeColor: "accent", label_en: "Topic", label_no: "Tema" },
   question: { icon: "❓", stripeColor: "dusk", label_en: "Ask", label_no: "Spør" },
-  plan: { icon: "📋", stripeColor: "green", label_en: "Plan", label_no: "Plan" },
-  watch: { icon: "🎬", stripeColor: "amber", label_en: "Watch · Do", label_no: "Se · Gjøre" },
-  smalltalk: { icon: "☕", stripeColor: "sage", label_en: "Small talk", label_no: "Samtaleemne" },
+  topic: { icon: "💬", stripeColor: "accent", label_en: "Topic", label_no: "Tema" },
+  smalltalk: { icon: "☕", stripeColor: "sage", label_en: "Small talk", label_no: "Small-talk" },
+  headsup: { icon: "💡", stripeColor: "amber", label_en: "Heads up", label_no: "Heads-up" },
 };
+
+export function normalizeTalkingPointKind(kind: string): TalkingPointKind {
+  if (kind === "question" || kind === "topic" || kind === "smalltalk" || kind === "headsup") {
+    return kind;
+  }
+  if (kind === "plan" || kind === "watch") return "headsup";
+  return "topic";
+}
 
 export function talkingPointMeta(kind: TalkingPointKind): TalkingPointMeta {
   return META[kind];
@@ -59,7 +68,7 @@ export function parseGatheringContent(description: string | null): GatheringCont
         .filter((p) => p && typeof p.text === "string" && p.text.trim())
         .map((p) => ({
           id: typeof p.id === "string" && p.id ? p.id : Crypto.randomUUID(),
-          kind: TALKING_POINT_KINDS.includes(p.kind) ? p.kind : "topic",
+          kind: normalizeTalkingPointKind(String(p.kind)),
           text: p.text.trim(),
           done: Boolean(p.done),
         }));

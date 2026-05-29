@@ -184,14 +184,17 @@ export const en = {
     addPerson: "+ Add person",
     deleteEvent: "Delete event",
     deleteEventBody: "Remove this event and all its talking points?",
+    breadcrumbBack: "← Back to event",
+    demo: {
+      g1: { title: "Dinner at Ida's" },
+    },
     notFound: "Event not found.",
     pickPerson: "Add participant",
     kinds: {
-      topic: "Topic",
       question: "Ask",
-      plan: "Plan",
-      watch: "Watch · Do",
+      topic: "Topic",
       smalltalk: "Small talk",
+      headsup: "Heads up",
     },
   },
   weather: {

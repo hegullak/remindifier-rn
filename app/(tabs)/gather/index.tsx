@@ -4,6 +4,7 @@ import { ActivityIndicator, Pressable, ScrollView, Text, View } from "react-nati
 import { listGatheringsForUser, getGatheringTalkingPointCount } from "@/db/repos/gatheringsRepo";
 import type { GatheringListItem } from "@/db/repos/gatheringsRepo";
 import { useAppAuth } from "@/features/auth/useAppAuth";
+import { localizeGatheringTitle } from "@/lib/gatherings/localizeGathering";
 import { useTranslation } from "@/i18n";
 import type { Locale } from "@/i18n/types";
 import { AppShell } from "@/ui/AppShell";
@@ -70,7 +71,9 @@ export default function GatherListScreen() {
                 <Link key={item.id} href={`/gather/${item.id}`} asChild>
                   <Pressable>
                     <Card style={{ marginBottom: 8 }}>
-                      <Text className="text-[15px] text-text1 font-bodyMedium">{item.title}</Text>
+                      <Text className="text-[15px] text-text1 font-bodyMedium">
+                        {localizeGatheringTitle(item.id, item.title, locale)}
+                      </Text>
                       {item.participants.length > 0 ? (
                         <Text className="text-[12px] text-text3 font-body mt-1">
                           {item.participants.join(", ")}

@@ -23,6 +23,7 @@ import { listPeopleSummaries } from "@/db/repos/peopleRepo";
 import { useAppAuth } from "@/features/auth/useAppAuth";
 import { useTranslation } from "@/i18n";
 import type { Locale } from "@/i18n/types";
+import { localizeGatheringTitle } from "@/lib/gatherings/localizeGathering";
 import {
   parseGatheringContent,
   TALKING_POINT_KINDS,
@@ -62,6 +63,7 @@ export default function GatheringDetailScreen() {
   const [loading, setLoading] = useState(true);
   const [selectedKind, setSelectedKind] = useState<TalkingPointKind>("topic");
   const [newPointText, setNewPointText] = useState("");
+  const [showKindPicker, setShowKindPicker] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
   const [showPersonPicker, setShowPersonPicker] = useState(false);
   const [allPeople, setAllPeople] = useState<{ id: string; displayName: string }[]>([]);
@@ -129,7 +131,10 @@ export default function GatheringDetailScreen() {
 
   async function addPoint() {
     const text = newPointText.trim();
-    if (!text) return;
+    if (!text) {
+      setShowKindPicker(true);
+      return;
+    }
     Keyboard.dismiss();
     const point: TalkingPoint = {
       id: Crypto.randomUUID(),
@@ -139,6 +144,18 @@ export default function GatheringDetailScreen() {
     };
     setNewPointText("");
     await persistContent({ talkingPoints: [...content.talkingPoints, point] });
+  }
+
+  function handlePlusPress() {
+    if (showKindPicker && !newPointText.trim()) {
+      setShowKindPicker(false);
+      return;
+    }
+    if (!showKindPicker) {
+      setShowKindPicker(true);
+      return;
+    }
+    void addPoint();
   }
 
   async function handleAddParticipant(personId: string) {
@@ -166,7 +183,10 @@ export default function GatheringDetailScreen() {
 
   const dateLabel = formatDate(scheduledAt, locale);
   const placeholderColor = colorScheme === "dark" ? "#7A8CAD" : "#A89E90";
+  const inputTextColor = colorScheme === "dark" ? "#E8E4DC" : "#1C1915";
+  const displayTitle = id ? localizeGatheringTitle(id, title, locale) : title;
   const participantIds = new Set(participants.map((p) => p.personId));
+  const personReturnTo = id ? `/gather/${id}` : undefined;
 
   return (
     <AppShell>
@@ -201,24 +221,29 @@ export default function GatheringDetailScreen() {
                       setEditingTitle(false);
                       void saveTitle(title);
                     }}
-                    className="flex-1 text-[28px] leading-[34px] text-text1 font-heading border-b border-accent pb-1"
+                    placeholderTextColor={placeholderColor}
+                    style={{ color: inputTextColor }}
+                    className="flex-1 text-[28px] leading-[34px] text-text1 font-heading border-b border-accent pb-1 bg-transparent"
                   />
                 ) : (
                   <Pressable onPress={() => setEditingTitle(true)} className="flex-1 flex-row items-start gap-2">
-                    <Text className="text-[28px] leading-[34px] text-text1 font-heading flex-1">{title}</Text>
+                    <Text className="text-[28px] leading-[34px] text-text1 font-heading flex-1">{displayTitle}</Text>
                     <Text className="text-[14px] text-text3 font-body mt-2">✎</Text>
                   </Pressable>
                 )}
               </View>
 
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={{ gap: 8, paddingBottom: 8 }}
-                className="mb-2"
-              >
+              <View className="flex-row flex-wrap gap-2 mb-3">
                 {participants.map((p) => (
-                  <Link key={p.personId} href={`/people/${p.personId}`} asChild>
+                  <Link
+                    key={p.personId}
+                    href={
+                      personReturnTo
+                        ? { pathname: "/people/[id]", params: { id: p.personId, returnTo: personReturnTo } }
+                        : `/people/${p.personId}`
+                    }
+                    asChild
+                  >
                     <Pressable className="px-3 py-1.5 rounded-full bg-bg2 border border-border">
                       <Text className="text-[12px] text-text2 font-body">{p.displayName}</Text>
                     </Pressable>
@@ -226,21 +251,21 @@ export default function GatheringDetailScreen() {
                 ))}
                 <Pressable
                   onPress={() => setShowPersonPicker(true)}
-                  className="px-3 py-1.5 rounded-full bg-bg2 border border-dashed border-border"
+                  className="px-3 py-1.5 rounded-full bg-bg2 border border-border"
                 >
                   <Text className="text-[12px] text-accent font-bodyMedium">{t("gathering.addPerson")}</Text>
                 </Pressable>
-              </ScrollView>
+              </View>
 
               {dateLabel ? (
                 <Text className="text-[11px] text-text3 font-body mb-3">{dateLabel}</Text>
               ) : null}
 
               <ScrollView
-                className="flex-1"
                 keyboardDismissMode="on-drag"
                 keyboardShouldPersistTaps="handled"
-                contentContainerStyle={{ paddingBottom: 16 }}
+                contentContainerStyle={{ paddingBottom: 16, flexGrow: 1 }}
+                style={{ flex: 1 }}
               >
                 {content.talkingPoints.length === 0 ? (
                   <View className="mb-4">
@@ -283,36 +308,8 @@ export default function GatheringDetailScreen() {
                 )}
               </ScrollView>
 
-              <View className="border-t border-border pt-3 pb-4">
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={{ gap: 8, paddingBottom: 8 }}
-                >
-                  {TALKING_POINT_KINDS.map((kind) => {
-                    const meta = talkingPointMeta(kind);
-                    const active = selectedKind === kind;
-                    return (
-                      <Pressable
-                        key={kind}
-                        onPress={() => setSelectedKind(kind)}
-                        className={`flex-row items-center gap-1.5 px-3 py-1.5 rounded-full ${
-                          active ? "bg-accent" : "bg-bg2"
-                        }`}
-                      >
-                        <Text className="text-[14px]">{meta.icon}</Text>
-                        <Text
-                          className={`text-[12px] font-bodyMedium ${
-                            active ? "text-card" : "text-text2"
-                          }`}
-                        >
-                          {talkingPointLabel(kind, locale)}
-                        </Text>
-                      </Pressable>
-                    );
-                  })}
-                </ScrollView>
-                <View className="flex-row items-center gap-2">
+              <View className="border-t border-border pt-3 pb-4 bg-bg">
+                <View className="flex-row items-end gap-2">
                   <TextInput
                     value={newPointText}
                     onChangeText={setNewPointText}
@@ -320,14 +317,54 @@ export default function GatheringDetailScreen() {
                     placeholderTextColor={placeholderColor}
                     returnKeyType="done"
                     onSubmitEditing={() => void addPoint()}
+                    style={{ color: inputTextColor }}
                     className="flex-1 bg-bg2 border border-border rounded-lg px-3 py-2.5 text-[15px] text-text1 font-body"
                   />
-                  <Pressable
-                    onPress={() => void addPoint()}
-                    className="w-10 h-10 rounded-lg bg-accent items-center justify-center active:opacity-80"
-                  >
-                    <Text className="text-[20px] text-card font-body">+</Text>
-                  </Pressable>
+                  <View className="relative items-end">
+                    {showKindPicker ? (
+                      <View
+                        className="absolute bottom-11 right-0 rounded-xl border border-border bg-card py-1.5 px-1 gap-1 min-w-[148px] z-10"
+                        style={{
+                          shadowColor: "#000",
+                          shadowOffset: { width: 0, height: -2 },
+                          shadowOpacity: 0.12,
+                          shadowRadius: 8,
+                          elevation: 4,
+                        }}
+                      >
+                        {TALKING_POINT_KINDS.map((kind) => {
+                          const meta = talkingPointMeta(kind);
+                          const active = selectedKind === kind;
+                          return (
+                            <Pressable
+                              key={kind}
+                              onPress={() => setSelectedKind(kind)}
+                              className={`flex-row items-center gap-2 px-3 py-2 rounded-lg ${
+                                active ? "bg-accent" : "bg-transparent"
+                              }`}
+                            >
+                              <Text className="text-[13px] leading-[16px]">{meta.icon}</Text>
+                              <Text
+                                className={`text-[12px] font-bodyMedium leading-[16px] ${
+                                  active ? "text-card" : "text-text2"
+                                }`}
+                              >
+                                {talkingPointLabel(kind, locale)}
+                              </Text>
+                            </Pressable>
+                          );
+                        })}
+                      </View>
+                    ) : null}
+                    <Pressable
+                      onPress={handlePlusPress}
+                      accessibilityRole="button"
+                      accessibilityLabel={t("gathering.addPlaceholder")}
+                      className="w-10 h-10 rounded-lg bg-accent items-center justify-center active:opacity-80"
+                    >
+                      <Text className="text-[20px] text-card font-body leading-[22px]">+</Text>
+                    </Pressable>
+                  </View>
                 </View>
               </View>
             </>

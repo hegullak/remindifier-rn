@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { getCalendarWeekBounds, formatCalendarWeekRange } from "@/lib/brief/calendarWeek";
 import { listBriefSchedule, listUpcomingRedLetterDays } from "@/db/repos/briefRepo";
+import { listGatheringsForUser } from "@/db/repos/gatheringsRepo";
 import { getBriefSectionOrder, setBriefSectionOrder } from "@/db/repos/userRepo";
 import {
   getFallbackTraining,
@@ -14,6 +15,10 @@ import {
   type CalendarBriefEvent,
   fetchCalendarBriefEvents,
 } from "@/lib/brief/calendarEvents";
+import {
+  enrichCalendarWithGatheringIds,
+  enrichScheduleWithGatheringIds,
+} from "@/lib/gatherings/briefLinks";
 import type { BriefSectionId } from "@/lib/brief/sections";
 import { DEFAULT_BRIEF_SECTION_ORDER } from "@/lib/brief/sections";
 import type { BriefWeatherData } from "@/lib/brief/weather";
@@ -24,8 +29,14 @@ import type { UpcomingRedLetterDay } from "@/lib/timeline/red-letter-days";
 
 interface BriefState {
   weather: BriefWeatherData;
-  schedule: { id: string; time: string; title: string; note: string }[];
-  calendarEvents: CalendarBriefEvent[];
+  schedule: {
+    id: string;
+    time: string;
+    title: string;
+    note: string;
+    gatheringId: string | null;
+  }[];
+  calendarEvents: (CalendarBriefEvent & { gatheringId: string | null })[];
   redLetterDays: UpcomingRedLetterDay[];
   sectionOrder: BriefSectionId[];
 }
@@ -76,18 +87,22 @@ export function useBriefData(userId: string | null | undefined) {
       setBrief(initialState);
       return;
     }
-    const [scheduleRaw, redLetterDays, sectionOrder, weather, calendarEvents] = await Promise.all([
+    const [scheduleRaw, redLetterDays, sectionOrder, weather, calendarEvents, gatherings] =
+      await Promise.all([
       listBriefSchedule(userId),
       listUpcomingRedLetterDays(userId, 60, locale),
       getBriefSectionOrder(userId),
       fetchBriefWeather(locale),
       fetchCalendarBriefEvents(weekBounds),
+      listGatheringsForUser(userId),
     ]);
-    const schedule = scheduleRaw.map((item) => localizeScheduleItem(item, locale));
+    const scheduleLocalized = scheduleRaw.map((item) => localizeScheduleItem(item, locale));
+    const schedule = enrichScheduleWithGatheringIds(scheduleLocalized, gatherings, locale);
+    const calendarLinked = enrichCalendarWithGatheringIds(calendarEvents, gatherings, locale);
     setBrief((prev) => ({
       ...prev,
       schedule,
-      calendarEvents,
+      calendarEvents: calendarLinked,
       redLetterDays,
       sectionOrder,
       weather,

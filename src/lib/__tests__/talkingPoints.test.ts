@@ -35,10 +35,23 @@ describe("talkingPoints", () => {
   it("returns meta stripe colors per kind", () => {
     expect(talkingPointMeta("topic").stripeColor).toBe("accent");
     expect(talkingPointMeta("question").stripeColor).toBe("dusk");
+    expect(talkingPointMeta("headsup").stripeColor).toBe("amber");
+  });
+
+  it("migrates legacy plan and watch kinds to headsup", () => {
+    const legacy = serializeGatheringContent({
+      talkingPoints: [
+        { id: "1", kind: "plan", text: "Plan trip", done: false } as never,
+        { id: "2", kind: "watch", text: "See match", done: false } as never,
+      ],
+    });
+    const parsed = parseGatheringContent(legacy);
+    expect(parsed.talkingPoints.every((p) => p.kind === "headsup")).toBe(true);
   });
 
   it("returns Norwegian kind labels", () => {
-    expect(talkingPointLabel("watch", "no")).toBe("Se · Gjøre");
+    expect(talkingPointLabel("smalltalk", "no")).toBe("Small-talk");
+    expect(talkingPointLabel("headsup", "no")).toBe("Heads-up");
   });
 });
 
