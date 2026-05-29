@@ -80,6 +80,11 @@ const RELATION_ENTRIES: RelationEntry[] = [
     labelNo: "kollega",
     labelEn: "colleague",
   },
+  {
+    pattern: /\b(beste\s+venn|bestevenn|best\s+friend|bestie)\b/gi,
+    labelNo: "beste venn",
+    labelEn: "best friend",
+  },
   { pattern: /\b(vennen?|venn|friend)\b/gi, labelNo: "venn", labelEn: "friend" },
   { pattern: /\b(mentoren?|mentor)\b/gi, labelNo: "mentor", labelEn: "mentor" },
   {
@@ -235,10 +240,13 @@ function extractBirthday(text: string): { birthday: BirthdayHit | null; rest: st
 }
 
 function extractRelation(text: string): { relation: string | null; rest: string } {
+  // Only look in the first two sentences to avoid picking up relation words
+  // that describe other people mentioned later ("Søsteren hans, Marianne...")
+  const firstSentences = text.split(/(?<=[.!?])\s+/).slice(0, 2).join(" ");
   const useNo = preferNorwegianLabels(text);
   for (const entry of RELATION_ENTRIES) {
     entry.pattern.lastIndex = 0;
-    const match = entry.pattern.exec(text);
+    const match = entry.pattern.exec(firstSentences);
     if (match) {
       return {
         relation: useNo ? entry.labelNo : entry.labelEn,
@@ -296,6 +304,33 @@ function normalizeSpaces(value: string): string {
     .trim();
 }
 
+function extractAge(text: string): { age: number | null; rest: string } {
+  // "feirer 50 årsdag", "fyller 50 år", "er 50 år", "50 år gammel"
+  const ageMatch = text.match(
+    /\b(?:feirer\s+)?(\d{1,3})\s*(?:års?dag|år(?:\s+gammel)?)|(?:fyller|turns?)\s+(\d{1,3})\s+år\b/i,
+  );
+  if (ageMatch) {
+    const age = Number(ageMatch[1] ?? ageMatch[2]);
+    if (age > 0 && age < 130) {
+      return { age, rest: normalizeSpaces(text.replace(ageMatch[0], " ")) };
+    }
+  }
+  return { age: null, rest: text };
+}
+
+function inferYearFromAge(age: number, birthdayIso: string): string {
+  // birthdayIso is "0001-MM-DD" — replace sentinel year with calculated year
+  const parts = birthdayIso.split("-");
+  const month = Number(parts[1]);
+  const day = Number(parts[2]);
+  const today = new Date();
+  let year = today.getFullYear() - age;
+  // If the birthday hasn't occurred yet this year, they haven't turned `age` yet
+  const bdThisYear = new Date(today.getFullYear(), month - 1, day);
+  if (bdThisYear > today) year = year - 1 + 1; // still correct: born year = thisYear - age
+  return `${year}-${pad2(month)}-${pad2(day)}`;
+}
+
 function extractFunFacts(text: string): string[] {
   return text
     .split(/[,.]+/)
@@ -320,6 +355,9 @@ export function parseNaturalPersonInput(input: string): ParsedPersonDraft {
     rawInput.replace(/([A-Za-zæøåéÆØÅÉ])\.\s+/g, "$1, ").replace(/[,;]+/g, ", "),
   );
 
+  const { age, rest: afterAge } = extractAge(working);
+  working = afterAge;
+
   const { birthday: birthdayHit, rest: afterBirthday } = extractBirthday(working);
   working = afterBirthday;
 
@@ -331,11 +369,19 @@ export function parseNaturalPersonInput(input: string): ParsedPersonDraft {
 
   const funFacts = extractFunFacts(working);
 
+  let birthdayIso = birthdayHit?.iso ?? null;
+  let birthdayYearKnown = birthdayHit?.yearKnown ?? false;
+
+  if (age !== null && birthdayIso && !birthdayYearKnown) {
+    birthdayIso = inferYearFromAge(age, birthdayIso);
+    birthdayYearKnown = true;
+  }
+
   return {
     displayName: name,
     relationType: relation,
-    birthday: birthdayHit?.iso ?? null,
-    birthdayYearKnown: birthdayHit?.yearKnown ?? false,
+    birthday: birthdayIso,
+    birthdayYearKnown,
     funFacts,
     rawInput,
   };

@@ -75,7 +75,11 @@ function OnboardingContent({
       className="flex-1 bg-bg"
       style={{ paddingTop: insets.top + 24, paddingBottom: insets.bottom + 24 }}
     >
-      <ScrollView contentContainerStyle={{ paddingHorizontal: 20, flexGrow: 1 }}>
+      <ScrollView
+        contentContainerStyle={{ paddingHorizontal: 20, flexGrow: 1 }}
+        keyboardDismissMode="on-drag"
+        keyboardShouldPersistTaps="handled"
+      >
         {step === "input" ? (
           <>
             <Text className="text-[32px] leading-[38px] text-text1 font-heading">
