@@ -5,40 +5,58 @@ import * as Haptics from "expo-haptics";
  * Call before navigation or state changes for a physical, responsive feel.
  */
 export function triggerLight() {
-  void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  console.log("[HAPTICS] triggerLight called");
+  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch((err) => {
+    console.warn("[HAPTICS] Light failed:", err);
+  });
 }
 
 /**
  * Medium haptic for confirmation actions, delete, submit.
  */
 export function triggerMedium() {
-  void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+  console.log("[HAPTICS] triggerMedium called");
+  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch((err) => {
+    console.warn("[HAPTICS] Medium failed:", err);
+  });
 }
 
 /**
  * Heavy haptic for critical actions (delete person, clear all).
  */
 export function triggerHeavy() {
-  void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+  console.log("[HAPTICS] triggerHeavy called");
+  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy).catch((err) => {
+    console.warn("[HAPTICS] Heavy failed:", err);
+  });
 }
 
 /**
  * Selection changed — smooth, subtle click.
  */
 export function triggerSelection() {
-  void Haptics.selectionAsync();
+  console.log("[HAPTICS] triggerSelection called");
+  Haptics.selectionAsync().catch((err) => {
+    console.warn("[HAPTICS] Selection failed:", err);
+  });
 }
 
 /**
  * Success notification.
  */
 export function triggerSuccess() {
-  void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+  console.log("[HAPTICS] triggerSuccess called");
+  Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch((err) => {
+    console.warn("[HAPTICS] Success failed:", err);
+  });
 }
 
 /**
  * Error/warning notification.
  */
 export function triggerError() {
-  void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+  console.log("[HAPTICS] triggerError called");
+  Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error).catch((err) => {
+    console.warn("[HAPTICS] Error failed:", err);
+  });
 }

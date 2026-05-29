@@ -126,7 +126,13 @@ export default function NewGatheringScreen() {
   function removeTalkingPoint(id: string) {
     if (!draft) return;
     triggerLight();
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    LayoutAnimation.configureNext({
+      duration: 300,
+      delete: {
+        type: LayoutAnimation.Types.easeInEaseOut,
+        property: LayoutAnimation.Properties.opacity,
+      },
+    });
     setDraft({
       ...draft,
       talkingPoints: draft.talkingPoints.filter((p) => p.id !== id),

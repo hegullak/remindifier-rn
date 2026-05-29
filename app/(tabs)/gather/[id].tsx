@@ -132,7 +132,16 @@ export default function GatheringDetailScreen() {
 
   function removePoint(pointId: string) {
     triggerLight();
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    LayoutAnimation.configureNext({
+      duration: 300,
+      update: {
+        type: LayoutAnimation.Types.easeInEaseOut,
+      },
+      delete: {
+        type: LayoutAnimation.Types.easeInEaseOut,
+        property: LayoutAnimation.Properties.opacity,
+      },
+    });
     void persistContent({
       talkingPoints: content.talkingPoints.filter((p) => p.id !== pointId),
     });
@@ -141,13 +150,27 @@ export default function GatheringDetailScreen() {
   async function addPoint() {
     const text = newPointText.trim();
     if (!text) {
-      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+      LayoutAnimation.configureNext({
+        duration: 250,
+        create: {
+          type: LayoutAnimation.Types.spring,
+          property: LayoutAnimation.Properties.opacity,
+          springDamping: 0.7,
+        },
+      });
       setShowKindPicker(true);
       return;
     }
     Keyboard.dismiss();
     triggerMedium();
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    LayoutAnimation.configureNext({
+      duration: 300,
+      create: {
+        type: LayoutAnimation.Types.spring,
+        property: LayoutAnimation.Properties.opacity,
+        springDamping: 0.7,
+      },
+    });
     const point: TalkingPoint = {
       id: Crypto.randomUUID(),
       kind: selectedKind,
@@ -161,12 +184,25 @@ export default function GatheringDetailScreen() {
   function handlePlusPress() {
     triggerLight();
     if (showKindPicker && !newPointText.trim()) {
-      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+      LayoutAnimation.configureNext({
+        duration: 200,
+        delete: {
+          type: LayoutAnimation.Types.easeInEaseOut,
+          property: LayoutAnimation.Properties.opacity,
+        },
+      });
       setShowKindPicker(false);
       return;
     }
     if (!showKindPicker) {
-      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+      LayoutAnimation.configureNext({
+        duration: 250,
+        create: {
+          type: LayoutAnimation.Types.spring,
+          property: LayoutAnimation.Properties.opacity,
+          springDamping: 0.7,
+        },
+      });
       setShowKindPicker(true);
       return;
     }
@@ -208,9 +244,9 @@ export default function GatheringDetailScreen() {
   return (
     <AppShell>
       <KeyboardAvoidingView
-        className="flex-1"
+        style={{ flex: 1, backgroundColor: "transparent" }}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
-        keyboardVerticalOffset={8}
+        keyboardVerticalOffset={0}
       >
         <View className="flex-1 px-4">
           <View className="flex-row items-center justify-between pt-1 pb-2">
