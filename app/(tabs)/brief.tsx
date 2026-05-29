@@ -11,11 +11,22 @@ import { briefGreetingLine } from "@/lib/brief/greeting";
 import { briefSectionLabelKey } from "@/lib/brief/sectionLabels";
 import type { BriefSectionId } from "@/lib/brief/sections";
 import { anniversaryMilestoneDetail } from "@/lib/milestones/anniversaries";
+import type { CalendarBriefEvent } from "@/lib/brief/calendarEvents";
 import type { UpcomingRedLetterDay } from "@/lib/timeline/red-letter-days";
+import type { Locale } from "@/i18n/types";
 import { AppShell } from "@/ui/AppShell";
 import { BottomSheet } from "@/ui/BottomSheet";
 import { BriefCard } from "@/ui/BriefCard";
 import { SectionLabel } from "@/ui/SectionLabel";
+
+function timingLabel(
+  event: CalendarBriefEvent,
+  t: (path: string, params?: Record<string, string | number>) => string,
+): string {
+  if (event.daysUntil === 0) return t("brief.calendar.today");
+  if (event.daysUntil === 1) return t("brief.calendar.tomorrow");
+  return t("brief.calendar.inDays", { days: event.daysUntil });
+}
 
 export default function BriefScreen() {
   const { t, locale } = useTranslation();
@@ -137,6 +148,36 @@ export default function BriefScreen() {
               </BriefCard>
             </View>
           );
+        case "calendar":
+          if (brief.calendarEvents.length === 0) return null;
+          return (
+            <View>
+              <SectionLabel>{t(briefSectionLabelKey(sectionId))}</SectionLabel>
+              <BriefCard stripeColor="sage">
+                {brief.calendarEvents.map((event, i) => (
+                  <View
+                    key={event.id}
+                    className={i < brief.calendarEvents.length - 1 ? "mb-3" : ""}
+                  >
+                    <Text className="text-[11px] uppercase tracking-[1.2px] text-sage font-bodySemi">
+                      {timingLabel(event, t)}
+                    </Text>
+                    <Text className="text-[15px] text-text1 font-bodyMedium mt-1">
+                      {event.title}
+                    </Text>
+                    {!event.allDay ? (
+                      <Text className="text-[12px] text-text3 font-body mt-0.5">
+                        {event.startDate.toLocaleTimeString(
+                          locale === "no" ? "nb-NO" : "en-GB",
+                          { hour: "2-digit", minute: "2-digit" },
+                        )}
+                      </Text>
+                    ) : null}
+                  </View>
+                ))}
+              </BriefCard>
+            </View>
+          );
         case "headsup":
           return (
             <View>
@@ -212,6 +253,7 @@ export default function BriefScreen() {
       trainingLines,
       upcomingRedLetters,
       weatherExpanded,
+      locale,
       t,
     ],
   );

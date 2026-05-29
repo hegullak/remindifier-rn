@@ -10,7 +10,7 @@ describe("normalizeBriefSectionOrder", () => {
   });
 
   it("preserves a valid custom order", () => {
-    const custom = ["red_letter", "schedule", "weather", "headsup", "training"];
+    const custom = ["red_letter", "schedule", "calendar", "weather", "headsup", "training"];
     expect(normalizeBriefSectionOrder(custom)).toEqual(custom);
   });
 
@@ -31,17 +31,23 @@ describe("normalizeBriefSectionOrder", () => {
   it("appends missing sections at the end in default order", () => {
     const result = normalizeBriefSectionOrder(["weather"]);
     expect(result[0]).toBe("weather");
-    // Remaining 4 sections appended
-    expect(result).toHaveLength(5);
+    // Remaining sections appended
+    expect(result).toHaveLength(6);
     // Appended sections follow default order
     const appended = result.slice(1);
     const defaultWithoutWeather = DEFAULT_BRIEF_SECTION_ORDER.filter((s) => s !== "weather");
     expect(appended).toEqual(defaultWithoutWeather);
   });
 
-  it("always returns exactly 5 sections", () => {
-    expect(normalizeBriefSectionOrder(undefined)).toHaveLength(5);
-    expect(normalizeBriefSectionOrder([])).toHaveLength(5);
-    expect(normalizeBriefSectionOrder(["red_letter"])).toHaveLength(5);
+  it("always returns exactly 6 sections", () => {
+    expect(normalizeBriefSectionOrder(undefined)).toHaveLength(6);
+    expect(normalizeBriefSectionOrder([])).toHaveLength(6);
+    expect(normalizeBriefSectionOrder(["red_letter"])).toHaveLength(6);
+  });
+
+  it("includes calendar in default order between schedule and headsup", () => {
+    const order = normalizeBriefSectionOrder(undefined);
+    expect(order.indexOf("calendar")).toBeGreaterThan(order.indexOf("schedule"));
+    expect(order.indexOf("headsup")).toBeGreaterThan(order.indexOf("calendar"));
   });
 });

@@ -11,6 +11,7 @@ module.exports = {
     "^nativewind$": "<rootDir>/tests/__mocks__/nativewind.js",
     "^@react-native-async-storage/async-storage$":
       "<rootDir>/tests/__mocks__/@react-native-async-storage/async-storage.js",
+    "^expo-calendar$": "<rootDir>/tests/__mocks__/expo-calendar.js",
   },
 
   // Coverage targets pure business logic only.

@@ -113,9 +113,15 @@ export const no = {
     sections: {
       weather: "Værvarsel",
       schedule: "Dagens program",
+      calendar: "Kalender",
       headsup: "Ting å huske denne uken",
       training: "Dagens trening",
       redLetter: "Merkedager denne uken",
+    },
+    calendar: {
+      today: "I dag",
+      tomorrow: "I morgen",
+      inDays: "Om {days} dager",
     },
     greetingMorning: "God morgen",
     greetingAfternoon: "God ettermiddag",

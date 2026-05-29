@@ -111,9 +111,15 @@ export const en = {
     sections: {
       weather: "Forecast",
       schedule: "Today's schedule",
+      calendar: "Calendar",
       headsup: "Heads up this week",
       training: "Today's training",
       redLetter: "Red-letter days this week",
+    },
+    calendar: {
+      today: "Today",
+      tomorrow: "Tomorrow",
+      inDays: "In {days} days",
     },
     greetingMorning: "Good morning",
     greetingAfternoon: "Good afternoon",

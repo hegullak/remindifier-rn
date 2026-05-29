@@ -9,6 +9,10 @@ import {
 import { useTranslation } from "@/i18n/LanguageContext";
 import { translate } from "@/i18n/translate";
 import type { Locale } from "@/i18n/types";
+import {
+  type CalendarBriefEvent,
+  fetchCalendarBriefEvents,
+} from "@/lib/brief/calendarEvents";
 import type { BriefSectionId } from "@/lib/brief/sections";
 import { DEFAULT_BRIEF_SECTION_ORDER } from "@/lib/brief/sections";
 import type { BriefWeatherData } from "@/lib/brief/weather";
@@ -19,6 +23,7 @@ import type { UpcomingRedLetterDay } from "@/lib/timeline/red-letter-days";
 interface BriefState {
   weather: BriefWeatherData;
   schedule: { id: string; time: string; title: string; note: string }[];
+  calendarEvents: CalendarBriefEvent[];
   redLetterDays: UpcomingRedLetterDay[];
   sectionOrder: BriefSectionId[];
 }
@@ -35,6 +40,7 @@ const initialWeather: BriefWeatherData = {
 const initialState: BriefState = {
   weather: initialWeather,
   schedule: [],
+  calendarEvents: [],
   redLetterDays: [],
   sectionOrder: DEFAULT_BRIEF_SECTION_ORDER,
 };
@@ -71,16 +77,18 @@ export function useBriefData(userId: string | null | undefined) {
       setBrief(initialState);
       return;
     }
-    const [scheduleRaw, redLetterDays, sectionOrder, weather] = await Promise.all([
+    const [scheduleRaw, redLetterDays, sectionOrder, weather, calendarEvents] = await Promise.all([
       listBriefSchedule(userId),
       listUpcomingRedLetterDays(userId, 14, locale),
       getBriefSectionOrder(userId),
       fetchBriefWeather(locale),
+      fetchCalendarBriefEvents(),
     ]);
     const schedule = scheduleRaw.map((item) => localizeScheduleItem(item, locale));
     setBrief((prev) => ({
       ...prev,
       schedule,
+      calendarEvents,
       redLetterDays,
       sectionOrder,
       weather,
