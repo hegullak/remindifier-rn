@@ -4,6 +4,7 @@ import { useCallback, useState } from "react";
 import {
   Keyboard,
   KeyboardAvoidingView,
+  LayoutAnimation,
   Platform,
   Pressable,
   ScrollView,
@@ -12,6 +13,7 @@ import {
   useColorScheme,
   View,
 } from "react-native";
+import { triggerLight, triggerMedium, triggerSelection } from "@/lib/haptics";
 import {
   addGatheringParticipant,
   deleteGathering,
@@ -97,6 +99,10 @@ export default function GatheringDetailScreen() {
           setAllPeople(rows.map((p) => ({ id: p.id, displayName: p.displayName }))),
         );
       }
+      return () => {
+        Keyboard.dismiss();
+        setShowKindPicker(false);
+      };
     }, [reload, userId]),
   );
 
@@ -115,6 +121,7 @@ export default function GatheringDetailScreen() {
   }
 
   function toggleDone(pointId: string) {
+    triggerSelection();
     const next = {
       talkingPoints: content.talkingPoints.map((p) =>
         p.id === pointId ? { ...p, done: !p.done } : p,
@@ -124,6 +131,8 @@ export default function GatheringDetailScreen() {
   }
 
   function removePoint(pointId: string) {
+    triggerLight();
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     void persistContent({
       talkingPoints: content.talkingPoints.filter((p) => p.id !== pointId),
     });
@@ -132,10 +141,13 @@ export default function GatheringDetailScreen() {
   async function addPoint() {
     const text = newPointText.trim();
     if (!text) {
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
       setShowKindPicker(true);
       return;
     }
     Keyboard.dismiss();
+    triggerMedium();
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     const point: TalkingPoint = {
       id: Crypto.randomUUID(),
       kind: selectedKind,
@@ -147,11 +159,14 @@ export default function GatheringDetailScreen() {
   }
 
   function handlePlusPress() {
+    triggerLight();
     if (showKindPicker && !newPointText.trim()) {
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
       setShowKindPicker(false);
       return;
     }
     if (!showKindPicker) {
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
       setShowKindPicker(true);
       return;
     }
@@ -174,7 +189,9 @@ export default function GatheringDetailScreen() {
     setDeleting(true);
     try {
       await deleteGathering(userId, id);
+      triggerMedium();
       setShowDelete(false);
+      Keyboard.dismiss();
       router.replace("/gather");
     } finally {
       setDeleting(false);
@@ -197,10 +214,23 @@ export default function GatheringDetailScreen() {
       >
         <View className="flex-1 px-4">
           <View className="flex-row items-center justify-between pt-1 pb-2">
-            <Pressable onPress={() => router.back()} hitSlop={8}>
+            <Pressable
+              onPress={() => {
+                triggerLight();
+                Keyboard.dismiss();
+                router.back();
+              }}
+              hitSlop={8}
+            >
               <Text className="text-[12px] text-accent font-bodyMedium">{t("common.back")}</Text>
             </Pressable>
-            <IconButton accessibilityLabel={t("gathering.deleteEvent")} onPress={() => setShowDelete(true)}>
+            <IconButton
+              accessibilityLabel={t("gathering.deleteEvent")}
+              onPress={() => {
+                triggerLight();
+                setShowDelete(true);
+              }}
+            >
               <Text className="text-[16px] text-red font-body">🗑</Text>
             </IconButton>
           </View>
@@ -344,7 +374,10 @@ export default function GatheringDetailScreen() {
                           return (
                             <Pressable
                               key={kind}
-                              onPress={() => setSelectedKind(kind)}
+                              onPress={() => {
+                                triggerSelection();
+                                setSelectedKind(kind);
+                              }}
                               className={`flex-row items-center gap-2 px-3 py-2 rounded-lg ${
                                 active ? "bg-accent" : "bg-transparent"
                               }`}

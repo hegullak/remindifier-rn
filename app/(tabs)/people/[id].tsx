@@ -1,6 +1,7 @@
-import { Link, router, useLocalSearchParams } from "expo-router";
-import { useState } from "react";
-import { Pressable, ScrollView, Text, TextInput, useColorScheme, View } from "react-native";
+import { Link, router, useFocusEffect, useLocalSearchParams } from "expo-router";
+import { useCallback, useState } from "react";
+import { Keyboard, Pressable, ScrollView, Text, TextInput, useColorScheme, View } from "react-native";
+import { triggerLight, triggerMedium, triggerSelection } from "@/lib/haptics";
 import { createPersonEntry, deletePerson, deletePersonEntry } from "@/db/repos/peopleRepo";
 import { useAppAuth } from "@/features/auth/useAppAuth";
 import { usePersonProfileData } from "@/features/people/usePersonProfileData";
@@ -36,6 +37,14 @@ export default function PersonDetailScreen() {
   const [confirmDeletePerson, setConfirmDeletePerson] = useState(false);
   const [deletingPerson, setDeletingPerson] = useState(false);
 
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        Keyboard.dismiss();
+      };
+    }, []),
+  );
+
   const submitEntry = async () => {
     if (!userId || !id) {
       setEntryError(t("people.missingUserOrPerson"));
@@ -50,6 +59,8 @@ export default function PersonDetailScreen() {
     setEntryError(null);
     try {
       await createPersonEntry(userId, { personId: id, type: entryType, body });
+      triggerMedium();
+      Keyboard.dismiss();
       setEntryBody("");
       reload();
     } catch (err: unknown) {
@@ -64,6 +75,7 @@ export default function PersonDetailScreen() {
     setDeletingEntry(true);
     try {
       await deletePersonEntry(userId, entryToDelete);
+      triggerMedium();
       setEntryToDelete(null);
       reload();
     } finally {
@@ -76,6 +88,8 @@ export default function PersonDetailScreen() {
     setDeletingPerson(true);
     try {
       await deletePerson(userId, id);
+      triggerMedium();
+      Keyboard.dismiss();
       setConfirmDeletePerson(false);
       router.replace("/people");
     } finally {
@@ -89,7 +103,11 @@ export default function PersonDetailScreen() {
         <View className="pt-1 pb-2">
           {returnTo ? (
             <Pressable
-              onPress={() => router.replace(returnTo)}
+              onPress={() => {
+                triggerLight();
+                Keyboard.dismiss();
+                router.replace(returnTo);
+              }}
               className="mb-2 self-start"
               hitSlop={8}
             >
@@ -113,6 +131,10 @@ export default function PersonDetailScreen() {
                   <Pressable
                     accessibilityRole="button"
                     accessibilityLabel={t("people.editPersonA11y")}
+                    onPress={() => {
+                      triggerLight();
+                      Keyboard.dismiss();
+                    }}
                     className="w-[34px] h-[34px] rounded-md items-center justify-center bg-card2 border border-border active:opacity-70"
                   >
                     <Text className="text-[16px] text-text2 font-body">✎</Text>
@@ -120,7 +142,10 @@ export default function PersonDetailScreen() {
                 </Link>
                 <IconButton
                   accessibilityLabel={t("people.deletePersonA11y")}
-                  onPress={() => setConfirmDeletePerson(true)}
+                  onPress={() => {
+                    triggerLight();
+                    setConfirmDeletePerson(true);
+                  }}
                 >
                   <Text className="text-[16px] text-red font-body">🗑</Text>
                 </IconButton>
@@ -160,7 +185,11 @@ export default function PersonDetailScreen() {
                 <View className="flex-row items-center justify-between mb-1">
                   <SectionLabel>{t("people.events")}</SectionLabel>
                   <Pressable
-                    onPress={() => router.push(`/gather/new?personId=${id}`)}
+                    onPress={() => {
+                      triggerLight();
+                      Keyboard.dismiss();
+                      router.push(`/gather/new?personId=${id}`);
+                    }}
                     hitSlop={8}
                     accessibilityRole="button"
                     accessibilityLabel={t("people.addEvent")}
@@ -187,7 +216,11 @@ export default function PersonDetailScreen() {
               <View className="flex-row items-center justify-between mb-1">
                 <SectionLabel>{t("people.events")}</SectionLabel>
                 <Pressable
-                  onPress={() => router.push(`/gather/new?personId=${id}`)}
+                  onPress={() => {
+                    triggerLight();
+                    Keyboard.dismiss();
+                    router.push(`/gather/new?personId=${id}`);
+                  }}
                   hitSlop={8}
                   accessibilityRole="button"
                   accessibilityLabel={t("people.addEvent")}
@@ -246,7 +279,13 @@ export default function PersonDetailScreen() {
                     {formatDate(entry.occurredAt.toISOString(), locale)} ·{" "}
                     {entry.entryType === "follow_up" ? t("people.followUp") : t("people.note")}
                   </Text>
-                  <Pressable onPress={() => setEntryToDelete(entry.id)} hitSlop={8}>
+                  <Pressable
+                    onPress={() => {
+                      triggerLight();
+                      setEntryToDelete(entry.id);
+                    }}
+                    hitSlop={8}
+                  >
                     <Text className="text-[14px] text-text3 font-body">✕</Text>
                   </Pressable>
                 </View>
@@ -262,7 +301,10 @@ export default function PersonDetailScreen() {
               </Text>
               <View className="flex-row gap-2 mt-2">
                 <Pressable
-                  onPress={() => setEntryType("note")}
+                  onPress={() => {
+                    triggerSelection();
+                    setEntryType("note");
+                  }}
                   className={`px-3 py-1.5 rounded-pill border ${
                     entryType === "note" ? "bg-accent border-accent" : "bg-bg2 border-border"
                   }`}
@@ -276,7 +318,10 @@ export default function PersonDetailScreen() {
                   </Text>
                 </Pressable>
                 <Pressable
-                  onPress={() => setEntryType("follow_up")}
+                  onPress={() => {
+                    triggerSelection();
+                    setEntryType("follow_up");
+                  }}
                   className={`px-3 py-1.5 rounded-pill border ${
                     entryType === "follow_up" ? "bg-accent border-accent" : "bg-bg2 border-border"
                   }`}

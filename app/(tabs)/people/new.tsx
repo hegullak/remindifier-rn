@@ -1,6 +1,7 @@
-import { router, useLocalSearchParams } from "expo-router";
-import { useMemo, useState } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
+import { useCallback, useMemo, useState } from "react";
+import { Keyboard, Pressable, ScrollView, Text, View } from "react-native";
+import { triggerMedium } from "@/lib/haptics";
 import { createPerson } from "@/db/repos/peopleRepo";
 import { useAppAuth } from "@/features/auth/useAppAuth";
 import { EventNudgeSheet } from "@/features/people/EventNudgeSheet";
@@ -63,6 +64,14 @@ export default function NewPersonScreen() {
 
   const [parsing, setParsing] = useState(false);
   const [nudge, setNudge] = useState<{ personId: string; personName: string; actions: string[] } | null>(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        Keyboard.dismiss();
+      };
+    }, []),
+  );
 
   async function handleNaturalContinue() {
     setParsing(true);
@@ -152,6 +161,8 @@ export default function NewPersonScreen() {
             onSubmit={async (payload) => {
               if (!userId) throw new Error("Not signed in");
               const personId = await createPerson(userId, payload);
+              triggerMedium();
+              Keyboard.dismiss();
               const actions = parsedDraft?.pendingActions ?? [];
               if (personId && actions.length > 0) {
                 setNudge({ personId, personName: payload.displayName, actions });

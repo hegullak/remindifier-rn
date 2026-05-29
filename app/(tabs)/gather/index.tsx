@@ -1,6 +1,7 @@
 import { Link, router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from "react-native";
+import { ActivityIndicator, Keyboard, Pressable, ScrollView, Text, View } from "react-native";
+import { triggerLight } from "@/lib/haptics";
 import { listGatheringsForUser, getGatheringTalkingPointCount } from "@/db/repos/gatheringsRepo";
 import type { GatheringListItem } from "@/db/repos/gatheringsRepo";
 import { useAppAuth } from "@/features/auth/useAppAuth";
@@ -44,6 +45,9 @@ export default function GatherListScreen() {
   useFocusEffect(
     useCallback(() => {
       void reload();
+      return () => {
+        Keyboard.dismiss();
+      };
     }, [reload]),
   );
 
@@ -94,7 +98,11 @@ export default function GatherListScreen() {
         )}
 
         <Pressable
-          onPress={() => router.push("/gather/new")}
+          onPress={() => {
+            triggerLight();
+            Keyboard.dismiss();
+            router.push("/gather/new");
+          }}
           accessibilityRole="button"
           accessibilityLabel={t("gathering.createButton")}
           className="absolute right-5 bottom-8 w-14 h-14 rounded-full bg-accent items-center justify-center"

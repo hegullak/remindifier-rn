@@ -4,6 +4,7 @@ import { useMigrations } from "drizzle-orm/expo-sqlite/migrator";
 import { Redirect, Tabs } from "expo-router";
 import { useEffect, useState } from "react";
 import { Text } from "react-native";
+import { triggerSelection } from "@/lib/haptics";
 import { useBootstrapApp } from "@/bootstrap/useBootstrapApp";
 import migrations from "@/db/drizzle/migrations";
 import { hasCompletedOnboarding } from "@/db/repos/userRepo";
@@ -90,6 +91,11 @@ function TabsWithBootstrap({
         },
         tabBarActiveTintColor: isDark ? "#7EB8D4" : "#C4784A",
         tabBarInactiveTintColor: isDark ? "#7A8CAD" : "#A89E90",
+      }}
+      screenListeners={{
+        tabPress: () => {
+          triggerSelection();
+        },
       }}
     >
       <Tabs.Screen

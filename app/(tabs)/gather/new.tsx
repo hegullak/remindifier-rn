@@ -1,8 +1,9 @@
-import { router, useLocalSearchParams } from "expo-router";
-import { useEffect, useMemo, useState } from "react";
+import { router, useLocalSearchParams, useFocusEffect } from "expo-router";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Keyboard,
+  LayoutAnimation,
   Pressable,
   ScrollView,
   Text,
@@ -10,6 +11,7 @@ import {
   useColorScheme,
   View,
 } from "react-native";
+import { triggerLight, triggerMedium, triggerSelection } from "@/lib/haptics";
 import { createGathering } from "@/db/repos/gatheringsRepo";
 import { listPeopleSummaries } from "@/db/repos/peopleRepo";
 import { useAppAuth } from "@/features/auth/useAppAuth";
@@ -79,6 +81,14 @@ export default function NewGatheringScreen() {
     );
   }, [userId]);
 
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        Keyboard.dismiss();
+      };
+    }, []),
+  );
+
   const matchedPeople = useMemo(() => {
     if (!draft) return new Map<string, string>();
     const map = new Map<string, string>();
@@ -115,6 +125,8 @@ export default function NewGatheringScreen() {
 
   function removeTalkingPoint(id: string) {
     if (!draft) return;
+    triggerLight();
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setDraft({
       ...draft,
       talkingPoints: draft.talkingPoints.filter((p) => p.id !== id),
@@ -122,6 +134,7 @@ export default function NewGatheringScreen() {
   }
 
   function setMentionChoice(name: string, choice: MentionChoice) {
+    triggerSelection();
     setMentionChoices((prev) => ({ ...prev, [name]: choice }));
     if (choice === "add") {
       setAddToLibraryAfter((prev) => (prev.includes(name) ? prev : [...prev, name]));
@@ -146,6 +159,8 @@ export default function NewGatheringScreen() {
         content: { talkingPoints: draft.talkingPoints.map((p) => ({ ...p })) },
       });
 
+      triggerMedium();
+      Keyboard.dismiss();
       router.replace(`/gather/${gatheringId}`);
 
       const nextAdd = addToLibraryAfter[0];
@@ -204,7 +219,14 @@ export default function NewGatheringScreen() {
           </>
         ) : (
           <>
-            <Pressable onPress={() => setStep("input")} className="self-start mt-1 mb-2">
+            <Pressable
+              onPress={() => {
+                triggerLight();
+                Keyboard.dismiss();
+                setStep("input");
+              }}
+              className="self-start mt-1 mb-2"
+            >
               <Text className="text-[12px] text-accent font-bodyMedium">{t("common.back")}</Text>
             </Pressable>
             <Text className="text-[12px] text-amber font-bodyMedium mb-3">

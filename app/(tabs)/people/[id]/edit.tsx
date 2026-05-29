@@ -1,6 +1,7 @@
-import { Link, router, useLocalSearchParams } from "expo-router";
-import { useRef, useState } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { Link, router, useFocusEffect, useLocalSearchParams } from "expo-router";
+import { useCallback, useRef, useState } from "react";
+import { Keyboard, Pressable, ScrollView, Text, View } from "react-native";
+import { triggerMedium } from "@/lib/haptics";
 import { deletePerson, updatePerson } from "@/db/repos/peopleRepo";
 import { useAppAuth } from "@/features/auth/useAppAuth";
 import { PersonForm, type PersonFormHandle } from "@/features/people/PersonForm";
@@ -16,6 +17,14 @@ export default function EditPersonScreen() {
   const formRef = useRef<PersonFormHandle>(null);
   const [saving, setSaving] = useState(false);
   const { t } = useTranslation();
+
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        Keyboard.dismiss();
+      };
+    }, []),
+  );
 
   return (
     <AppShell>
@@ -67,11 +76,15 @@ export default function EditPersonScreen() {
               onSubmit={async (payload) => {
                 if (!userId || !id) throw new Error("Missing auth or person");
                 await updatePerson(userId, id, payload);
+                triggerMedium();
+                Keyboard.dismiss();
                 router.replace(`/people/${id}`);
               }}
               onDelete={async () => {
                 if (!userId || !id) throw new Error("Missing auth or person");
                 await deletePerson(userId, id);
+                triggerMedium();
+                Keyboard.dismiss();
                 router.replace("/people");
               }}
             />
