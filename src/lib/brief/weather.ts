@@ -60,7 +60,9 @@ function fallbackWeather(locale: Locale): BriefWeatherData {
   const place = process.env.EXPO_PUBLIC_BRIEF_WEATHER_PLACE ?? "Hagavik";
   return {
     temp: "11°",
-    description: `${translate(locale, "weather.conditions.c2")} · ${place}`,
+    description: translate(locale, "weather.currentForecast", {
+      condition: translate(locale, "weather.conditions.c2"),
+    }),
     goodForRun: true,
     icon: "⛅",
     locationLabel: place,
@@ -120,7 +122,7 @@ export async function fetchBriefWeather(locale: Locale): Promise<BriefWeatherDat
 
     return {
       temp: `${Math.round(temp)}°`,
-      description: `${condition} · ${place}`,
+      description: translate(locale, "weather.currentForecast", { condition }),
       goodForRun: weatherToRunFlag(temp, rain, wind),
       icon: wmoIcon(code),
       locationLabel: place,

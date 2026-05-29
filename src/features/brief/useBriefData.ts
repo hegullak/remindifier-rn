@@ -49,11 +49,12 @@ function getISOWeek(date: Date): number {
 
 export function formatBriefDateLine(locale: Locale, date = new Date()) {
   const dateLocale = locale === "no" ? "nb-NO" : "en-GB";
-  const dateStr = date.toLocaleDateString(dateLocale, {
+  const raw = date.toLocaleDateString(dateLocale, {
     weekday: "long",
     day: "numeric",
     month: "long",
   });
+  const dateStr = raw.charAt(0).toUpperCase() + raw.slice(1);
   const week = getISOWeek(date);
   return `${dateStr} · ${translate(locale, "brief.dateWeek", { week })}`;
 }
@@ -72,7 +73,7 @@ export function useBriefData(userId: string | null | undefined) {
     }
     const [scheduleRaw, redLetterDays, sectionOrder, weather] = await Promise.all([
       listBriefSchedule(userId),
-      listUpcomingRedLetterDays(userId, 90, locale),
+      listUpcomingRedLetterDays(userId, 14, locale),
       getBriefSectionOrder(userId),
       fetchBriefWeather(locale),
     ]);

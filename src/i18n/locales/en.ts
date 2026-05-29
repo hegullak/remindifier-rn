@@ -45,8 +45,10 @@ export const en = {
   settings: {
     title: "Settings",
     signIn: "Sign in",
-    signInClerkLead:
-      "Sign-in is handled by Clerk (clerk.com). They manage email, password, and your session — remindifier never sees your password.",
+    signInClerkLeadBefore: "Sign-in is handled by Clerk (",
+    signInClerkLink: "clerk.com",
+    signInClerkLeadAfter:
+      "). They manage email, password, and your session — remindifier never sees your password.",
     noName: "No name set",
     editName: "Edit name",
     editNameTitle: "Edit name",
@@ -102,7 +104,7 @@ export const en = {
   },
   brief: {
     sections: {
-      weather: "Weather",
+      weather: "Forecast",
       schedule: "Today's schedule",
       headsup: "Heads up this week",
       training: "Today's training",
@@ -121,7 +123,6 @@ export const en = {
     scheduleEmpty: "Nothing scheduled.",
     merkedagerEmpty: "No milestones this week.",
     headsup: {
-      days: { tue: "Tue", fri: "Fri" },
       items: {
         doctor: "Doctor's appointment · 15:00 at Åsane medical centre",
         dentist: "Dentist · 09:30 · Remember parking",
@@ -147,6 +148,7 @@ export const en = {
     },
   },
   weather: {
+    currentForecast: "{condition} now",
     wind: "Wind",
     rain: "Rain",
     feelsLike: "Feels like",
@@ -257,6 +259,17 @@ export const en = {
     deletePersonButton: "Delete person",
     editPersonA11y: "Edit person",
     deletePersonA11y: "Delete person",
+    relations: {
+      closeFriend: "Close friend",
+      uncleAunt: "Uncle / aunt",
+      sibling: "Sibling",
+      friend: "Friend",
+      colleague: "Colleague",
+      mentor: "Mentor",
+      cousin: "Cousin",
+      acquaintance: "Acquaintance",
+      colleagues: "Colleagues",
+    },
   },
   personForm: {
     about: "About",

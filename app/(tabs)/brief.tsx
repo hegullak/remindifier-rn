@@ -9,6 +9,7 @@ import { useTranslation } from "@/i18n";
 import { briefGreetingLine } from "@/lib/brief/greeting";
 import { briefSectionLabelKey } from "@/lib/brief/sectionLabels";
 import type { BriefSectionId } from "@/lib/brief/sections";
+import { getCalendarWeekBounds, isDateInCalendarWeek } from "@/lib/brief/calendarWeek";
 import { anniversaryMilestoneDetail } from "@/lib/milestones/anniversaries";
 import type { UpcomingRedLetterDay } from "@/lib/timeline/red-letter-days";
 import { AppShell } from "@/ui/AppShell";
@@ -21,7 +22,6 @@ export default function BriefScreen() {
   const { user } = useUser();
   const { userId } = useAuth();
   const { brief, setSectionOrder, dateLine, headsupItems, trainingLines } = useBriefData(userId);
-  const [showAllRedLetters, setShowAllRedLetters] = useState(false);
   const [weatherExpanded, setWeatherExpanded] = useState(false);
   const [anniversaryDetail, setAnniversaryDetail] = useState<{
     personName: string;
@@ -34,10 +34,15 @@ export default function BriefScreen() {
   const greeting = briefGreetingLine(firstName, locale);
   const [greetingLead, greetingName] = greeting.split("\n");
 
-  const todayRedLetters = brief.redLetterDays.filter((d) => d.isToday);
-  const upcomingRedLetters = brief.redLetterDays.filter((d) => !d.isToday);
-  const visibleUpcoming = showAllRedLetters ? upcomingRedLetters : upcomingRedLetters.slice(0, 2);
-  const hiddenUpcomingCount = upcomingRedLetters.length - visibleUpcoming.length;
+  const weekBounds = getCalendarWeekBounds();
+  const redLettersThisWeek = brief.redLetterDays.filter((item) => {
+    const next = new Date();
+    next.setHours(0, 0, 0, 0);
+    next.setDate(next.getDate() + item.daysUntil);
+    return isDateInCalendarWeek(next, weekBounds);
+  });
+  const todayRedLetters = redLettersThisWeek.filter((d) => d.isToday);
+  const upcomingRedLetters = redLettersThisWeek.filter((d) => !d.isToday);
 
   const renderSection = useCallback(
     (sectionId: BriefSectionId) => {
@@ -159,7 +164,7 @@ export default function BriefScreen() {
                     className={`flex-row items-start gap-2${i < trainingLines.length - 1 ? " mb-3" : ""}`}
                   >
                     <Text className="text-[16px]">{i === 0 ? "🏋️" : "🏃"}</Text>
-                    <Text className="text-[15px] text-text1 font-bodyMedium flex-1">{line}</Text>
+                    <Text className="text-[15px] text-text1 font-body flex-1">{line}</Text>
                   </View>
                 ))}
               </BriefCard>
@@ -170,7 +175,7 @@ export default function BriefScreen() {
             <View>
               <SectionLabel>{t(briefSectionLabelKey(sectionId))}</SectionLabel>
               <BriefCard stripeColor="amber">
-                {brief.redLetterDays.length === 0 ? (
+                {redLettersThisWeek.length === 0 ? (
                   <Text className="text-[13px] text-text3 font-body">
                     {t("brief.merkedagerEmpty")}
                   </Text>
@@ -183,20 +188,13 @@ export default function BriefScreen() {
                         onAnniversaryPress={setAnniversaryDetail}
                       />
                     ))}
-                    {visibleUpcoming.map((item) => (
+                    {upcomingRedLetters.map((item) => (
                       <RedLetterRow
                         key={item.id}
                         item={item}
                         onAnniversaryPress={setAnniversaryDetail}
                       />
                     ))}
-                    {hiddenUpcomingCount > 0 ? (
-                      <Pressable onPress={() => setShowAllRedLetters(true)} className="mt-2">
-                        <Text className="text-[13px] text-accent font-bodyMedium">
-                          {t("brief.showMore", { count: hiddenUpcomingCount })}
-                        </Text>
-                      </Pressable>
-                    ) : null}
                   </>
                 )}
               </BriefCard>
@@ -206,16 +204,7 @@ export default function BriefScreen() {
           return null;
       }
     },
-    [
-      brief,
-      headsupItems,
-      hiddenUpcomingCount,
-      todayRedLetters,
-      trainingLines,
-      visibleUpcoming,
-      weatherExpanded,
-      t,
-    ],
+    [brief, headsupItems, redLettersThisWeek, todayRedLetters, trainingLines, upcomingRedLetters, weatherExpanded, t],
   );
 
   const listHeader = (

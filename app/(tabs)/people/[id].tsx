@@ -5,6 +5,7 @@ import { Pressable, ScrollView, Text, TextInput, useColorScheme, View } from "re
 import { createPersonEntry, deletePerson, deletePersonEntry } from "@/db/repos/peopleRepo";
 import { usePersonProfileData } from "@/features/people/usePersonProfileData";
 import { useTranslation } from "@/i18n/LanguageContext";
+import { translateRelationType } from "@/i18n/relationTypes";
 import type { Locale } from "@/i18n/types";
 import { AppShell } from "@/ui/AppShell";
 import { BottomSheet } from "@/ui/BottomSheet";
@@ -93,7 +94,7 @@ export default function PersonDetailScreen() {
               </Text>
               {bundle?.person.relationType ? (
                 <Text className="text-[11px] uppercase tracking-[1.5px] text-text3 font-bodySemi mt-1">
-                  {bundle.person.relationType}
+                  {translateRelationType(bundle.person.relationType, locale)}
                 </Text>
               ) : null}
             </View>
@@ -158,7 +159,9 @@ export default function PersonDetailScreen() {
                       <Text className="text-[14px] text-text1 font-bodyMedium">
                         {link.direction === "outgoing" ? "→" : "←"} {link.otherPersonName}
                       </Text>
-                      <Text className="text-[12px] text-text3 font-body mt-1">{link.label}</Text>
+                      <Text className="text-[12px] text-text3 font-body mt-1">
+                        {translateRelationType(link.label, locale) ?? link.label}
+                      </Text>
                       {link.notes ? (
                         <Text className="text-[12px] text-text2 font-body mt-1">{link.notes}</Text>
                       ) : null}

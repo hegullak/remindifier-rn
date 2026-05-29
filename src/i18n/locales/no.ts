@@ -47,8 +47,10 @@ export const no = {
   settings: {
     title: "Innstillinger",
     signIn: "Innlogging",
-    signInClerkLead:
-      "Innlogging håndteres av Clerk (clerk.com). De administrerer e-post, passord og sesjon — remindifier ser aldri passordet ditt.",
+    signInClerkLeadBefore: "Innlogging håndteres av Clerk (",
+    signInClerkLink: "clerk.com",
+    signInClerkLeadAfter:
+      "). De administrerer e-post, passord og sesjon — remindifier ser aldri passordet ditt.",
     noName: "Ingen navn satt",
     editName: "Rediger",
     editNameTitle: "Rediger navn",
@@ -104,7 +106,7 @@ export const no = {
   },
   brief: {
     sections: {
-      weather: "Vær",
+      weather: "Værvarsel",
       schedule: "Dagens program",
       headsup: "Ting å huske denne uken",
       training: "Dagens trening",
@@ -123,7 +125,6 @@ export const no = {
     scheduleEmpty: "Ingenting planlagt.",
     merkedagerEmpty: "Ingen merkedager denne uken.",
     headsup: {
-      days: { tue: "Tir", fri: "Fre" },
       items: {
         doctor: "Legetime · 15:00 på Åsane legesenter",
         dentist: "Tannlege · 09:30 · Husk parkering",
@@ -149,6 +150,7 @@ export const no = {
     },
   },
   weather: {
+    currentForecast: "{condition} nå",
     wind: "Vind",
     rain: "Regn",
     feelsLike: "Føles som",
@@ -259,6 +261,17 @@ export const no = {
     deletePersonButton: "Slett person",
     editPersonA11y: "Rediger person",
     deletePersonA11y: "Slett person",
+    relations: {
+      closeFriend: "Nær venn",
+      uncleAunt: "Onkel / tante",
+      sibling: "Søsken",
+      friend: "Venn",
+      colleague: "Kollega",
+      mentor: "Mentor",
+      cousin: "Fetter / kusine",
+      acquaintance: "Bekjent",
+      colleagues: "Kollegaer",
+    },
   },
   personForm: {
     about: "Om",

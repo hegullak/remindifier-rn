@@ -1,7 +1,7 @@
 import { useClerk, useUser } from "@clerk/clerk-expo";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { Pressable, Text, TextInput, View } from "react-native";
+import { Linking, Pressable, Text, TextInput, View } from "react-native";
 import {
   authInputClassName,
   authLabelClassName,
@@ -137,7 +137,15 @@ export function AccountSettingsSection() {
           {t("settings.signIn")}
         </Text>
         <Text className="text-[13px] text-text2 font-body mt-2 leading-[19px]">
-          {t("settings.signInClerkLead")}
+          {t("settings.signInClerkLeadBefore")}
+          <Text
+            className="text-accent font-bodyMedium"
+            onPress={() => void Linking.openURL("https://clerk.com")}
+            accessibilityRole="link"
+          >
+            {t("settings.signInClerkLink")}
+          </Text>
+          {t("settings.signInClerkLeadAfter")}
         </Text>
 
         <View className="mt-4 flex-row items-start justify-between gap-3">

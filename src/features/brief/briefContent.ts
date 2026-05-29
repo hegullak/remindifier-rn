@@ -6,14 +6,28 @@ export interface HeadsupItem {
   text: string;
 }
 
+/** Next occurrence of weekday (0=Sun … 6=Sat), label in long form; NO uses uppercase. */
+function nextWeekdayLabel(weekday: number, locale: Locale): string {
+  const now = new Date();
+  const current = now.getDay();
+  let daysAhead = weekday - current;
+  if (daysAhead <= 0) daysAhead += 7;
+  const target = new Date(now);
+  target.setDate(now.getDate() + daysAhead);
+  const dateLocale = locale === "no" ? "nb-NO" : "en-GB";
+  const label = target.toLocaleDateString(dateLocale, { weekday: "long" });
+  if (locale === "no") return label.toUpperCase();
+  return label.charAt(0).toUpperCase() + label.slice(1);
+}
+
 export function getHeadsupItems(locale: Locale): HeadsupItem[] {
   return [
     {
-      day: translate(locale, "brief.headsup.days.tue"),
+      day: nextWeekdayLabel(2, locale),
       text: translate(locale, "brief.headsup.items.doctor"),
     },
     {
-      day: translate(locale, "brief.headsup.days.fri"),
+      day: nextWeekdayLabel(5, locale),
       text: translate(locale, "brief.headsup.items.dentist"),
     },
   ];

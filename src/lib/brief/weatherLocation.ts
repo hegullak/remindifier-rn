@@ -19,6 +19,20 @@ function configuredCoordinates(): WeatherCoordinates | null {
   return { lat, lon, source: "configured" };
 }
 
+function formatReverseGeocode(
+  hit: Location.LocationGeocodedAddress,
+  locale: "en" | "no",
+): string | null {
+  const city = hit.city ?? hit.subregion ?? hit.district ?? hit.name;
+  const region = hit.region ?? hit.country;
+  if (city && region && city !== region) return `${city}, ${region}`;
+  if (city) return city;
+  if (hit.street && hit.city) return `${hit.street}, ${hit.city}`;
+  if (region) return region;
+  if (hit.name) return hit.name;
+  return null;
+}
+
 /** Device GPS when permitted; otherwise EXPO_PUBLIC_BRIEF_WEATHER_LAT/LON; else Hagavik default. */
 export async function resolveWeatherCoordinates(): Promise<WeatherCoordinates> {
   const configured = configuredCoordinates();
@@ -47,23 +61,14 @@ export async function resolvePlaceName(
   locale: "en" | "no",
 ): Promise<string> {
   const envPlace = process.env.EXPO_PUBLIC_BRIEF_WEATHER_PLACE?.trim();
+
   try {
-    const lang = locale === "no" ? "no" : "en";
-    const url =
-      `https://geocoding-api.open-meteo.com/v1/reverse?latitude=${lat}&longitude=${lon}` +
-      `&language=${lang}&count=1`;
-    const res = await fetch(url);
-    if (res.ok) {
-      const data = (await res.json()) as {
-        results?: Array<{ name?: string; admin1?: string }>;
-      };
-      const hit = data.results?.[0];
-      if (hit?.name) {
-        return hit.admin1 ? `${hit.name}, ${hit.admin1}` : hit.name;
-      }
-    }
+    const places = await Location.reverseGeocodeAsync({ latitude: lat, longitude: lon });
+    const label = places[0] ? formatReverseGeocode(places[0], locale) : null;
+    if (label) return label;
   } catch {
     // fall through
   }
-  return envPlace || (locale === "no" ? "din posisjon" : "your location");
+
+  return envPlace || (locale === "no" ? "Ukjent sted" : "Unknown location");
 }

@@ -5,6 +5,7 @@ import { Pressable, Text, View } from "react-native";
 import type { PersonSummary } from "@/db/repos/peopleRepo";
 import { usePeopleData } from "@/features/people/usePeopleData";
 import { useTranslation } from "@/i18n/LanguageContext";
+import { translateRelationType } from "@/i18n/relationTypes";
 import { AppShell } from "@/ui/AppShell";
 import { Card } from "@/ui/Card";
 import { SectionLabel } from "@/ui/SectionLabel";
@@ -41,9 +42,11 @@ function formatLastSeen(
 function PersonRowCard({
   person,
   t,
+  locale,
 }: {
   person: PersonSummary;
   t: (path: string, params?: Record<string, string | number>) => string;
+  locale: "en" | "no";
 }) {
   const age = formatAge(person.birthday, person.birthdayYearKnown, t);
   const lastSeen = formatLastSeen(person.lastInteractionAt, t);
@@ -59,7 +62,7 @@ function PersonRowCard({
             </View>
             {person.relationType ? (
               <Text className="text-[11px] uppercase tracking-[1.5px] text-text3 font-bodySemi mt-1">
-                {person.relationType}
+                {translateRelationType(person.relationType, locale)}
               </Text>
             ) : null}
             {lastSeen ? (
@@ -76,7 +79,7 @@ function PersonRowCard({
 
 export default function PeopleListScreen() {
   const { userId } = useAuth();
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const { people, loading, error } = usePeopleData(userId);
   const activePeople = people.filter((p) => !p.archived);
 
@@ -121,7 +124,7 @@ export default function PeopleListScreen() {
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <View className="px-4">
-            <PersonRowCard person={item} t={t} />
+            <PersonRowCard person={item} t={t} locale={locale} />
           </View>
         )}
         ListHeaderComponent={listHeader}
