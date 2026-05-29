@@ -95,7 +95,8 @@ A contextual memory and heads-up assistant for the people in your life — not a
 - **Types**: `npm run typecheck`
 - **Tests**: Jest (`npm test`) — lib tests under `src/lib/__tests__/`
 - **Styling**: NativeWind class names; fonts Lora (headings) + DM Sans (body)
-- **Commits**: only when user asks; never commit `.env`, `expo-output.log`, `coverage/`, `node_modules/`
+- **Commits**: end each agent session with a commit if there are code changes; never commit `.env`, `expo-output.log`, `coverage/`, `node_modules/`
+- **Session git**: start with `git pull --rebase origin sandbox`; push only when the user asks
 - **Scope**: minimal diffs; match existing patterns; no over-engineering
 
 ## Env vars (optional)

@@ -18,4 +18,9 @@ alwaysApply: true
 - Pass `locale` to `upcomingRedLetterDays`, `fetchBriefWeather`, `formatBriefDateLine`
 - Biome + Jest; branch `sandbox`; don’t commit `.env` / logs / coverage
 
+## Git workflow (each agent session)
+
+1. **Start:** `git pull --rebase origin sandbox` (on branch `sandbox`)
+2. **End:** if there are code changes, stage relevant files and `git commit` with a clear message (do not commit `.env`, `coverage/`, `expo-output.log`). Push only when the user asks.
+
 When unsure about structure or naming, open `PROJECT_MEMORY.md` instead of broad repo search.
