@@ -2,7 +2,6 @@ import * as Calendar from "expo-calendar";
 import { logger } from "@/lib/logger";
 
 const SEED_CALENDAR_NAME = "remindifier (test)";
-const SEED_EVENT_ID_PREFIX = "remindifier-seed-";
 
 function daysFromToday(days: number): Date {
   const d = new Date();
@@ -65,8 +64,7 @@ async function findOrCreateSeedCalendar(): Promise<string> {
   if (existing) return existing.id;
 
   const defaultSource =
-    calendars.find((c) => c.source?.name === "Default")?.source ??
-    calendars[0]?.source;
+    calendars.find((c) => c.source?.name === "Default")?.source ?? calendars[0]?.source;
 
   return Calendar.createCalendarAsync({
     title: SEED_CALENDAR_NAME,
@@ -87,7 +85,9 @@ async function clearSeedEvents(calendarId: string) {
   end.setFullYear(end.getFullYear() + 2);
 
   const events = await Calendar.getEventsAsync([calendarId], start, end);
-  const seedEvents = events.filter((e) => e.title?.includes("remindifier-seed-") || SEED_EVENTS.some((s) => e.title === s.title));
+  const seedEvents = events.filter(
+    (e) => e.title?.includes("remindifier-seed-") || SEED_EVENTS.some((s) => e.title === s.title),
+  );
   await Promise.all(seedEvents.map((e) => Calendar.deleteEventAsync(e.id).catch(() => {})));
 }
 

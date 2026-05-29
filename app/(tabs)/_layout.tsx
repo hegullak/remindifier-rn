@@ -1,6 +1,4 @@
 import { getClerkInstance } from "@clerk/clerk-expo";
-import { useAppAuth } from "@/features/auth/useAppAuth";
-import { DEV_BYPASS_AUTH, DEV_USER_ID } from "@/features/auth/devBypass";
 import type { ExpoSQLiteDatabase } from "drizzle-orm/expo-sqlite";
 import { useMigrations } from "drizzle-orm/expo-sqlite/migrator";
 import { Redirect, Tabs } from "expo-router";
@@ -11,6 +9,8 @@ import migrations from "@/db/drizzle/migrations";
 import { hasCompletedOnboarding } from "@/db/repos/userRepo";
 import type * as schema from "@/db/schema";
 import { useUserDrizzleDb } from "@/db/useUserDrizzleDb";
+import { DEV_BYPASS_AUTH, DEV_USER_ID } from "@/features/auth/devBypass";
+import { useAppAuth } from "@/features/auth/useAppAuth";
 import { useTranslation } from "@/i18n";
 import { useAppTheme } from "@/theme/ThemeProvider";
 import { FatalScreen, LoadingScreen } from "@/ui/StartupScreens";
@@ -124,7 +124,9 @@ export default function TabsLayout() {
   const { t } = useTranslation();
   const { isSignedIn, isLoaded, userId } = useAppAuth();
   const effectiveUserId = isSignedIn
-    ? (DEV_BYPASS_AUTH ? DEV_USER_ID : (userId ?? getClerkInstance().session?.user?.id ?? null))
+    ? DEV_BYPASS_AUTH
+      ? DEV_USER_ID
+      : (userId ?? getClerkInstance().session?.user?.id ?? null)
     : null;
   const { db, loading, error } = useUserDrizzleDb(effectiveUserId);
 

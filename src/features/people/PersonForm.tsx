@@ -1,6 +1,7 @@
 import { forwardRef, useImperativeHandle, useState } from "react";
 import { Pressable, Switch, Text, TextInput, View } from "react-native";
 import type { UpsertPersonInput } from "@/db/repos/peopleRepo";
+import { BirthdayField } from "@/features/people/BirthdayField";
 import { RedLetterDaysSection } from "@/features/people/RedLetterDaysSection";
 import { useTranslation } from "@/i18n/LanguageContext";
 import type { RedLetterDayInput } from "@/lib/red-letter-day";
@@ -138,17 +139,13 @@ export const PersonForm = forwardRef<PersonFormHandle, PersonFormProps>(function
       <Text className="text-[11px] uppercase tracking-[1.5px] text-text3 font-bodySemi">
         {t("personForm.birthday")}
       </Text>
-      <TextInput
-        value={birthday}
-        onChangeText={setBirthday}
-        placeholder="YYYY-MM-DD"
-        placeholderTextColor="#7A8CAD"
-        className={fieldClass}
+      <BirthdayField
+        birthday={birthday}
+        birthdayYearKnown={birthdayYearKnown}
+        onBirthdayChange={setBirthday}
+        onBirthdayYearKnownChange={setBirthdayYearKnown}
+        fieldClass={fieldClass}
       />
-      <View className="flex-row items-center justify-between mt-2">
-        <Text className="text-[12px] text-text2 font-body">{t("personForm.yearKnown")}</Text>
-        <Switch value={birthdayYearKnown} onValueChange={setBirthdayYearKnown} />
-      </View>
     </>
   );
 

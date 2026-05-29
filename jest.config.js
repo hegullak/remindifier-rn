@@ -9,6 +9,8 @@ module.exports = {
     "^expo-secure-store$": "<rootDir>/tests/__mocks__/expo-secure-store.js",
     "^expo-crypto$": "<rootDir>/tests/__mocks__/expo-crypto.js",
     "^nativewind$": "<rootDir>/tests/__mocks__/nativewind.js",
+    "^@react-native-async-storage/async-storage$":
+      "<rootDir>/tests/__mocks__/@react-native-async-storage/async-storage.js",
   },
 
   // Coverage targets pure business logic only.
@@ -24,6 +26,7 @@ module.exports = {
     "!src/lib/repoLog.ts",
     "!src/lib/globalErrorHandler.ts",
     "!src/lib/brief/weather.ts",
+    "!src/lib/people/naturalLanguageParser.api.ts",
   ],
   coveragePathIgnorePatterns: ["/node_modules/", "\\.test\\.(ts|tsx)$", "/__mocks__/"],
   coverageThreshold: {

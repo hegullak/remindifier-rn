@@ -1,8 +1,8 @@
-import { useAppAuth } from "@/features/auth/useAppAuth";
 import { FlashList } from "@shopify/flash-list";
 import { Link } from "expo-router";
 import { Pressable, Text, View } from "react-native";
 import type { PersonSummary } from "@/db/repos/peopleRepo";
+import { useAppAuth } from "@/features/auth/useAppAuth";
 import { usePeopleData } from "@/features/people/usePeopleData";
 import { useTranslation } from "@/i18n/LanguageContext";
 import { translateRelationType } from "@/i18n/relationTypes";

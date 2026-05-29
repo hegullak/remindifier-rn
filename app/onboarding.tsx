@@ -1,4 +1,3 @@
-import { useAppAuth } from "@/features/auth/useAppAuth";
 import type { ExpoSQLiteDatabase } from "drizzle-orm/expo-sqlite";
 import { useMigrations } from "drizzle-orm/expo-sqlite/migrator";
 import { Redirect, router } from "expo-router";
@@ -11,6 +10,7 @@ import { createPerson } from "@/db/repos/peopleRepo";
 import { completeOnboarding, hasCompletedOnboarding } from "@/db/repos/userRepo";
 import type * as schema from "@/db/schema";
 import { useUserDrizzleDb } from "@/db/useUserDrizzleDb";
+import { useAppAuth } from "@/features/auth/useAppAuth";
 import { NaturalLanguageInputStep } from "@/features/people/NaturalLanguageInputStep";
 import { draftToFormInitial } from "@/features/people/naturalIntake";
 import { ParsedPersonPreviewCard } from "@/features/people/ParsedPersonPreviewCard";
@@ -39,6 +39,7 @@ function OnboardingContent({
   const [naturalText, setNaturalText] = useState("");
   const [parsedDraft, setParsedDraft] = useState<ParsedPersonDraft | null>(null);
   const [alreadyCompleted, setAlreadyCompleted] = useState<boolean | null>(null);
+  const [parsing, setParsing] = useState(false);
 
   useEffect(() => {
     if (!ready) return;
@@ -64,10 +65,15 @@ function OnboardingContent({
     router.replace("/(tabs)/brief");
   }
 
-  function handleContinue() {
-    const draft = parseNaturalPersonInput(naturalText);
-    setParsedDraft(draft);
-    setStep("preview");
+  async function handleContinue() {
+    setParsing(true);
+    try {
+      const draft = await parseNaturalPersonInput(naturalText);
+      setParsedDraft(draft);
+      setStep("preview");
+    } finally {
+      setParsing(false);
+    }
   }
 
   return (
@@ -92,6 +98,7 @@ function OnboardingContent({
               value={naturalText}
               onChangeText={setNaturalText}
               onContinue={handleContinue}
+              parsing={parsing}
             />
             <Pressable onPress={() => void finishOnboarding()} className="mt-10 py-3 items-center">
               <Text className="text-[14px] text-text3 font-body">{t("onboarding.skip")}</Text>

@@ -1,8 +1,8 @@
-import { useAppAuth } from "@/features/auth/useAppAuth";
 import { Link, router, useLocalSearchParams } from "expo-router";
 import { useRef, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { deletePerson, updatePerson } from "@/db/repos/peopleRepo";
+import { useAppAuth } from "@/features/auth/useAppAuth";
 import { PersonForm, type PersonFormHandle } from "@/features/people/PersonForm";
 import { usePersonProfileData } from "@/features/people/usePersonProfileData";
 import { useTranslation } from "@/i18n/LanguageContext";

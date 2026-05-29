@@ -1,4 +1,3 @@
-import { useAppAuth } from "@/features/auth/useAppAuth";
 import { router } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -11,6 +10,7 @@ import {
   useColorScheme,
   View,
 } from "react-native";
+import { useAppAuth } from "@/features/auth/useAppAuth";
 import { useMyProfile } from "@/features/me/useMyProfile";
 import { useTranslation } from "@/i18n";
 import type { Locale } from "@/i18n/types";

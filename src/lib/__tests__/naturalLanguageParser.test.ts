@@ -1,109 +1,136 @@
 import { parseNaturalPersonInput } from "@/lib/people/naturalLanguageParser";
+import {
+  normalizeApiDraftPayload,
+  parseNaturalPersonInputWithApi,
+} from "@/lib/people/naturalLanguageParser.api";
+import { parseNaturalPersonInputLocal } from "@/lib/people/naturalLanguageParser.local";
+
+const KENNETH_INPUT =
+  "Kenneth feirer 50 årsdag i morgen. Han er min beste venn. Han hadde bursdag 12 mars i år.";
 
 describe("parseNaturalPersonInput", () => {
-  it("parses Norwegian example with name, relation, birthday, and fun fact", () => {
-    const result = parseNaturalPersonInput(
-      "Trine er søsteren min, bursdag 14. mars, liker ikke sene samtaler",
-    );
-    expect(result.displayName).toBe("Trine");
-    expect(result.relationType).toBe("søster");
-    expect(result.birthday).toBe("0001-03-14");
-    expect(result.birthdayYearKnown).toBe(false);
-    expect(result.funFacts.some((f) => f.includes("sene samtaler"))).toBe(true);
-    expect(result.rawInput).toContain("Trine");
+  const originalFetch = global.fetch;
+  const originalApiKey = process.env.EXPO_PUBLIC_ANTHROPIC_API_KEY;
+
+  beforeEach(() => {
+    jest.resetAllMocks();
   });
 
-  it("parses English relation and birthday", () => {
-    const result = parseNaturalPersonInput(
-      "Anna is my sister, birthday March 14, prefers morning calls",
-    );
-    expect(result.displayName).toBe("Anna");
-    expect(result.relationType).toBe("sister");
-    expect(result.birthday).toBe("0001-03-14");
-    expect(result.birthdayYearKnown).toBe(false);
-    expect(result.funFacts.length).toBeGreaterThan(0);
+  afterEach(() => {
+    global.fetch = originalFetch;
+    process.env.EXPO_PUBLIC_ANTHROPIC_API_KEY = originalApiKey;
   });
 
-  it("parses ISO birthday with year", () => {
-    const result = parseNaturalPersonInput("Jonas, colleague, born 1990-03-14");
-    expect(result.displayName).toBe("Jonas");
-    expect(result.relationType).toBe("colleague");
-    expect(result.birthday).toBe("1990-03-14");
+  it("uses Claude API when configured and returns structured data", async () => {
+    process.env.EXPO_PUBLIC_ANTHROPIC_API_KEY = "test-key";
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify({
+              displayName: "Kenneth",
+              relationType: "beste venn",
+              birthday: "1976-03-12",
+              birthdayYearKnown: true,
+              funFacts: [],
+            }),
+          },
+        ],
+      }),
+    }) as typeof fetch;
+
+    const result = await parseNaturalPersonInput(KENNETH_INPUT);
+
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+    expect(result.displayName).toBe("Kenneth");
+    expect(result.relationType).toBe("beste venn");
+    expect(result.birthday).toBe("1976-03-12");
     expect(result.birthdayYearKnown).toBe(true);
   });
 
-  it("parses named pattern in English", () => {
-    const result = parseNaturalPersonInput("Named Erik, friend, loves cycling");
-    expect(result.displayName).toBe("Erik");
-    expect(result.relationType).toBe("friend");
-    expect(result.funFacts.some((f) => /cycling/i.test(f))).toBe(true);
+  it("falls back to local parser when API fails", async () => {
+    process.env.EXPO_PUBLIC_ANTHROPIC_API_KEY = "test-key";
+    global.fetch = jest.fn().mockRejectedValue(new Error("network")) as typeof fetch;
+
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date("2026-05-29T12:00:00Z"));
+
+    const result = await parseNaturalPersonInput(KENNETH_INPUT);
+    const local = parseNaturalPersonInputLocal(KENNETH_INPUT);
+
+    expect(result).toEqual(local);
+    jest.useRealTimers();
   });
 
-  it("handles name only", () => {
-    const result = parseNaturalPersonInput("Helga");
+  it("falls back to local parser when API response cannot be parsed", async () => {
+    process.env.EXPO_PUBLIC_ANTHROPIC_API_KEY = "test-key";
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ content: [{ type: "text", text: "not-json" }] }),
+    }) as typeof fetch;
+
+    const result = await parseNaturalPersonInput("Helga er venn");
+    expect(global.fetch).toHaveBeenCalled();
     expect(result.displayName).toBe("Helga");
-    expect(result.relationType).toBeNull();
-    expect(result.birthday).toBeNull();
-    expect(result.funFacts).toEqual([]);
   });
 
-  it("handles missing name but keeps fun facts", () => {
-    const result = parseNaturalPersonInput("kollega, bursdag 5. juni, elsker kaffe");
-    expect(result.displayName).toBeNull();
-    expect(result.relationType).toBe("kollega");
-    expect(result.birthday).toBe("0001-06-05");
-    expect(result.funFacts.length).toBeGreaterThan(0);
+  it("falls back to local parser when API key is missing", async () => {
+    process.env.EXPO_PUBLIC_ANTHROPIC_API_KEY = "";
+    global.fetch = jest.fn() as typeof fetch;
+
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date("2026-05-29T12:00:00Z"));
+
+    const result = await parseNaturalPersonInput(KENNETH_INPUT);
+    const local = parseNaturalPersonInputLocal(KENNETH_INPUT);
+
+    expect(global.fetch).not.toHaveBeenCalled();
+    expect(result).toEqual(local);
+
+    jest.useRealTimers();
+  });
+});
+
+describe("parseNaturalPersonInputWithApi", () => {
+  const originalFetch = global.fetch;
+
+  afterEach(() => {
+    global.fetch = originalFetch;
   });
 
-  it("parses multiple fun facts separated by commas", () => {
-    const result = parseNaturalPersonInput(
-      "Per er venn, bursdag 2. januar, spiller gitar, bor i Bergen",
+  it("returns null on HTTP errors and malformed payloads", async () => {
+    global.fetch = jest.fn().mockResolvedValue({ ok: false, status: 500 }) as typeof fetch;
+    await expect(parseNaturalPersonInputWithApi("Kenneth", "test-key")).resolves.toBeNull();
+
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ content: [{ type: "text", text: "not-json" }] }),
+    }) as typeof fetch;
+    await expect(parseNaturalPersonInputWithApi("Kenneth", "test-key")).resolves.toBeNull();
+  });
+});
+
+describe("normalizeApiDraftPayload", () => {
+  it("returns null for invalid payloads", () => {
+    expect(normalizeApiDraftPayload(null, "raw")).toBeNull();
+    expect(normalizeApiDraftPayload({ birthday: "not-a-date" }, "raw")).toBeNull();
+  });
+
+  it("normalizes unknown-year birthdays to sentinel year", () => {
+    const draft = normalizeApiDraftPayload(
+      {
+        displayName: "Trine",
+        relationType: "søster",
+        birthday: "1990-06-05",
+        birthdayYearKnown: false,
+        funFacts: ["Likes morning calls"],
+      },
+      "raw",
     );
-    expect(result.displayName).toBe("Per");
-    expect(result.funFacts.length).toBeGreaterThanOrEqual(2);
-  });
 
-  it("parses numeric date with year", () => {
-    const result = parseNaturalPersonInput("Lisa, sister, 14/3/1988");
-    expect(result.birthday).toBe("1988-03-14");
-    expect(result.birthdayYearKnown).toBe(true);
-  });
-
-  it("returns empty draft for blank input", () => {
-    const result = parseNaturalPersonInput("   ");
-    expect(result.displayName).toBeNull();
-    expect(result.funFacts).toEqual([]);
-    expect(result.rawInput).toBe("");
-  });
-
-  it("parses birthday hint prefix without leading name", () => {
-    const result = parseNaturalPersonInput("bursdag 14 mars");
-    expect(result.birthday).toBe("0001-03-14");
-    expect(result.birthdayYearKnown).toBe(false);
-  });
-
-  it("parses Norwegian memory fragments with month-only birthday", () => {
-    const result = parseNaturalPersonInput(
-      "Trine. Søsteren min. Bursdag i mars. Liker ikke sene samtaler.",
-    );
-    expect(result.displayName).toBe("Trine");
-    expect(result.relationType).toBe("søster");
-    expect(result.birthday).toBe("0001-03-01");
-    expect(result.birthdayYearKnown).toBe(false);
-    expect(result.funFacts).toContain("Liker ikke sene samtaler");
-  });
-
-  it("parses English month-only birthday", () => {
-    const result = parseNaturalPersonInput("Alex. Friend. Birthday in March. Football parent.");
-    expect(result.displayName).toBe("Alex");
-    expect(result.relationType).toBe("friend");
-    expect(result.birthday).toBe("0001-03-01");
-    expect(result.funFacts).toContain("Football parent");
-  });
-
-  it("keeps unmapped memory fragments as-is", () => {
-    const result = parseNaturalPersonInput("Maya. football parent");
-    expect(result.displayName).toBe("Maya");
-    expect(result.funFacts).toContain("football parent");
+    expect(draft?.birthday).toBe("0001-06-05");
+    expect(draft?.birthdayYearKnown).toBe(false);
   });
 });

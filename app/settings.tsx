@@ -1,4 +1,3 @@
-import { useAppAuth } from "@/features/auth/useAppAuth";
 import Constants from "expo-constants";
 import * as FileSystem from "expo-file-system/legacy";
 import { router } from "expo-router";
@@ -7,11 +6,12 @@ import { useEffect, useState } from "react";
 import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View } from "react-native";
 import { deleteAllData, exportAllData } from "@/db/repos/settingsRepo";
 import { resetOnboarding } from "@/db/repos/userRepo";
-import { DEV_BYPASS_AUTH } from "@/features/auth/devBypass";
 import { deleteSeedCalendar, seedDevCalendar } from "@/db/seedCalendar";
 import { useUserDrizzleDb } from "@/db/useUserDrizzleDb";
 import { AccountSettingsSection } from "@/features/auth/AccountSettingsSection";
 import { clearClerkAuthStorage } from "@/features/auth/clerk/clearAuthStorage";
+import { DEV_BYPASS_AUTH } from "@/features/auth/devBypass";
+import { useAppAuth } from "@/features/auth/useAppAuth";
 import { useTranslation } from "@/i18n";
 import { getLastErrorTimestamp } from "@/lib/logUtils";
 import { AppShell } from "@/ui/AppShell";

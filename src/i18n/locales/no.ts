@@ -252,6 +252,9 @@ export const no = {
     newPersonSubtitle: "Legg til noen du vil huske å følge opp.",
     newPersonFromQr: "Fra QR-kode — sjekk og lagre når det ser riktig ut.",
     naturalInputPlaceholder: "Trine. Søsteren min. Bursdag i mars. Liker ikke sene samtaler.",
+    naturalInputPrivacy:
+      "Teksten sendes til Anthropic for å strukturere informasjonen. Ingenting lagres automatisk — du godkjenner selv.",
+    naturalInputPrivacyOk: "Skjønner",
     naturalInputButton: "Fortsett →",
     naturalModeTab: "Naturlig",
     formModeTab: "Skjema",
@@ -289,6 +292,7 @@ export const no = {
     fullName: "Fullt navn",
     relationType: "Relasjonstype",
     birthday: "Bursdag",
+    birthdayPlaceholder: "Velg dato",
     yearKnown: "Årstall er kjent",
     funFacts: "Morsomme fakta",
     funFactsPlaceholder: "Én per linje\nLøp sitt 6. halvmaraton i mai i år.",

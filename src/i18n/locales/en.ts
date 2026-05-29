@@ -250,6 +250,9 @@ export const en = {
     newPersonSubtitle: "Add someone you want to keep showing up for.",
     newPersonFromQr: "From QR code — review and save when it looks right.",
     naturalInputPlaceholder: "Trine. My sister. Birthday in March. Doesn't like late calls.",
+    naturalInputPrivacy:
+      "Your text is sent to Anthropic to structure the information. Nothing is saved automatically — you approve it yourself.",
+    naturalInputPrivacyOk: "Got it",
     naturalInputButton: "Continue →",
     naturalModeTab: "Natural",
     formModeTab: "Form",
@@ -287,6 +290,7 @@ export const en = {
     fullName: "Full name",
     relationType: "Relation type",
     birthday: "Birthday",
+    birthdayPlaceholder: "Pick a date",
     yearKnown: "Year is known",
     funFacts: "Fun facts",
     funFactsPlaceholder: "One per line\nRan her 6th half marathon in May this year.",

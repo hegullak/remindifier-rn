@@ -1,8 +1,8 @@
-import { useAppAuth } from "@/features/auth/useAppAuth";
 import { router, useLocalSearchParams } from "expo-router";
 import { useMemo, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { createPerson } from "@/db/repos/peopleRepo";
+import { useAppAuth } from "@/features/auth/useAppAuth";
 import { NaturalLanguageInputStep } from "@/features/people/NaturalLanguageInputStep";
 import { draftToFormInitial } from "@/features/people/naturalIntake";
 import { ParsedPersonPreviewCard } from "@/features/people/ParsedPersonPreviewCard";
@@ -60,10 +60,17 @@ export default function NewPersonScreen() {
   const showPreviewForm =
     intakeMode === "form" || (intakeMode === "natural" && naturalStep === "preview");
 
-  function handleNaturalContinue() {
-    const draft = parseNaturalPersonInput(naturalText);
-    setParsedDraft(draft);
-    setNaturalStep("preview");
+  const [parsing, setParsing] = useState(false);
+
+  async function handleNaturalContinue() {
+    setParsing(true);
+    try {
+      const draft = await parseNaturalPersonInput(naturalText);
+      setParsedDraft(draft);
+      setNaturalStep("preview");
+    } finally {
+      setParsing(false);
+    }
   }
 
   function switchMode(mode: IntakeMode) {
@@ -116,6 +123,7 @@ export default function NewPersonScreen() {
               value={naturalText}
               onChangeText={setNaturalText}
               onContinue={handleNaturalContinue}
+              parsing={parsing}
             />
           </View>
         ) : null}
