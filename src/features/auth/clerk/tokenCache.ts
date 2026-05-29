@@ -4,7 +4,9 @@ import * as SecureStore from "expo-secure-store";
 export const CLERK_CLIENT_JWT_KEY = "__clerk_client_jwt";
 
 const secureStoreOpts = {
-  keychainAccessible: SecureStore.AFTER_FIRST_UNLOCK,
+  // WHEN_UNLOCKED: token only accessible when device is actively unlocked.
+  // More secure than AFTER_FIRST_UNLOCK which allows background access while screen is locked.
+  keychainAccessible: SecureStore.WHEN_UNLOCKED,
 } as const;
 
 /**

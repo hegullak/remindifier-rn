@@ -10,7 +10,7 @@ import {
   relationships,
 } from "@/db/schema";
 import { logger } from "@/lib/logger";
-import { clearLogFiles, readLogFiles } from "@/lib/logUtils";
+import { clearLogFiles } from "@/lib/logUtils";
 import { logRepoError } from "@/lib/repoLog";
 
 type PersonEntry = typeof personEntries.$inferSelect;
@@ -25,7 +25,6 @@ export type ExportPayload = {
   redLetterDays: PersonRedLetterDay[];
   relationships: Relationship[];
   myProfile: MyProfile | null;
-  logs: { app: string; error: string };
 };
 
 function serializeRow<T extends Record<string, unknown>>(row: T): T {
@@ -41,15 +40,13 @@ function serializeRow<T extends Record<string, unknown>>(row: T): T {
 
 export async function exportAllData(db: ExpoSQLiteDatabase<typeof schema>): Promise<ExportPayload> {
   try {
-    const [people, timeline, redLetterDays, relationshipRows, profileRows, logs] =
-      await Promise.all([
-        db.select().from(persons),
-        db.select().from(personEntries),
-        db.select().from(personRedLetterDays),
-        db.select().from(relationships),
-        db.select().from(myProfile),
-        readLogFiles(),
-      ]);
+    const [people, timeline, redLetterDays, relationshipRows, profileRows] = await Promise.all([
+      db.select().from(persons),
+      db.select().from(personEntries),
+      db.select().from(personRedLetterDays),
+      db.select().from(relationships),
+      db.select().from(myProfile),
+    ]);
 
     logger.info("data_export_succeeded", {
       peopleCount: people.length,
@@ -64,7 +61,6 @@ export async function exportAllData(db: ExpoSQLiteDatabase<typeof schema>): Prom
       redLetterDays: redLetterDays.map((row) => serializeRow(row)),
       relationships: relationshipRows.map((row) => serializeRow(row)),
       myProfile: profileRows[0] ? serializeRow(profileRows[0]) : null,
-      logs,
     };
   } catch (err) {
     logRepoError("data_export_failed", err);

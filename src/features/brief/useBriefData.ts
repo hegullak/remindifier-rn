@@ -5,6 +5,7 @@ import type { BriefSectionId } from "@/lib/brief/sections";
 import { DEFAULT_BRIEF_SECTION_ORDER } from "@/lib/brief/sections";
 import type { BriefWeatherData } from "@/lib/brief/weather";
 import { fetchBriefWeather } from "@/lib/brief/weather";
+import { logger } from "@/lib/logger";
 import type { UpcomingRedLetterDay } from "@/lib/timeline/red-letter-days";
 
 export const HEADSUP_ITEMS = [
@@ -80,7 +81,7 @@ export function useBriefData(userId: string | null | undefined) {
 
   useEffect(() => {
     reload().catch((error) => {
-      console.error("failed to load brief", error);
+      logger.error("brief_load_failed", { error: error instanceof Error ? error.name : "unknown" });
     });
   }, [reload]);
 

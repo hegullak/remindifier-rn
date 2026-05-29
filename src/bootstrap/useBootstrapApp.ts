@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { ensureDefaultBriefPreferences } from "@/db/repos/userRepo";
 import { seedLocalData } from "@/db/seed";
+import { logger } from "@/lib/logger";
 
 export function useBootstrapApp(userId: string | null | undefined, migrationsReady: boolean) {
   const [ready, setReady] = useState(false);
@@ -21,7 +22,7 @@ export function useBootstrapApp(userId: string | null | undefined, migrationsRea
     }
 
     boot().catch((error) => {
-      console.error("bootstrap failed", error);
+      logger.error("bootstrap_failed", { error: error instanceof Error ? error.name : "unknown" });
       if (!cancelled) setReady(true);
     });
 

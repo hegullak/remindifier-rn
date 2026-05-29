@@ -205,7 +205,7 @@ export function SignInScreen() {
 
   function beginSecondFactorStep(signInResource: SignInResource) {
     const factors = signInResource.supportedSecondFactors ?? [];
-    console.log("Clerk supportedSecondFactors:", JSON.stringify(factors));
+    if (__DEV__) console.log("Clerk supportedSecondFactors:", JSON.stringify(factors));
     setSupportedFactors(factors);
     setPendingSecondFactor(true);
     setVerificationCode("");
@@ -318,7 +318,7 @@ export function SignInScreen() {
         }
       }
     } catch (error: unknown) {
-      console.error("2FA verification failed", selectedFactor.strategy, error);
+      if (__DEV__) console.error("2FA verification failed", selectedFactor.strategy, error);
       if (isSessionExistsError(error) || auth.isSignedIn) {
         goToApp();
         return;
