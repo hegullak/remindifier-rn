@@ -164,7 +164,6 @@ export default function NewGatheringScreen() {
       <ScrollView
         contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 32 }}
         keyboardDismissMode="on-drag"
-        keyboardShouldPersistTaps="handled"
       >
         {step === "input" ? (
           <>
@@ -214,7 +213,8 @@ export default function NewGatheringScreen() {
             <TextInput
               value={title}
               onChangeText={setTitle}
-              autoFocus
+              blurOnSubmit
+              returnKeyType="done"
               className="text-[28px] leading-[34px] text-text1 font-heading border-b border-accent pb-1 mb-4"
             />
             <TalkingPointsPreview draft={draft} locale={locale} t={t} onRemove={removeTalkingPoint} />

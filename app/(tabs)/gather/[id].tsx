@@ -216,7 +216,8 @@ export default function GatheringDetailScreen() {
                   <TextInput
                     value={title}
                     onChangeText={setTitle}
-                    autoFocus
+                    blurOnSubmit
+                    returnKeyType="done"
                     onBlur={() => {
                       setEditingTitle(false);
                       void saveTitle(title);
@@ -263,7 +264,6 @@ export default function GatheringDetailScreen() {
 
               <ScrollView
                 keyboardDismissMode="on-drag"
-                keyboardShouldPersistTaps="handled"
                 contentContainerStyle={{ paddingBottom: 16, flexGrow: 1 }}
                 style={{ flex: 1 }}
               >
