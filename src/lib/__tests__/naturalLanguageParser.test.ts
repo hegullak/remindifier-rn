@@ -10,7 +10,7 @@ const KENNETH_INPUT =
 
 describe("parseNaturalPersonInput", () => {
   const originalFetch = global.fetch;
-  const originalApiKey = process.env.EXPO_PUBLIC_ANTHROPIC_API_KEY;
+  const originalApiKey = process.env.EXPO_PUBLIC_OPENAI_API_KEY;
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -18,24 +18,27 @@ describe("parseNaturalPersonInput", () => {
 
   afterEach(() => {
     global.fetch = originalFetch;
-    process.env.EXPO_PUBLIC_ANTHROPIC_API_KEY = originalApiKey;
+    process.env.EXPO_PUBLIC_OPENAI_API_KEY = originalApiKey;
   });
 
-  it("uses Claude API when configured and returns structured data", async () => {
-    process.env.EXPO_PUBLIC_ANTHROPIC_API_KEY = "test-key";
+  it("uses OpenAI API when configured and returns structured data", async () => {
+    process.env.EXPO_PUBLIC_OPENAI_API_KEY = "test-key";
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
       json: async () => ({
-        content: [
+        choices: [
           {
-            type: "text",
-            text: JSON.stringify({
-              displayName: "Kenneth",
-              relationType: "beste venn",
-              birthday: "1976-03-12",
-              birthdayYearKnown: true,
-              funFacts: [],
-            }),
+            message: {
+              content: JSON.stringify({
+                displayName: "Kenneth",
+                relationType: "beste venn",
+                birthday: "1976-03-12",
+                birthdayYearKnown: true,
+                funFacts: [],
+                pendingActions: [],
+              }),
+              refusal: null,
+            },
           },
         ],
       }),
@@ -51,7 +54,7 @@ describe("parseNaturalPersonInput", () => {
   });
 
   it("falls back to local parser when API fails", async () => {
-    process.env.EXPO_PUBLIC_ANTHROPIC_API_KEY = "test-key";
+    process.env.EXPO_PUBLIC_OPENAI_API_KEY = "test-key";
     global.fetch = jest.fn().mockRejectedValue(new Error("network")) as typeof fetch;
 
     jest.useFakeTimers();
@@ -65,10 +68,12 @@ describe("parseNaturalPersonInput", () => {
   });
 
   it("falls back to local parser when API response cannot be parsed", async () => {
-    process.env.EXPO_PUBLIC_ANTHROPIC_API_KEY = "test-key";
+    process.env.EXPO_PUBLIC_OPENAI_API_KEY = "test-key";
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
-      json: async () => ({ content: [{ type: "text", text: "not-json" }] }),
+      json: async () => ({
+        choices: [{ message: { content: "not-json", refusal: null } }],
+      }),
     }) as typeof fetch;
 
     const result = await parseNaturalPersonInput("Helga er venn");
@@ -77,7 +82,7 @@ describe("parseNaturalPersonInput", () => {
   });
 
   it("falls back to local parser when API key is missing", async () => {
-    process.env.EXPO_PUBLIC_ANTHROPIC_API_KEY = "";
+    process.env.EXPO_PUBLIC_OPENAI_API_KEY = "";
     global.fetch = jest.fn() as typeof fetch;
 
     jest.useFakeTimers();
@@ -106,7 +111,9 @@ describe("parseNaturalPersonInputWithApi", () => {
 
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
-      json: async () => ({ content: [{ type: "text", text: "not-json" }] }),
+      json: async () => ({
+        choices: [{ message: { content: "not-json", refusal: null } }],
+      }),
     }) as typeof fetch;
     await expect(parseNaturalPersonInputWithApi("Kenneth", "test-key")).resolves.toBeNull();
   });

@@ -5,17 +5,31 @@ import {
 } from "@/lib/people/naturalLanguageParser.types";
 import { BIRTHDAY_SENTINEL_YEAR } from "@/lib/red-letter-day";
 
-const ANTHROPIC_API_URL = "https://api.anthropic.com/v1/messages";
-const MODEL = "claude-haiku-4-5-20251001";
+const OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
+const MODEL = "gpt-4o-mini";
 
-type ApiDraftPayload = {
-  displayName?: unknown;
-  relationType?: unknown;
-  birthday?: unknown;
-  birthdayYearKnown?: unknown;
-  funFacts?: unknown;
-  pendingActions?: unknown;
-};
+// JSON Schema for OpenAI structured outputs (strict: true).
+// All fields required, additionalProperties: false, nullable via anyOf.
+const RESPONSE_SCHEMA = {
+  type: "object",
+  properties: {
+    displayName: { anyOf: [{ type: "string" }, { type: "null" }] },
+    relationType: { anyOf: [{ type: "string" }, { type: "null" }] },
+    birthday: { anyOf: [{ type: "string" }, { type: "null" }] },
+    birthdayYearKnown: { type: "boolean" },
+    funFacts: { type: "array", items: { type: "string" } },
+    pendingActions: { type: "array", items: { type: "string" } },
+  },
+  required: [
+    "displayName",
+    "relationType",
+    "birthday",
+    "birthdayYearKnown",
+    "funFacts",
+    "pendingActions",
+  ],
+  additionalProperties: false,
+} as const;
 
 function isIsoDate(value: string): boolean {
   return /^(?:\d{4}|0001)-\d{2}-\d{2}$/.test(value);
@@ -40,7 +54,7 @@ export function normalizeApiDraftPayload(
   rawInput: string,
 ): ParsedPersonDraft | null {
   if (!payload || typeof payload !== "object") return null;
-  const data = payload as ApiDraftPayload;
+  const data = payload as Record<string, unknown>;
 
   let birthday = asNullableString(data.birthday);
   const birthdayYearKnown = data.birthdayYearKnown === true;
@@ -63,42 +77,17 @@ export function normalizeApiDraftPayload(
   };
 }
 
-function extractJsonObject(text: string): unknown {
-  const trimmed = text.trim();
-  try {
-    return JSON.parse(trimmed);
-  } catch {
-    const start = trimmed.indexOf("{");
-    const end = trimmed.lastIndexOf("}");
-    if (start === -1 || end === -1 || end <= start) return null;
-    try {
-      return JSON.parse(trimmed.slice(start, end + 1));
-    } catch {
-      return null;
-    }
-  }
-}
-
 function buildSystemPrompt(todayIso: string): string {
   return `You extract structured fields about ONE person from free-text memory fragments written by the user about someone they know.
-Return ONLY valid JSON with this shape:
-{
-  "displayName": string | null,
-  "relationType": string | null,
-  "birthday": string | null,
-  "birthdayYearKnown": boolean,
-  "funFacts": string[],
-  "pendingActions": string[]
-}
 
 Rules:
 - displayName: the name of the person being described (the first/main person mentioned)
-- relationType: how this person relates TO THE WRITER — e.g. "beste venn", "bror", "kollega". NOT roles the person has in their own life. If the text says "Han er min beste venn" the relationType is "beste venn". If the text later mentions "Søsteren hans, Marianne" that is about the person's own sister — ignore it for relationType.
+- relationType: how this person relates TO THE WRITER — e.g. "beste venn", "bror", "kollega". NOT roles the person has in their own life. If the text says "Han er min beste venn" the relationType is "beste venn". If the text later mentions "Søsteren hans, Marianne" that describes the person's own sister — ignore it for relationType.
 - birthday: ISO YYYY-MM-DD when year is known; 0001-MM-DD when year unknown; 0001-MM-01 if only month known; null if no date found
 - birthdayYearKnown: true only when you have a specific birth year — either stated directly or reliably inferred from age + date
 - infer birth year from age clues: "feirer 50 årsdag i morgen" + "bursdag 12 mars" → born 12 March 1976 (using today ${todayIso})
-- funFacts: permanent memory fragments about the person — things worth remembering long-term. One idea per item, under 15 words. Only facts about the main person. Do NOT include action items or intentions here.
-- pendingActions: things the user intends to do or ask — action items, follow-ups, reminders tied to an upcoming interaction. Examples: "Spørre om barna hans", "Snakke med moren hans på festen", "Husk å følge opp jobben". Keep the user's phrasing, under 15 words each. Empty array if none.
+- funFacts: permanent memory fragments worth remembering long-term. One idea per item, under 15 words. Only facts about the main person. Do NOT include action items or intentions here.
+- pendingActions: things the user intends to do or ask — action items for an upcoming interaction. E.g. "Spørre om barna hans", "Snakke med moren hans på festen". User's phrasing, under 15 words each. Empty array if none.
 - do not invent facts not in the text
 
 Today's date: ${todayIso}`;
@@ -108,26 +97,29 @@ export async function parseNaturalPersonInputWithApi(
   rawInput: string,
   apiKey: string,
 ): Promise<ParsedPersonDraft | null> {
-  const today = new Date();
-  const todayIso = today.toISOString().slice(0, 10);
+  const todayIso = new Date().toISOString().slice(0, 10);
 
-  const response = await fetch(ANTHROPIC_API_URL, {
+  const response = await fetch(OPENAI_API_URL, {
     method: "POST",
     headers: {
       "content-type": "application/json",
-      "x-api-key": apiKey,
-      "anthropic-version": "2023-06-01",
+      authorization: `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
       model: MODEL,
-      max_tokens: 512,
-      system: buildSystemPrompt(todayIso),
       messages: [
-        {
-          role: "user",
-          content: rawInput,
-        },
+        { role: "system", content: buildSystemPrompt(todayIso) },
+        { role: "user", content: rawInput },
       ],
+      response_format: {
+        type: "json_schema",
+        json_schema: {
+          name: "person_draft",
+          strict: true,
+          schema: RESPONSE_SCHEMA,
+        },
+      },
+      max_tokens: 512,
     }),
   });
 
@@ -137,22 +129,38 @@ export async function parseNaturalPersonInputWithApi(
   }
 
   const body = (await response.json()) as {
-    content?: Array<{ type?: string; text?: string }>;
+    choices?: Array<{
+      message?: { content?: string | null; refusal?: string | null };
+    }>;
   };
-  const textBlock = body.content?.find((block) => block.type === "text");
-  if (!textBlock?.text) {
+
+  const message = body.choices?.[0]?.message;
+  if (!message) {
     logger.warn("natural_language_api_empty_response");
     return null;
   }
 
-  const parsed = extractJsonObject(textBlock.text);
-  const draft = normalizeApiDraftPayload(parsed, rawInput);
-  if (!draft) {
+  // Model refused (e.g. content policy) — fall back gracefully
+  if (message.refusal) {
+    logger.warn("natural_language_api_refusal");
+    return null;
+  }
+
+  if (!message.content) {
+    logger.warn("natural_language_api_no_content");
+    return null;
+  }
+
+  // With strict structured outputs, content is guaranteed valid JSON
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(message.content);
+  } catch {
     logger.warn("natural_language_api_parse_error");
     return null;
   }
 
-  return draft;
+  return normalizeApiDraftPayload(parsed, rawInput);
 }
 
 export function emptyDraft(rawInput: string): ParsedPersonDraft {

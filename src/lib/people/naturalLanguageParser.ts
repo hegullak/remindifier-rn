@@ -14,7 +14,7 @@ export async function parseNaturalPersonInput(input: string): Promise<ParsedPers
     return { ...EMPTY_PARSED_PERSON_DRAFT, rawInput };
   }
 
-  const apiKey = process.env.EXPO_PUBLIC_ANTHROPIC_API_KEY?.trim();
+  const apiKey = process.env.EXPO_PUBLIC_OPENAI_API_KEY?.trim();
   if (apiKey) {
     try {
       const apiDraft = await parseNaturalPersonInputWithApi(rawInput, apiKey);
