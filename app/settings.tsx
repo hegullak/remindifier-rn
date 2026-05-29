@@ -8,6 +8,7 @@ import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View } from "rea
 import { deleteAllData, exportAllData } from "@/db/repos/settingsRepo";
 import { resetOnboarding } from "@/db/repos/userRepo";
 import { DEV_BYPASS_AUTH } from "@/features/auth/devBypass";
+import { deleteSeedCalendar, seedDevCalendar } from "@/db/seedCalendar";
 import { useUserDrizzleDb } from "@/db/useUserDrizzleDb";
 import { AccountSettingsSection } from "@/features/auth/AccountSettingsSection";
 import { clearClerkAuthStorage } from "@/features/auth/clerk/clearAuthStorage";
@@ -152,9 +153,17 @@ export default function SettingsScreen() {
             <Text className="text-[11px] uppercase tracking-[1.5px] text-text3 font-bodySemi mb-3">
               DEV {DEV_BYPASS_AUTH ? "· bypass active" : ""}
             </Text>
-            <Button variant="secondary" onPress={() => void handleResetOnboarding()}>
-              Reset onboarding
-            </Button>
+            <View className="gap-2">
+              <Button variant="secondary" onPress={() => void handleResetOnboarding()}>
+                Reset onboarding
+              </Button>
+              <Button variant="secondary" onPress={() => void seedDevCalendar()}>
+                Refresh seed calendar
+              </Button>
+              <Button variant="secondary" onPress={() => void deleteSeedCalendar()}>
+                Delete seed calendar
+              </Button>
+            </View>
           </Card>
         ) : null}
 

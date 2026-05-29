@@ -41,6 +41,12 @@
         {
           "useSQLCipher": true
         }
+      ],
+      [
+        "expo-calendar",
+        {
+          "calendarPermission": "Allow remindifier to create a test calendar with seed events for development."
+        }
       ]
     ],
     "web": {
