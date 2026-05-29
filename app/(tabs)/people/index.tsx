@@ -6,6 +6,7 @@ import { useAppAuth } from "@/features/auth/useAppAuth";
 import { usePeopleData } from "@/features/people/usePeopleData";
 import { useTranslation } from "@/i18n/LanguageContext";
 import { translateRelationType } from "@/i18n/relationTypes";
+import { buildPersonRelevanceHint } from "@/lib/people/relevanceHint";
 import { AppShell } from "@/ui/AppShell";
 import { Card } from "@/ui/Card";
 import { SectionLabel } from "@/ui/SectionLabel";
@@ -49,7 +50,16 @@ function PersonRowCard({
   locale: "en" | "no";
 }) {
   const age = formatAge(person.birthday, person.birthdayYearKnown, t);
-  const lastSeen = formatLastSeen(person.lastInteractionAt, t);
+  const hint = buildPersonRelevanceHint(
+    {
+      nextRedLetterDayLabel: person.nextRedLetterDayLabel,
+      nextRedLetterDaysUntil: person.nextRedLetterDaysUntil,
+      nextGatheringTitle: person.nextGatheringTitle,
+      nextGatheringDaysUntil: person.nextGatheringDaysUntil,
+      firstFollowUpBody: person.firstFollowUpBody,
+    },
+    locale,
+  );
 
   return (
     <Link href={`/people/${person.id}`} asChild>
@@ -65,10 +75,8 @@ function PersonRowCard({
                 {translateRelationType(person.relationType, locale)}
               </Text>
             ) : null}
-            {lastSeen ? (
-              <Text className="text-[12px] text-text3 font-body mt-2">
-                {t("people.lastContact", { when: lastSeen })}
-              </Text>
+            {hint ? (
+              <Text className="text-[13px] text-text2 font-body mt-2">{hint}</Text>
             ) : null}
           </View>
         </Card>

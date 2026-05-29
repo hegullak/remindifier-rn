@@ -15,6 +15,11 @@ export interface PersonSummary {
   birthdayYearKnown: boolean;
   lastInteractionAt: Date | null;
   archived: boolean;
+  nextRedLetterDayLabel: string | null;
+  nextRedLetterDaysUntil: number | null;
+  nextGatheringTitle: string | null;
+  nextGatheringDaysUntil: number | null;
+  firstFollowUpBody: string | null;
 }
 
 export interface PersonRelationshipLink {
@@ -45,7 +50,7 @@ export interface CreatePersonEntryInput {
 
 export async function listPeopleSummaries(userId: string): Promise<PersonSummary[]> {
   const db = await getDrizzleDbForUser(userId);
-  return db
+  const baseRows = await db
     .select({
       id: persons.id,
       displayName: persons.displayName,
@@ -58,6 +63,108 @@ export async function listPeopleSummaries(userId: string): Promise<PersonSummary
     .from(persons)
     .where(eq(persons.userId, userId))
     .orderBy(asc(persons.archived), asc(persons.displayName));
+
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+
+  const enriched = await Promise.all(
+    baseRows.map(async (row) => {
+      // Next red-letter day within 14 days
+      const redLetters = await db
+        .select({
+          kind: personRedLetterDays.kind,
+          label: personRedLetterDays.label,
+          eventDate: personRedLetterDays.eventDate,
+        })
+        .from(personRedLetterDays)
+        .where(
+          and(
+            eq(personRedLetterDays.userId, userId),
+            eq(personRedLetterDays.personId, row.id),
+          ),
+        )
+        .orderBy(asc(personRedLetterDays.eventDate));
+
+      let nextRedLetterDayLabel: string | null = null;
+      let nextRedLetterDaysUntil: number | null = null;
+      for (const r of redLetters) {
+        const eventDate = new Date(r.eventDate);
+        const daysUntil = Math.floor((eventDate.getTime() - now.getTime()) / 86400000);
+        if (daysUntil >= 0 && daysUntil <= 14) {
+          nextRedLetterDayLabel = r.label || r.kind;
+          nextRedLetterDaysUntil = daysUntil;
+          break;
+        }
+      }
+
+      // Next gathering within 14 days
+      const participantRows = await db
+        .select({ gatheringId: gatheringParticipants.gatheringId })
+        .from(gatheringParticipants)
+        .where(
+          and(
+            eq(gatheringParticipants.userId, userId),
+            eq(gatheringParticipants.personId, row.id),
+          ),
+        );
+      let nextGatheringTitle: string | null = null;
+      let nextGatheringDaysUntil: number | null = null;
+      if (participantRows.length > 0) {
+        const gatheringRows = await db
+          .select({
+            title: gatherings.title,
+            scheduledAt: gatherings.scheduledAt,
+          })
+          .from(gatherings)
+          .where(
+            and(
+              eq(gatherings.userId, userId),
+              inArray(
+                gatherings.id,
+                participantRows.map((p) => p.gatheringId),
+              ),
+            ),
+          )
+          .orderBy(asc(gatherings.scheduledAt));
+        for (const g of gatheringRows) {
+          if (!g.scheduledAt) continue;
+          const daysUntil = Math.floor(
+            (g.scheduledAt.getTime() - now.getTime()) / 86400000,
+          );
+          if (daysUntil >= 0 && daysUntil <= 14) {
+            nextGatheringTitle = g.title;
+            nextGatheringDaysUntil = daysUntil;
+            break;
+          }
+        }
+      }
+
+      // First follow-up note
+      const [followUp] = await db
+        .select({ body: personEntries.body })
+        .from(personEntries)
+        .where(
+          and(
+            eq(personEntries.userId, userId),
+            eq(personEntries.personId, row.id),
+            eq(personEntries.entryType, "follow_up"),
+          ),
+        )
+        .orderBy(desc(personEntries.occurredAt))
+        .limit(1);
+
+      return {
+        ...row,
+        nextRedLetterDayLabel,
+        nextRedLetterDaysUntil,
+        nextGatheringTitle,
+        nextGatheringDaysUntil,
+        firstFollowUpBody: followUp?.body ?? null,
+      };
+    }),
+  );
+
+  return enriched;
 }
 
 export async function getPersonById(userId: string, personId: string) {

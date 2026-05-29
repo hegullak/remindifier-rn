@@ -309,6 +309,12 @@ export default function GatheringDetailScreen() {
               </ScrollView>
 
               <View className="border-t border-border pt-3 pb-4 bg-bg">
+                {showKindPicker ? (
+                  <Pressable
+                    onPress={() => setShowKindPicker(false)}
+                    className="absolute inset-0 z-10"
+                  />
+                ) : null}
                 <View className="flex-row items-end gap-2">
                   <TextInput
                     value={newPointText}
@@ -323,7 +329,7 @@ export default function GatheringDetailScreen() {
                   <View className="relative items-end">
                     {showKindPicker ? (
                       <View
-                        className="absolute bottom-11 right-0 rounded-xl border border-border bg-card py-1.5 px-1 gap-1 min-w-[148px] z-10"
+                        className="absolute bottom-11 right-0 rounded-xl border border-border bg-card py-1.5 px-1 gap-1 min-w-[148px] z-20"
                         style={{
                           shadowColor: "#000",
                           shadowOffset: { width: 0, height: -2 },

@@ -49,6 +49,17 @@ export async function seedLocalData(userId: string) {
   if (await hasSeedData(userId)) return;
   const db = await getDrizzleDbForUser(userId);
 
+  // Calculate relative dates
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const todayStr = today.toISOString().slice(0, 10);
+  const in3Days = new Date(today);
+  in3Days.setDate(today.getDate() + 3);
+  const in3DaysStr = in3Days.toISOString().slice(0, 10);
+  const in6Days = new Date(today);
+  in6Days.setDate(today.getDate() + 6);
+  const in6DaysStr = in6Days.toISOString().slice(0, 10);
+
   await db
     .insert(users)
     .values({
@@ -131,12 +142,14 @@ export async function seedLocalData(userId: string) {
 
   await db.insert(personRedLetterDays).values([
     {
-      id: "r-ann-ida",
+      id: "r-bday-eirik",
       userId,
-      personId: "p-ida",
-      kind: "Anniversary",
-      label: "Wedding day",
-      eventDate: "2016-08-20",
+      personId: "p-eirik",
+      kind: "Birthday",
+      label: null,
+      eventDate: in3DaysStr, // Eirik's birthday in 3 days
+      yearKnown: true,
+      recurring: true,
     },
     {
       id: "r-ann-jonas-kari",
@@ -144,8 +157,9 @@ export async function seedLocalData(userId: string) {
       personId: "p-jonas",
       kind: "Anniversary",
       label: "Jonas og Kari",
-      eventDate: "2006-06-04",
+      eventDate: in6DaysStr, // Anniversary in 6 days
       yearKnown: true,
+      recurring: true,
     },
   ]);
 
@@ -223,9 +237,24 @@ export async function seedLocalData(userId: string) {
     id: "g-1",
     userId,
     title: "Dinner at Ida's",
-    scheduledAt: new Date("2026-05-28T19:00:00Z"),
+    scheduledAt: new Date(today.getTime() + 2 * 86400000 + 19 * 3600000), // 2 days from now, 19:00
     location: "St. Hanshaugen",
-    description: "Bring flowers and ask about her new role.",
+    description: JSON.stringify({
+      talkingPoints: [
+        {
+          id: "tp-1",
+          kind: "topic",
+          text: "Ask about the Copenhagen apartment offer",
+          done: false,
+        },
+        {
+          id: "tp-2",
+          kind: "topic",
+          text: "Bring flowers",
+          done: false,
+        },
+      ],
+    }),
     type: "dinner",
   });
 
