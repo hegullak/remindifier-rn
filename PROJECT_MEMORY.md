@@ -5,7 +5,13 @@ Last updated: 2026-05-29.
 
 ## What this app is
 
-Personal relationship memory app (Expo/React Native). Data stays **local** in encrypted SQLite per user. Clerk handles auth only — not user content.
+**Samvittighet-as-a-Service. Gets opened every morning.**
+
+A contextual memory and heads-up assistant for the people in your life — not a CRM, not a social network, not a guilt machine. remindifier surfaces the right context at the right moment so you show up better for the people who matter, without any maintenance burden.
+
+- **Event-driven, not form-driven.** Person profiles build up naturally through events and interactions. You never sit down to "fill in" a profile.
+- **Opportunity, not failure.** Never "you haven't spoken to Lars in 47 days." Always "Lars has a birthday Thursday — good moment to reach out."
+- **Local-first, privacy-first.** All data encrypted on device. No tracking. No external SDKs.
 
 - **Repo**: `hegullak/remindifier-rn`, main dev branch: `sandbox`
 - **Stack**: Expo SDK 54, expo-router, NativeWind v4, Drizzle + expo-sqlite (SQLCipher), Clerk
