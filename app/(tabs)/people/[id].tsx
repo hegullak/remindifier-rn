@@ -108,11 +108,11 @@ export default function PersonDetailScreen() {
                 Keyboard.dismiss();
                 router.replace(returnTo);
               }}
-              className="mb-2 self-start"
-              hitSlop={12}
+              className="mb-2 self-start w-8 h-8 rounded-full bg-accent items-center justify-center"
+              hitSlop={8}
               accessibilityLabel="Back"
             >
-              <Text className="text-[20px] text-accent font-body">←</Text>
+              <Text className="text-[15px] text-card font-body">←</Text>
             </Pressable>
           ) : null}
           <View className="flex-row items-start justify-between gap-2">

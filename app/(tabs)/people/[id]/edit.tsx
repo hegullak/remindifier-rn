@@ -36,10 +36,11 @@ export default function EditPersonScreen() {
                 triggerLight();
                 Keyboard.dismiss();
               }}
-              hitSlop={12}
+              hitSlop={8}
               accessibilityLabel="Back"
+              className="w-8 h-8 rounded-full bg-accent items-center justify-center"
             >
-              <Text className="text-[20px] text-accent font-body">←</Text>
+              <Text className="text-[15px] text-card font-body">←</Text>
             </Pressable>
           </Link>
           <Text className="text-[30px] leading-[36px] text-text1 font-heading mt-2">

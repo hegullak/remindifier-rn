@@ -245,7 +245,7 @@ export default function GatheringDetailScreen() {
       <KeyboardAvoidingView
         style={{ flex: 1, backgroundColor: "transparent" }}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
-        keyboardVerticalOffset={0}
+        keyboardVerticalOffset={90}
       >
         <View className="flex-1 px-4">
           <View className="flex-row items-center justify-between pt-1 pb-2">
@@ -255,10 +255,11 @@ export default function GatheringDetailScreen() {
                 Keyboard.dismiss();
                 router.back();
               }}
-              hitSlop={12}
+              hitSlop={8}
               accessibilityLabel="Back"
+              className="w-8 h-8 rounded-full bg-accent items-center justify-center"
             >
-              <Text className="text-[20px] text-accent font-body">←</Text>
+              <Text className="text-[15px] text-card font-body">←</Text>
             </Pressable>
             <View className="flex-row items-center gap-2">
               <Pressable
