@@ -260,26 +260,30 @@ export default function GatheringDetailScreen() {
             >
               <Text className="text-[20px] text-accent font-body">←</Text>
             </Pressable>
-            <View className="flex-row items-center gap-3">
+            <View className="flex-row items-center gap-2">
               <Pressable
-                onPress={() => {
-                  triggerLight();
-                  setEditingTitle(true);
-                }}
-                hitSlop={10}
-                accessibilityLabel={t("people.editPersonA11y")}
+                onPress={() => { triggerLight(); setShowPersonPicker(true); }}
+                className="w-8 h-8 rounded-full bg-green items-center justify-center"
+                hitSlop={8}
+                accessibilityLabel={t("gathering.addPerson")}
               >
-                <Text className="text-[18px] text-amber font-body">✎</Text>
+                <Text className="text-[16px] text-card font-body leading-[18px]">+</Text>
               </Pressable>
               <Pressable
-                onPress={() => {
-                  triggerLight();
-                  setShowDelete(true);
-                }}
-                hitSlop={10}
+                onPress={() => { triggerLight(); setEditingTitle(true); }}
+                className="w-8 h-8 rounded-full bg-amber items-center justify-center"
+                hitSlop={8}
+                accessibilityLabel={t("people.editPersonA11y")}
+              >
+                <Text className="text-[15px] text-card font-body">✎</Text>
+              </Pressable>
+              <Pressable
+                onPress={() => { triggerLight(); setShowDelete(true); }}
+                className="w-8 h-8 rounded-full bg-red items-center justify-center"
+                hitSlop={8}
                 accessibilityLabel={t("gathering.deleteEvent")}
               >
-                <Text className="text-[18px] text-red font-body">🗑</Text>
+                <Text className="text-[15px] text-card font-body">✕</Text>
               </Pressable>
             </View>
           </View>
@@ -326,17 +330,6 @@ export default function GatheringDetailScreen() {
                     </Pressable>
                   </Link>
                 ))}
-                <Pressable
-                  onPress={() => {
-                    triggerLight();
-                    setShowPersonPicker(true);
-                  }}
-                  hitSlop={8}
-                  className="w-8 h-8 rounded-full items-center justify-center bg-green-light border border-green"
-                  accessibilityLabel={t("gathering.addPerson")}
-                >
-                  <Text className="text-[15px] leading-[18px]">👤</Text>
-                </Pressable>
               </View>
 
               {dateLabel ? (
@@ -409,7 +402,9 @@ export default function GatheringDetailScreen() {
                       className="bg-bg2 border border-border rounded-lg px-3 py-2.5 text-[15px] text-text1 font-body"
                       autoFocus
                     />
-                  ) : null}
+                  ) : (
+                    <View style={{ flex: 1 }} />
+                  )}
                   <View className="relative items-end">
                     {showKindPicker ? (
                       <View

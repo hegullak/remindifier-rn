@@ -119,8 +119,9 @@ export default function GatherListScreen() {
                           setDeleteId(item.id);
                         }}
                         hitSlop={8}
+                        className="w-8 h-8 rounded-full bg-red items-center justify-center"
                       >
-                        <Text className="text-[18px] text-red font-body">🗑</Text>
+                        <Text className="text-[14px] text-card font-body">✕</Text>
                       </Pressable>
                     </View>
                   </Card>
