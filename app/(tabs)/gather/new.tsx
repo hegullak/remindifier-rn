@@ -234,11 +234,11 @@ export default function NewGatheringScreen() {
                 Keyboard.dismiss();
                 setStep("input");
               }}
-              className="self-start mt-1 mb-2 w-8 h-8 rounded-full bg-accent items-center justify-center"
-              hitSlop={8}
+              className="self-start mt-1 mb-2"
+              hitSlop={12}
               accessibilityLabel="Back"
             >
-              <Text className="text-[15px] text-card font-body">←</Text>
+              <Text className="text-[20px] text-accent font-body">←</Text>
             </Pressable>
             <Text className="text-[12px] text-amber font-bodyMedium mb-3">
               {t("people.parsePreviewNotice")}

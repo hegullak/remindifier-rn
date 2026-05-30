@@ -108,11 +108,11 @@ export default function PersonDetailScreen() {
                 Keyboard.dismiss();
                 router.replace(returnTo);
               }}
-              className="mb-2 self-start w-8 h-8 rounded-full bg-accent items-center justify-center"
-              hitSlop={8}
+              className="mb-2 self-start"
+              hitSlop={12}
               accessibilityLabel="Back"
             >
-              <Text className="text-[15px] text-card font-body">←</Text>
+              <Text className="text-[20px] text-accent font-body">←</Text>
             </Pressable>
           ) : null}
           <View className="flex-row items-start justify-between gap-2">
@@ -127,25 +127,23 @@ export default function PersonDetailScreen() {
               ) : null}
             </View>
             {id ? (
-              <View className="flex-row gap-2 mt-1 items-center">
+              <View className="flex-row gap-4 mt-1 items-center">
                 <Link href={`/people/${id}/edit`} asChild>
                   <Pressable
                     accessibilityRole="button"
                     accessibilityLabel={t("people.editPersonA11y")}
                     onPress={() => { triggerLight(); Keyboard.dismiss(); }}
-                    className="w-8 h-8 rounded-full bg-amber items-center justify-center"
-                    hitSlop={8}
+                    hitSlop={12}
                   >
-                    <Text className="text-[15px] text-card font-body">✎</Text>
+                    <Text className="text-[18px] text-text2 font-body">✎</Text>
                   </Pressable>
                 </Link>
                 <Pressable
                   accessibilityLabel={t("people.deletePersonA11y")}
                   onPress={() => { triggerLight(); setConfirmDeletePerson(true); }}
-                  className="w-8 h-8 rounded-full bg-red items-center justify-center"
-                  hitSlop={8}
+                  hitSlop={12}
                 >
-                  <Text className="text-[15px] text-card font-body">✕</Text>
+                  <Text className="text-[18px] text-red font-body">✕</Text>
                 </Pressable>
               </View>
             ) : null}

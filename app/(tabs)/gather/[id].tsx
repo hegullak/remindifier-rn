@@ -255,36 +255,32 @@ export default function GatheringDetailScreen() {
                 Keyboard.dismiss();
                 router.back();
               }}
-              hitSlop={8}
+              hitSlop={12}
               accessibilityLabel="Back"
-              className="w-8 h-8 rounded-full bg-accent items-center justify-center"
             >
-              <Text className="text-[15px] text-card font-body">←</Text>
+              <Text className="text-[20px] text-accent font-body">←</Text>
             </Pressable>
-            <View className="flex-row items-center gap-2">
+            <View className="flex-row items-center gap-4">
               <Pressable
                 onPress={() => { triggerLight(); setShowPersonPicker(true); }}
-                className="w-8 h-8 rounded-full bg-green items-center justify-center"
-                hitSlop={8}
+                hitSlop={12}
                 accessibilityLabel={t("gathering.addPerson")}
               >
-                <Text className="text-[16px] text-card font-body leading-[18px]">+</Text>
+                <Text className="text-[18px] text-green font-body">+</Text>
               </Pressable>
               <Pressable
                 onPress={() => { triggerLight(); setEditingTitle(true); }}
-                className="w-8 h-8 rounded-full bg-amber items-center justify-center"
-                hitSlop={8}
+                hitSlop={12}
                 accessibilityLabel={t("people.editPersonA11y")}
               >
-                <Text className="text-[15px] text-card font-body">✎</Text>
+                <Text className="text-[18px] text-text2 font-body">✎</Text>
               </Pressable>
               <Pressable
                 onPress={() => { triggerLight(); setShowDelete(true); }}
-                className="w-8 h-8 rounded-full bg-red items-center justify-center"
-                hitSlop={8}
+                hitSlop={12}
                 accessibilityLabel={t("gathering.deleteEvent")}
               >
-                <Text className="text-[15px] text-card font-body">✕</Text>
+                <Text className="text-[18px] text-red font-body">✕</Text>
               </Pressable>
             </View>
           </View>
