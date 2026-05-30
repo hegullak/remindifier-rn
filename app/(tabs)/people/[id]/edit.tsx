@@ -27,7 +27,7 @@ export default function EditPersonScreen() {
   );
 
   return (
-    <AppShell>
+    <AppShell showThemeToggle={false} showProfileLink={false} showLanguagePicker={false}>
       <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}>
         <View className="pt-1 pb-2">
           <Link href={id ? `/people/${id}` : "/people"} asChild>

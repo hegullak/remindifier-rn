@@ -241,7 +241,7 @@ export default function GatheringDetailScreen() {
   const personReturnTo = id ? `/gather/${id}` : undefined;
 
   return (
-    <AppShell>
+    <AppShell showThemeToggle={false} showProfileLink={false} showLanguagePicker={false}>
       <KeyboardAvoidingView
         style={{ flex: 1, backgroundColor: "transparent" }}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -280,7 +280,7 @@ export default function GatheringDetailScreen() {
                 hitSlop={12}
                 accessibilityLabel={t("gathering.deleteEvent")}
               >
-                <Text className="text-[18px] text-red font-body">✕</Text>
+                <Text className="text-[18px] text-red font-body">🗑</Text>
               </Pressable>
             </View>
           </View>

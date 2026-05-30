@@ -288,25 +288,26 @@ export default function BriefScreen() {
 
   const listHeader = (
     <View className="pb-2">
-      <View className="flex-row items-center justify-center gap-2 mb-2">
+      <View className="flex-row items-center justify-center gap-4 mb-2">
         <Pressable
           onPress={() => shiftWeek(-1)}
           accessibilityRole="button"
           accessibilityLabel={t("brief.weekPrev")}
-          hitSlop={8}
-          className="px-1 py-0.5 active:opacity-60"
+          hitSlop={16}
+          className="active:opacity-60"
         >
-          <Text className="text-[22px] leading-[24px] text-text1 font-body">‹</Text>
+          <Text className="text-[22px] text-accent font-body">←</Text>
         </Pressable>
         <Pressable
           onPress={resetWeek}
           disabled={weekOffset === 0}
           accessibilityRole="button"
           accessibilityLabel={t("brief.weekThis")}
+          hitSlop={8}
           className="active:opacity-70"
         >
           <Text
-            className={`text-[12px] font-bodySemi ${weekOffset === 0 ? "text-text3" : "text-accent"}`}
+            className={`text-[13px] font-bodySemi ${weekOffset === 0 ? "text-text3" : "text-accent"}`}
           >
             {dateLine}
           </Text>
@@ -315,10 +316,10 @@ export default function BriefScreen() {
           onPress={() => shiftWeek(1)}
           accessibilityRole="button"
           accessibilityLabel={t("brief.weekNext")}
-          hitSlop={8}
-          className="px-1 py-0.5 active:opacity-60"
+          hitSlop={16}
+          className="active:opacity-60"
         >
-          <Text className="text-[22px] leading-[24px] text-text1 font-body">›</Text>
+          <Text className="text-[22px] text-accent font-body">→</Text>
         </Pressable>
       </View>
       <View className="pt-1 pb-2">

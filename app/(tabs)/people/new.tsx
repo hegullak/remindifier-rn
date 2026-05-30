@@ -1,7 +1,7 @@
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
 import { Keyboard, Pressable, ScrollView, Text, View } from "react-native";
-import { triggerMedium } from "@/lib/haptics";
+import { triggerLight, triggerMedium } from "@/lib/haptics";
 import { createPerson } from "@/db/repos/peopleRepo";
 import { useAppAuth } from "@/features/auth/useAppAuth";
 import { EventNudgeSheet } from "@/features/people/EventNudgeSheet";
@@ -93,9 +93,17 @@ export default function NewPersonScreen() {
   }
 
   return (
-    <AppShell>
+    <AppShell showThemeToggle={false} showProfileLink={false} showLanguagePicker={false}>
       <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}>
         <View className="pt-1 pb-2">
+          <Pressable
+            onPress={() => { triggerLight(); Keyboard.dismiss(); router.back(); }}
+            hitSlop={12}
+            className="self-start mb-2"
+            accessibilityLabel="Back"
+          >
+            <Text className="text-[20px] text-accent font-body">←</Text>
+          </Pressable>
           <Text className="text-[30px] leading-[36px] text-text1 font-heading">
             {t("people.newPersonTitle")}
           </Text>

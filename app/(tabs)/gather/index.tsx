@@ -120,7 +120,7 @@ export default function GatherListScreen() {
                         }}
                         hitSlop={8}
                       >
-                        <Text className="text-[18px] text-red font-body">✕</Text>
+                        <Text className="text-[18px] text-red font-body">🗑</Text>
                       </Pressable>
                     </View>
                   </Card>

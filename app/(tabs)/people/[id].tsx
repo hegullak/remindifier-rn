@@ -98,7 +98,7 @@ export default function PersonDetailScreen() {
   };
 
   return (
-    <AppShell>
+    <AppShell showThemeToggle={false} showProfileLink={false} showLanguagePicker={false}>
       <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}>
         <View className="pt-1 pb-2">
           {returnTo ? (
@@ -143,7 +143,7 @@ export default function PersonDetailScreen() {
                   onPress={() => { triggerLight(); setConfirmDeletePerson(true); }}
                   hitSlop={12}
                 >
-                  <Text className="text-[18px] text-red font-body">✕</Text>
+                  <Text className="text-[18px] text-red font-body">🗑</Text>
                 </Pressable>
               </View>
             ) : null}
