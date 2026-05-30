@@ -374,7 +374,7 @@ export default function GatheringDetailScreen() {
                 )}
               </ScrollView>
 
-              <View className="border-t border-border pt-3 pb-4 bg-bg">
+              <View style={{ backgroundColor: "transparent" }} className="border-t border-border pt-3 pb-4">
                 {showKindPicker ? (
                   <Pressable
                     onPress={() => setShowKindPicker(false)}
