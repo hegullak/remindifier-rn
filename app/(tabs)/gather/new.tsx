@@ -167,11 +167,14 @@ export default function NewGatheringScreen() {
 
       triggerMedium();
       Keyboard.dismiss();
-      router.replace(`/gather/${gatheringId}`);
 
       const nextAdd = addToLibraryAfter[0];
       if (nextAdd) {
-        router.push(`/people/new?prefillName=${encodeURIComponent(nextAdd)}`);
+        router.replace(
+          `/people/new?prefillName=${encodeURIComponent(nextAdd)}&returnTo=${encodeURIComponent(`/gather/${gatheringId}`)}`,
+        );
+      } else {
+        router.replace(`/gather/${gatheringId}`);
       }
     } finally {
       setSaving(false);
@@ -232,8 +235,10 @@ export default function NewGatheringScreen() {
                 setStep("input");
               }}
               className="self-start mt-1 mb-2"
+              hitSlop={12}
+              accessibilityLabel="Back"
             >
-              <Text className="text-[12px] text-accent font-bodyMedium">{t("common.back")}</Text>
+              <Text className="text-[20px] text-accent font-body">←</Text>
             </Pressable>
             <Text className="text-[12px] text-amber font-bodyMedium mb-3">
               {t("people.parsePreviewNotice")}

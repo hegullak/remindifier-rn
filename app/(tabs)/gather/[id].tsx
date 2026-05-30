@@ -66,6 +66,7 @@ export default function GatheringDetailScreen() {
   const [selectedKind, setSelectedKind] = useState<TalkingPointKind>("topic");
   const [newPointText, setNewPointText] = useState("");
   const [showKindPicker, setShowKindPicker] = useState(false);
+  const [showInputField, setShowInputField] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
   const [showPersonPicker, setShowPersonPicker] = useState(false);
   const [allPeople, setAllPeople] = useState<{ id: string; displayName: string }[]>([]);
@@ -149,18 +150,8 @@ export default function GatheringDetailScreen() {
 
   async function addPoint() {
     const text = newPointText.trim();
-    if (!text) {
-      LayoutAnimation.configureNext({
-        duration: 250,
-        create: {
-          type: LayoutAnimation.Types.spring,
-          property: LayoutAnimation.Properties.opacity,
-          springDamping: 0.7,
-        },
-      });
-      setShowKindPicker(true);
-      return;
-    }
+    if (!text) return;
+
     Keyboard.dismiss();
     triggerMedium();
     LayoutAnimation.configureNext({
@@ -178,12 +169,21 @@ export default function GatheringDetailScreen() {
       done: false,
     };
     setNewPointText("");
+    setShowInputField(false);
     await persistContent({ talkingPoints: [...content.talkingPoints, point] });
   }
 
   function handlePlusPress() {
     triggerLight();
-    if (showKindPicker && !newPointText.trim()) {
+
+    // If text exists, add the point
+    if (newPointText.trim()) {
+      void addPoint();
+      return;
+    }
+
+    // If input visible but empty, hide it
+    if (showInputField) {
       LayoutAnimation.configureNext({
         duration: 200,
         delete: {
@@ -191,22 +191,21 @@ export default function GatheringDetailScreen() {
           property: LayoutAnimation.Properties.opacity,
         },
       });
+      setShowInputField(false);
       setShowKindPicker(false);
       return;
     }
-    if (!showKindPicker) {
-      LayoutAnimation.configureNext({
-        duration: 250,
-        create: {
-          type: LayoutAnimation.Types.spring,
-          property: LayoutAnimation.Properties.opacity,
-          springDamping: 0.7,
-        },
-      });
-      setShowKindPicker(true);
-      return;
-    }
-    void addPoint();
+
+    // Otherwise open kind picker
+    LayoutAnimation.configureNext({
+      duration: 250,
+      create: {
+        type: LayoutAnimation.Types.spring,
+        property: LayoutAnimation.Properties.opacity,
+        springDamping: 0.7,
+      },
+    });
+    setShowKindPicker(true);
   }
 
   async function handleAddParticipant(personId: string) {
@@ -256,9 +255,10 @@ export default function GatheringDetailScreen() {
                 Keyboard.dismiss();
                 router.back();
               }}
-              hitSlop={8}
+              hitSlop={12}
+              accessibilityLabel="Back"
             >
-              <Text className="text-[12px] text-accent font-bodyMedium">{t("common.back")}</Text>
+              <Text className="text-[20px] text-accent font-body">←</Text>
             </Pressable>
             <IconButton
               accessibilityLabel={t("gathering.deleteEvent")}
@@ -382,16 +382,19 @@ export default function GatheringDetailScreen() {
                   />
                 ) : null}
                 <View className="flex-row items-end gap-2">
-                  <TextInput
-                    value={newPointText}
-                    onChangeText={setNewPointText}
-                    placeholder={t("gathering.addPlaceholder")}
-                    placeholderTextColor={placeholderColor}
-                    returnKeyType="done"
-                    onSubmitEditing={() => void addPoint()}
-                    style={{ color: inputTextColor }}
-                    className="flex-1 bg-bg2 border border-border rounded-lg px-3 py-2.5 text-[15px] text-text1 font-body"
-                  />
+                  {showInputField ? (
+                    <TextInput
+                      value={newPointText}
+                      onChangeText={setNewPointText}
+                      placeholder={t("gathering.addPlaceholder")}
+                      placeholderTextColor={placeholderColor}
+                      returnKeyType="done"
+                      onSubmitEditing={() => void addPoint()}
+                      style={{ color: inputTextColor }}
+                      className="flex-1 bg-bg2 border border-border rounded-lg px-3 py-2.5 text-[15px] text-text1 font-body"
+                      autoFocus
+                    />
+                  ) : null}
                   <View className="relative items-end">
                     {showKindPicker ? (
                       <View
@@ -414,13 +417,19 @@ export default function GatheringDetailScreen() {
                                 triggerSelection();
                                 setSelectedKind(kind);
                                 LayoutAnimation.configureNext({
-                                  duration: 200,
+                                  duration: 250,
                                   delete: {
                                     type: LayoutAnimation.Types.easeInEaseOut,
                                     property: LayoutAnimation.Properties.opacity,
                                   },
+                                  create: {
+                                    type: LayoutAnimation.Types.spring,
+                                    property: LayoutAnimation.Properties.opacity,
+                                    springDamping: 0.7,
+                                  },
                                 });
                                 setShowKindPicker(false);
+                                setShowInputField(true);
                               }}
                               className={`flex-row items-center gap-2 px-3 py-2 rounded-lg ${
                                 active ? "bg-accent" : "bg-transparent"

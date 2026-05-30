@@ -109,9 +109,10 @@ export default function PersonDetailScreen() {
                 router.replace(returnTo);
               }}
               className="mb-2 self-start"
-              hitSlop={8}
+              hitSlop={12}
+              accessibilityLabel="Back"
             >
-              <Text className="text-[12px] text-accent font-bodyMedium">{t("gathering.breadcrumbBack")}</Text>
+              <Text className="text-[20px] text-accent font-body">←</Text>
             </Pressable>
           ) : null}
           <View className="flex-row items-start justify-between gap-2">

@@ -1,7 +1,7 @@
 import { Link, router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useRef, useState } from "react";
 import { Keyboard, Pressable, ScrollView, Text, View } from "react-native";
-import { triggerMedium } from "@/lib/haptics";
+import { triggerLight, triggerMedium } from "@/lib/haptics";
 import { deletePerson, updatePerson } from "@/db/repos/peopleRepo";
 import { useAppAuth } from "@/features/auth/useAppAuth";
 import { PersonForm, type PersonFormHandle } from "@/features/people/PersonForm";
@@ -30,11 +30,17 @@ export default function EditPersonScreen() {
     <AppShell>
       <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}>
         <View className="pt-1 pb-2">
-          <Link
-            href={id ? `/people/${id}` : "/people"}
-            className="text-[12px] text-accent font-bodyMedium"
-          >
-            {t("common.back")}
+          <Link href={id ? `/people/${id}` : "/people"} asChild>
+            <Pressable
+              onPress={() => {
+                triggerLight();
+                Keyboard.dismiss();
+              }}
+              hitSlop={12}
+              accessibilityLabel="Back"
+            >
+              <Text className="text-[20px] text-accent font-body">←</Text>
+            </Pressable>
           </Link>
           <Text className="text-[30px] leading-[36px] text-text1 font-heading mt-2">
             {t("people.editPersonTitle")}

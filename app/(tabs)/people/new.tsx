@@ -29,6 +29,7 @@ export default function NewPersonScreen() {
     prefillBirthdayYearKnown?: string;
     prefillAbout?: string;
     prefillContact?: string;
+    returnTo?: string;
   }>();
 
   const scannedInitial = useMemo(() => {
@@ -167,7 +168,8 @@ export default function NewPersonScreen() {
               if (personId && actions.length > 0) {
                 setNudge({ personId, personName: payload.displayName, actions });
               } else if (personId) {
-                router.replace(`/people/${personId}`);
+                const destination = params.returnTo ?? `/people/${personId}`;
+                router.replace(destination);
               }
             }}
           />
@@ -181,8 +183,14 @@ export default function NewPersonScreen() {
           personId={nudge.personId}
           personName={nudge.personName}
           pendingActions={nudge.actions}
-          onDismiss={() => router.replace(`/people/${nudge.personId}`)}
-          onCreated={() => router.replace(`/people/${nudge.personId}`)}
+          onDismiss={() => {
+            const destination = params.returnTo ?? `/people/${nudge.personId}`;
+            router.replace(destination);
+          }}
+          onCreated={(gatheringId) => {
+            const destination = params.returnTo ?? `/gather/${gatheringId}`;
+            router.replace(destination);
+          }}
         />
       ) : null}
     </AppShell>
