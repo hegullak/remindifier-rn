@@ -3,7 +3,8 @@ import * as FileSystem from "expo-file-system/legacy";
 import { router } from "expo-router";
 import * as Sharing from "expo-sharing";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View } from "react-native";
+import { ActivityIndicator, Alert, Pressable, ScrollView, Switch, Text, View } from "react-native";
+import { useAppTheme } from "@/theme/ThemeProvider";
 import { deleteAllData, exportAllData } from "@/db/repos/settingsRepo";
 import { resetOnboarding } from "@/db/repos/userRepo";
 import { deleteSeedCalendar, seedDevCalendar } from "@/db/seedCalendar";
@@ -26,6 +27,7 @@ const PRIVACY_KEYS = ["privacy.p1", "privacy.p2", "privacy.p3"] as const;
 export default function SettingsScreen() {
   const { t, locale } = useTranslation();
   const { userId, signOut } = useAppAuth();
+  const { isDark, toggleTheme } = useAppTheme();
   const { db, loading: dbLoading } = useUserDrizzleDb(userId);
   const [exporting, setExporting] = useState(false);
   const [deletingAll, setDeletingAll] = useState(false);
@@ -102,14 +104,32 @@ export default function SettingsScreen() {
   }
 
   return (
-    <AppShell showProfileLink={false}>
-      <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40 }}>
-        <Pressable onPress={() => router.back()} className="pt-1 pb-2 self-start">
-          <Text className="text-[12px] text-accent font-bodyMedium">{t("common.back")}</Text>
+    <AppShell
+      showProfileLink={false}
+      headerLeft={
+        <Pressable onPress={() => router.back()} hitSlop={12} accessibilityLabel="Back">
+          <Text className="text-[20px] text-accent font-body">←</Text>
         </Pressable>
-        <Text className="text-[30px] leading-[36px] text-text1 font-heading mb-4">
+      }
+    >
+      <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40 }}>
+        <Text className="text-[30px] leading-[36px] text-text1 font-heading mb-4 mt-1">
           {t("settings.title")}
         </Text>
+
+        <Card style={{ marginBottom: 8 }}>
+          <View className="flex-row items-center justify-between">
+            <Text className="text-[15px] text-text1 font-bodyMedium">
+              {isDark ? "Mørk modus" : "Lys modus"}
+            </Text>
+            <Switch
+              value={isDark}
+              onValueChange={toggleTheme}
+              trackColor={{ false: "#A89E90", true: "#7EB8D4" }}
+              thumbColor={isDark ? "#EEF0F5" : "#F7F4EF"}
+            />
+          </View>
+        </Card>
 
         {dbLoading ? <ActivityIndicator style={{ marginVertical: 16 }} color="#C4784A" /> : null}
 

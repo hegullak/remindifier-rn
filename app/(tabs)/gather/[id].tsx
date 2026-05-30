@@ -241,49 +241,46 @@ export default function GatheringDetailScreen() {
   const personReturnTo = id ? `/gather/${id}` : undefined;
 
   return (
-    <AppShell showThemeToggle={false} showProfileLink={false} showLanguagePicker={false}>
+    <AppShell
+      headerLeft={
+        <View className="flex-row items-center gap-4">
+          <Pressable
+            onPress={() => { triggerLight(); Keyboard.dismiss(); router.back(); }}
+            hitSlop={12}
+            accessibilityLabel="Back"
+          >
+            <Text className="text-[20px] text-accent font-body">←</Text>
+          </Pressable>
+          <Pressable
+            onPress={() => { triggerLight(); setShowPersonPicker(true); }}
+            hitSlop={12}
+            accessibilityLabel={t("gathering.addPerson")}
+          >
+            <Text className="text-[20px] text-green font-body">+</Text>
+          </Pressable>
+          <Pressable
+            onPress={() => { triggerLight(); setEditingTitle(true); }}
+            hitSlop={12}
+            accessibilityLabel={t("people.editPersonA11y")}
+          >
+            <Text className="text-[20px] text-text2 font-body">✎</Text>
+          </Pressable>
+          <Pressable
+            onPress={() => { triggerLight(); setShowDelete(true); }}
+            hitSlop={12}
+            accessibilityLabel={t("gathering.deleteEvent")}
+          >
+            <Text className="text-[20px] text-red font-body">🗑</Text>
+          </Pressable>
+        </View>
+      }
+    >
       <KeyboardAvoidingView
         style={{ flex: 1, backgroundColor: "transparent" }}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         keyboardVerticalOffset={90}
       >
         <View className="flex-1 px-4">
-          <View className="flex-row items-center justify-between pt-1 pb-2">
-            <Pressable
-              onPress={() => {
-                triggerLight();
-                Keyboard.dismiss();
-                router.back();
-              }}
-              hitSlop={12}
-              accessibilityLabel="Back"
-            >
-              <Text className="text-[20px] text-accent font-body">←</Text>
-            </Pressable>
-            <View className="flex-row items-center gap-4">
-              <Pressable
-                onPress={() => { triggerLight(); setShowPersonPicker(true); }}
-                hitSlop={12}
-                accessibilityLabel={t("gathering.addPerson")}
-              >
-                <Text className="text-[18px] text-green font-body">+</Text>
-              </Pressable>
-              <Pressable
-                onPress={() => { triggerLight(); setEditingTitle(true); }}
-                hitSlop={12}
-                accessibilityLabel={t("people.editPersonA11y")}
-              >
-                <Text className="text-[18px] text-text2 font-body">✎</Text>
-              </Pressable>
-              <Pressable
-                onPress={() => { triggerLight(); setShowDelete(true); }}
-                hitSlop={12}
-                accessibilityLabel={t("gathering.deleteEvent")}
-              >
-                <Text className="text-[18px] text-red font-body">🗑</Text>
-              </Pressable>
-            </View>
-          </View>
 
           {loading ? (
             <Text className="text-[13px] text-text3 font-body">{t("common.loading")}</Text>

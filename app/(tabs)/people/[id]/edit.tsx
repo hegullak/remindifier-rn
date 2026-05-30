@@ -27,21 +27,21 @@ export default function EditPersonScreen() {
   );
 
   return (
-    <AppShell showThemeToggle={false} showProfileLink={false} showLanguagePicker={false}>
+    <AppShell
+      headerLeft={
+        <Link href={id ? `/people/${id}` : "/people"} asChild>
+          <Pressable
+            onPress={() => { triggerLight(); Keyboard.dismiss(); }}
+            hitSlop={12}
+            accessibilityLabel="Back"
+          >
+            <Text className="text-[20px] text-accent font-body">←</Text>
+          </Pressable>
+        </Link>
+      }
+    >
       <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}>
         <View className="pt-1 pb-2">
-          <Link href={id ? `/people/${id}` : "/people"} asChild>
-            <Pressable
-              onPress={() => {
-                triggerLight();
-                Keyboard.dismiss();
-              }}
-              hitSlop={8}
-              accessibilityLabel="Back"
-            >
-              <Text className="text-[20px] text-accent font-body">←</Text>
-            </Pressable>
-          </Link>
           <Text className="text-[30px] leading-[36px] text-text1 font-heading mt-2">
             {t("people.editPersonTitle")}
           </Text>

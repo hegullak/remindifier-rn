@@ -98,56 +98,52 @@ export default function PersonDetailScreen() {
   };
 
   return (
-    <AppShell showThemeToggle={false} showProfileLink={false} showLanguagePicker={false}>
-      <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}>
-        <View className="pt-1 pb-2">
+    <AppShell
+      headerLeft={
+        <View className="flex-row items-center gap-4">
           {returnTo ? (
             <Pressable
-              onPress={() => {
-                triggerLight();
-                Keyboard.dismiss();
-                router.replace(returnTo);
-              }}
-              className="mb-2 self-start"
+              onPress={() => { triggerLight(); Keyboard.dismiss(); router.replace(returnTo); }}
               hitSlop={12}
               accessibilityLabel="Back"
             >
               <Text className="text-[20px] text-accent font-body">←</Text>
             </Pressable>
           ) : null}
-          <View className="flex-row items-start justify-between gap-2">
-            <View className="flex-1 min-w-0">
-              <Text className="text-[30px] leading-[36px] text-text1 font-heading">
-                {bundle?.person.displayName ?? t("people.personFallback")}
-              </Text>
-              {bundle?.person.relationType ? (
-                <Text className="text-[11px] uppercase tracking-[1.5px] text-text3 font-bodySemi mt-1">
-                  {translateRelationType(bundle.person.relationType, locale)}
-                </Text>
-              ) : null}
-            </View>
-            {id ? (
-              <View className="flex-row gap-4 mt-1 items-center">
-                <Link href={`/people/${id}/edit`} asChild>
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityLabel={t("people.editPersonA11y")}
-                    onPress={() => { triggerLight(); Keyboard.dismiss(); }}
-                    hitSlop={12}
-                  >
-                    <Text className="text-[18px] text-text2 font-body">✎</Text>
-                  </Pressable>
-                </Link>
+          {id ? (
+            <>
+              <Link href={`/people/${id}/edit`} asChild>
                 <Pressable
-                  accessibilityLabel={t("people.deletePersonA11y")}
-                  onPress={() => { triggerLight(); setConfirmDeletePerson(true); }}
+                  accessibilityRole="button"
+                  accessibilityLabel={t("people.editPersonA11y")}
+                  onPress={() => { triggerLight(); Keyboard.dismiss(); }}
                   hitSlop={12}
                 >
-                  <Text className="text-[18px] text-red font-body">🗑</Text>
+                  <Text className="text-[20px] text-text2 font-body">✎</Text>
                 </Pressable>
-              </View>
-            ) : null}
-          </View>
+              </Link>
+              <Pressable
+                accessibilityLabel={t("people.deletePersonA11y")}
+                onPress={() => { triggerLight(); setConfirmDeletePerson(true); }}
+                hitSlop={12}
+              >
+                <Text className="text-[20px] text-red font-body">🗑</Text>
+              </Pressable>
+            </>
+          ) : null}
+        </View>
+      }
+    >
+      <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}>
+        <View className="pt-1 pb-2">
+          <Text className="text-[30px] leading-[36px] text-text1 font-heading">
+            {bundle?.person.displayName ?? t("people.personFallback")}
+          </Text>
+          {bundle?.person.relationType ? (
+            <Text className="text-[11px] uppercase tracking-[1.5px] text-text3 font-bodySemi mt-1">
+              {translateRelationType(bundle.person.relationType, locale)}
+            </Text>
+          ) : null}
         </View>
 
         {loading ? (

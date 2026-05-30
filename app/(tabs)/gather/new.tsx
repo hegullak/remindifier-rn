@@ -184,21 +184,25 @@ export default function NewGatheringScreen() {
   const placeholderColor = colorScheme === "dark" ? "#7A8CAD" : "#A89E90";
 
   return (
-    <AppShell showThemeToggle={false} showProfileLink={false} showLanguagePicker={false}>
+    <AppShell
+      headerLeft={
+        step === "input" ? (
+          <Pressable
+            onPress={() => { triggerLight(); Keyboard.dismiss(); router.back(); }}
+            hitSlop={12}
+            accessibilityLabel="Back"
+          >
+            <Text className="text-[20px] text-accent font-body">←</Text>
+          </Pressable>
+        ) : null
+      }
+    >
       <ScrollView
         contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 32 }}
         keyboardDismissMode="on-drag"
       >
         {step === "input" ? (
           <>
-            <Pressable
-              onPress={() => { triggerLight(); Keyboard.dismiss(); router.back(); }}
-              hitSlop={12}
-              className="self-start mb-1 mt-1"
-              accessibilityLabel="Back"
-            >
-              <Text className="text-[20px] text-accent font-body">←</Text>
-            </Pressable>
             <Text className="text-[28px] leading-[34px] text-text1 font-heading mt-2">
               {t("gathering.newTitle")}
             </Text>
