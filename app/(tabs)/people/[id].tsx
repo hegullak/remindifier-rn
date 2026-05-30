@@ -127,7 +127,7 @@ export default function PersonDetailScreen() {
               ) : null}
             </View>
             {id ? (
-              <View className="flex-row gap-2 mt-1">
+              <View className="flex-row gap-3 mt-1 items-center">
                 <Link href={`/people/${id}/edit`} asChild>
                   <Pressable
                     accessibilityRole="button"
@@ -136,20 +136,21 @@ export default function PersonDetailScreen() {
                       triggerLight();
                       Keyboard.dismiss();
                     }}
-                    className="w-[34px] h-[34px] rounded-md items-center justify-center bg-card2 border border-border active:opacity-70"
+                    hitSlop={10}
                   >
-                    <Text className="text-[16px] text-text2 font-body">✎</Text>
+                    <Text className="text-[20px] text-amber font-body">✎</Text>
                   </Pressable>
                 </Link>
-                <IconButton
+                <Pressable
                   accessibilityLabel={t("people.deletePersonA11y")}
                   onPress={() => {
                     triggerLight();
                     setConfirmDeletePerson(true);
                   }}
+                  hitSlop={10}
                 >
-                  <Text className="text-[16px] text-red font-body">🗑</Text>
-                </IconButton>
+                  <Text className="text-[20px] text-red font-body">🗑</Text>
+                </Pressable>
               </View>
             ) : null}
           </View>

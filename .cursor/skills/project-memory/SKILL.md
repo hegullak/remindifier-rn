@@ -22,6 +22,8 @@ description: >-
 
 ## Session end checklist
 
+The `stop` hook may auto-submit this handoff when git has uncommitted changes (`loop_limit: 1`). When it fires, persist state — do not start new feature work.
+
 1. Open `claude-current-remindifier-state.md`
 2. Update: `Last updated`, `Latest commit`, `Recent commits`, `What Was Done`, `Uncommitted local changes`, `User Preferences`
 3. If routes/schema/i18n conventions changed → update `PROJECT_MEMORY.md`

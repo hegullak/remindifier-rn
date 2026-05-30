@@ -260,15 +260,28 @@ export default function GatheringDetailScreen() {
             >
               <Text className="text-[20px] text-accent font-body">←</Text>
             </Pressable>
-            <IconButton
-              accessibilityLabel={t("gathering.deleteEvent")}
-              onPress={() => {
-                triggerLight();
-                setShowDelete(true);
-              }}
-            >
-              <Text className="text-[16px] text-red font-body">🗑</Text>
-            </IconButton>
+            <View className="flex-row items-center gap-3">
+              <Pressable
+                onPress={() => {
+                  triggerLight();
+                  setEditingTitle(true);
+                }}
+                hitSlop={10}
+                accessibilityLabel={t("people.editPersonA11y")}
+              >
+                <Text className="text-[18px] text-amber font-body">✎</Text>
+              </Pressable>
+              <Pressable
+                onPress={() => {
+                  triggerLight();
+                  setShowDelete(true);
+                }}
+                hitSlop={10}
+                accessibilityLabel={t("gathering.deleteEvent")}
+              >
+                <Text className="text-[18px] text-red font-body">🗑</Text>
+              </Pressable>
+            </View>
           </View>
 
           {loading ? (
@@ -293,10 +306,7 @@ export default function GatheringDetailScreen() {
                     className="flex-1 text-[28px] leading-[34px] text-text1 font-heading border-b border-accent pb-1 bg-transparent"
                   />
                 ) : (
-                  <Pressable onPress={() => setEditingTitle(true)} className="flex-1 flex-row items-start gap-2">
-                    <Text className="text-[28px] leading-[34px] text-text1 font-heading flex-1">{displayTitle}</Text>
-                    <Text className="text-[14px] text-text3 font-body mt-2">✎</Text>
-                  </Pressable>
+                  <Text className="text-[28px] leading-[34px] text-text1 font-heading flex-1">{displayTitle}</Text>
                 )}
               </View>
 
@@ -317,10 +327,15 @@ export default function GatheringDetailScreen() {
                   </Link>
                 ))}
                 <Pressable
-                  onPress={() => setShowPersonPicker(true)}
-                  className="px-3 py-1.5 rounded-full bg-bg2 border border-border"
+                  onPress={() => {
+                    triggerLight();
+                    setShowPersonPicker(true);
+                  }}
+                  hitSlop={8}
+                  className="w-8 h-8 rounded-full items-center justify-center bg-green-light border border-green"
+                  accessibilityLabel={t("gathering.addPerson")}
                 >
-                  <Text className="text-[12px] text-accent font-bodyMedium">{t("gathering.addPerson")}</Text>
+                  <Text className="text-[15px] leading-[18px]">👤</Text>
                 </Pressable>
               </View>
 
@@ -381,7 +396,7 @@ export default function GatheringDetailScreen() {
                     className="absolute inset-0 z-10"
                   />
                 ) : null}
-                <View className="flex-row items-end gap-2">
+                <View style={{ flexDirection: "row", alignItems: "flex-end", gap: 8 }}>
                   {showInputField ? (
                     <TextInput
                       value={newPointText}
@@ -390,8 +405,8 @@ export default function GatheringDetailScreen() {
                       placeholderTextColor={placeholderColor}
                       returnKeyType="done"
                       onSubmitEditing={() => void addPoint()}
-                      style={{ color: inputTextColor }}
-                      className="flex-1 bg-bg2 border border-border rounded-lg px-3 py-2.5 text-[15px] text-text1 font-body"
+                      style={{ color: inputTextColor, flex: 1 }}
+                      className="bg-bg2 border border-border rounded-lg px-3 py-2.5 text-[15px] text-text1 font-body"
                       autoFocus
                     />
                   ) : null}

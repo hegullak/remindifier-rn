@@ -9,6 +9,8 @@ import { localizeGatheringTitle } from "@/lib/gatherings/localizeGathering";
 import { useTranslation } from "@/i18n";
 import type { Locale } from "@/i18n/types";
 import { AppShell } from "@/ui/AppShell";
+import { BottomSheet } from "@/ui/BottomSheet";
+import { Button } from "@/ui/Button";
 import { Card } from "@/ui/Card";
 
 function formatDate(iso: Date | null, locale: Locale) {
@@ -27,15 +29,20 @@ export default function GatherListScreen() {
   const [items, setItems] = useState<GatheringListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
-  async function handleDelete(id: string) {
-    if (!userId) return;
+  async function handleDelete() {
+    if (!userId || !deleteId) return;
+    setDeleting(true);
     try {
-      await deleteGathering(userId, id);
+      await deleteGathering(userId, deleteId);
       triggerMedium();
+      setDeleteId(null);
       await reload();
     } catch (err) {
       console.error("Delete gathering failed:", err);
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -109,11 +116,11 @@ export default function GatherListScreen() {
                         onPress={(e) => {
                           e.stopPropagation();
                           triggerLight();
-                          void handleDelete(item.id);
+                          setDeleteId(item.id);
                         }}
                         hitSlop={8}
                       >
-                        <Text className="text-[16px] text-text3 font-body">🗑</Text>
+                        <Text className="text-[18px] text-red font-body">🗑</Text>
                       </Pressable>
                     </View>
                   </Card>
@@ -143,6 +150,22 @@ export default function GatherListScreen() {
           <Text className="text-[24px] text-card font-body leading-[24px]">+</Text>
         </Pressable>
       </View>
+
+      <BottomSheet
+        visible={deleteId !== null}
+        onDismiss={() => setDeleteId(null)}
+        title={t("gathering.deleteEvent")}
+      >
+        <Text className="text-[14px] text-text2 font-body mb-4">{t("gathering.deleteEventBody")}</Text>
+        <View className="gap-2">
+          <Button variant="primary" onPress={() => void handleDelete()} loading={deleting} disabled={deleting}>
+            {t("common.delete")}
+          </Button>
+          <Button variant="ghost" onPress={() => setDeleteId(null)} disabled={deleting}>
+            {t("common.cancel")}
+          </Button>
+        </View>
+      </BottomSheet>
     </AppShell>
   );
 }

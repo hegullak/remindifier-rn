@@ -22,6 +22,8 @@ alwaysApply: true
 
 ## Session END (after meaningful work)
 
+The **`stop` hook** (`.cursor/hooks/session-stop.js`) auto-submits this handoff once per conversation when there are uncommitted changes. Still follow the steps below when the hook fires — or manually at session end.
+
 1. Update **`claude-current-remindifier-state.md`**: latest commit, what was done, uncommitted changes, new user agreements
 2. Update **`PROJECT_MEMORY.md`** only if architecture/routes/conventions changed
 3. Stage, commit, **`git push origin sandbox`** (user rule: always push after task)
