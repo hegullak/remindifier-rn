@@ -1,7 +1,7 @@
 # remindifier-rn — project memory
 
 Living context for AI agents. **Update this file** when architecture, UX, or conventions change.
-Last updated: 2026-05-29.
+Last updated: 2026-05-30.
 
 ## Session handoff (read every time)
 
@@ -10,7 +10,8 @@ Last updated: 2026-05-29.
 | **`claude-current-remindifier-state.md`** | Session snapshot — status, commits, user agreements, in-progress work. **Update at end of session.** |
 | **`PROJECT_MEMORY.md`** (this file) | Stable architecture — update only when conventions change. |
 
-Agent protocol: `.cursor/rules/session-handoff.mdc` · Skill: `.cursor/skills/project-memory/SKILL.md`
+Agent protocol: `.cursor/rules/session-handoff.mdc` · Skill: `.cursor/skills/project-memory/SKILL.md`  
+Hooks: `.cursor/hooks/session-start.js` (inject memory) · `.cursor/hooks/session-stop.js` (auto-handoff when git dirty)
 
 ## What this app is
 

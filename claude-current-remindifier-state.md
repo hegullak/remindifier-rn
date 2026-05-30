@@ -1,6 +1,6 @@
 # remindifier-rn — Current AI Session State
 
-*Last updated: 2026-05-29 — auto-loaded via Cursor rules + `.cursor/hooks/session-start.js`*
+*Last updated: 2026-05-30 — auto-loaded via Cursor rules + `.cursor/hooks/session-start.js`*
 
 **This file is the session snapshot.** Architecture lives in [`PROJECT_MEMORY.md`](./PROJECT_MEMORY.md).  
 Agent protocol: `.cursor/rules/session-handoff.mdc` · Skill: `.cursor/skills/project-memory/SKILL.md`
@@ -13,7 +13,7 @@ Agent protocol: `.cursor/rules/session-handoff.mdc` · Skill: `.cursor/skills/pr
 
 - **Repo:** `https://github.com/hegullak/remindifier-rn`
 - **Active branch:** `sandbox`
-- **Latest commit:** `bc7e17d` — `fix(ux): clearer plus icons + kind picker auto-close + safe area bottom`
+- **Latest commit:** `2a2c9ee` — `feat(ux): consistent icon system + confirm delete + input alignment`
 - **CI:** lint + typecheck + test:coverage (expected green)
 
 ### Git workflow (user rule)
@@ -22,9 +22,9 @@ Agent protocol: `.cursor/rules/session-handoff.mdc` · Skill: `.cursor/skills/pr
 2. **End every task:** stage, commit, **`git push origin sandbox`**
 3. **Never commit:** `.env`, `coverage/`, `expo-output.log`, `node_modules/`
 
-### Uncommitted local changes (as of last save)
+### Uncommitted local changes
 
-Modified (not committed): `gather/[id].tsx`, `gather/index.tsx`, `gather/new.tsx`, `people/[id].tsx`, `people/[id]/edit.tsx`, `people/new.tsx`
+None (clean after this handoff commit).
 
 ---
 
@@ -54,12 +54,14 @@ Planned: CloudKit sync (user's iCloud only) — not started.
 | AI (user-initiated) | GPT-4o-mini via OpenAI structured outputs |
 | Calendar | expo-calendar → brief «Uken min» |
 | Weather | Open-Meteo + expo-location |
-| Haptics | expo-haptics (recent UX pass) |
+| Haptics | expo-haptics |
 | Logging | react-native-logs + expo-file-system (local only) |
 | Testing | Jest (~183 tests, 20 suites) |
 | Lint/format | Biome 2.4.16 |
 
 **Expo docs:** https://docs.expo.dev/versions/v56.0.0/
+
+**Dev server:** `npm run start:lan:log` (→ `expo-output.log`) · dev client: `npx expo start --dev-client --lan --clear`
 
 ---
 
@@ -80,51 +82,43 @@ Other: `sign-in`, `onboarding`, `settings`, `me-scan`, `sso-callback`
 
 Weather · Dagens program · Uken min (calendar, Mon–Sun + week nav) · Heads-up · Trening · Merkedager denne uken
 
-- `useBriefData.ts` — `weekOffset`, gatherings enrichment
 - Schedule/calendar rows **clickable** → event or `/gather/new?prefill=…` via `briefLinks.ts`
 - Demo schedule `s1` localized → «Middag hos Ida» (NO)
 
 ### Events (gatherings)
 
-- `gather/index.tsx` — list
-- `gather/new.tsx` — natural language → `eventParser.ts` (GPT-4o-mini)
-- `gather/[id].tsx` — detail, talking points, participants
-- Kinds: **Spør, Tema, Small-talk, Heads-up** (`talkingPoints.ts`)
-- Mac-style kind picker pops **upward** from +; + again closes when empty
-- Demo `g-1` title localized via `localizeGathering.ts` + i18n `gathering.demo.g1`
-- Person chips link with `returnTo=/gather/[id]`; person screen shows breadcrumb back
+- Natural language create → `eventParser.ts` (GPT-4o-mini)
+- Kinds: **Spør, Tema, Small-talk, Heads-up**
+- Mac-style kind picker pops **upward** from +; select kind → input appears with autoFocus
+- Delete from list (trash) with confirm BottomSheet; haptic on delete
+- `returnTo` param: create person mid-event → returns to event, not person card
+- Demo `g-1` title localized via `localizeGathering.ts`
 
 ### People
 
-- Natural language intake → `naturalLanguageParser.api.ts` (GPT-4o-mini)
-- Local fallback parser + privacy notice
-- Merkedager with Norwegian wedding names (`anniversaries.ts`, bryllupsdagen.no)
-- Relevance hints in people list (recent)
-- Event nudge after onboarding parse (`EventNudgeSheet`)
+- Natural language intake → `naturalLanguageParser.api.ts`
+- Merkedager with Norwegian wedding names
+- Relevance hints in people list
+- Breadcrumb «← Tilbake til event» when opened from gathering
 
-### Key lib paths
+### Icon conventions (current)
 
-```
-src/lib/brief/          calendarEvents, calendarWeek, weather, greeting
-src/lib/gatherings/     eventParser, talkingPoints, briefLinks, localizeGathering
-src/lib/people/         naturalLanguageParser.*
-src/lib/timeline/       birthdays, red-letter-days
-src/lib/milestones/     anniversaries
-src/db/repos/           peopleRepo, briefRepo, gatheringsRepo, userRepo, …
-```
+- **Back:** ← chevron (20px, hitSlop 12) — not text
+- **Edit:** amber ✎ (20px, top-right row)
+- **Delete:** red 🗑 (20px); confirm sheet on gather list + people detail
+- **Add person:** green 👤 circle button (no text)
 
 ---
 
 ## Recent commits (newest first)
 
 ```
-bc7e17d fix(ux): clearer plus icons + kind picker auto-close + safe area bottom
-4be9f8e fix(ux): haptic debug logging + better animations + keyboard background
-7567268 feat(ux): haptic feedback + micro-animations + auto-dismiss
-bb32543 fix(ux): tame keyboard — remove autoFocus, blurOnSubmit
-76da7e1 feat: relevance hints in people list, dynamic seed data, kind-picker overlay
-4634ecc feat: brief-to-event navigation, Mac-style kind picker, localized titles
-65fd42c feat: events tab with AI prep, talking points, wedding anniversary names (#58, #50)
+2a2c9ee feat(ux): consistent icon system + confirm delete + input alignment
+8841e0e fix(ux): keyboard white background debug - transparent input container
+7aa0d4e feat(ux): major flow improvements - delete from list + input flow + navigation icons + event flow fix
+a609fd9 chore: project memory system — rules, skill, and sessionStart hook
+4634ecc feat: brief-to-event navigation, Mac-style kind picker, and localized titles
+65fd42c feat: events tab with AI prep, talking points, and wedding anniversary names (#58, #50)
 34e0833 feat: connect remindifier calendar to morning brief (#61)
 ```
 
@@ -133,26 +127,7 @@ bb32543 fix(ux): tame keyboard — remove autoFocus, blurOnSubmit
 ## Test Coverage
 
 - **20 test suites, ~183 tests** — all passing (last known run)
-- Location: `src/lib/__tests__/`, `src/features/auth/__tests__/`
-- Notable new: `briefLinks.test.ts`, `talkingPoints.test.ts`, `eventParser.test.ts`, `calendarEvents.test.ts`, `calendarWeek.test.ts`
 - Thresholds enforced in CI via `npm run test:coverage`
-- **`@shopify/flash-list` 2.0.2** — no `estimatedItemSize` prop
-
----
-
-## Security Status
-
-### Fixed ✅
-- `.env` gitignored; no server secrets in RN app
-- Log files excluded from data export
-- `logger` instead of `console.error` in bootstrap/brief
-- Clerk JWT keychain: `WHEN_UNLOCKED`
-
-### Remaining (minor)
-- Hagavik hardcoded weather fallback
-- No QR payload field length limits
-- Log rotation deletes whole file
-- Dead `body_encrypted` column in schema
 
 ---
 
@@ -164,44 +139,33 @@ bb32543 fix(ux): tame keyboard — remove autoFocus, blurOnSubmit
 | 58 | Events tab + AI prep | ✅ Mostly done |
 | 50 | Tonight mode — expanded card before meeting | Not started |
 | 52 | Apple Reminders + deep link to event prep | Not started |
-| 53 | Me profile + QR | Partially done (`myself.tsx`) |
+| 53 | Me profile + QR | Partially done |
 | 54 | Settings privacy/export/delete | Partially done |
 | — | CloudKit sync | Not started |
-| — | Icons over text for actions app-wide | User preference, partial |
+| — | `start:dev:log` npm script (dev client + log file) | Not done |
 | — | Training labels (Push/Pull/Legs) i18n | Not done |
 
 ---
 
 ## User Preferences (recurring)
 
-- **Session memory** → update `claude-current-remindifier-state.md` (never ad-hoc files like `AI_PROJECT_CONTEXT.md`)
+- **Session memory** → `claude-current-remindifier-state.md` only (never ad-hoc files)
 - **Pull before / push after** each agent task
-- **Icons for actions** (✎, 🗑, ✦) — less button text
-- **Norwegian bryllupsdager** — traditional names, not English calques
+- **Icons over text** — ← back, amber ✎ edit, red 🗑 delete, green 👤 add
+- **Norwegian bryllupsdager** — traditional names
 - **Monday–Sunday** week navigation on brief
 - Use **`logger`**, not `console.log`
 
 ---
 
-## Privacy / Architecture (non-negotiable)
+## What Was Done (this session)
 
-- Local-first, SQLCipher per user
-- No Sentry/Bugsnag/Amplitude
-- No PII in logs
-- AI only on user action; privacy notice first use
-- QR = local JSON, no server
-
----
-
-## What Was Done (recent sessions, summary)
-
-1. **Events tab** — gatherings, GPT event parser, talking point kinds, participants
-2. **Calendar brief (#61)** — expo-calendar, week bounds/offset, seed calendar refresh in settings
-3. **Brief ↔ events** — clickable schedule/calendar, `briefLinks.ts`, localized demo titles
-4. **Event detail UX** — Mac-style upward kind picker, breadcrumb from person
-5. **Anniversary names** — Norwegian wedding day names from bryllupsdagen.no
-6. **UX polish** — haptics, micro-animations, keyboard handling, kind picker overlay, relevance hints
-7. **Project memory system** — Cursor rules + skill + sessionStart hook (`.cursor/rules/session-handoff.mdc`)
+1. **Brief ↔ events UX** (4634ecc) — clickable brief rows, Mac kind picker, localized demo titles, breadcrumb back from person
+2. **Project memory system** (a609fd9) — `session-handoff.mdc`, `project-memory` skill, `session-start.js` hook; `session-stop.js` auto-handoff on dirty git
+3. **Event/people flow fixes** (7aa0d4e) — delete from gather list; kind picker → input flow; `returnTo` through people/new so mid-event person create returns to event
+4. **Icon system** (2a2c9ee) — consistent ✎/🗑/← across screens; confirm delete on gather list; + row right-aligned on event detail
+5. **Keyboard debug** (8841e0e) — transparent input container for white background issue
+6. **Docs/process** — corrected session file vs Gemini prompt; documented `npm run start:lan:log` for agent log access
 
 ---
 
