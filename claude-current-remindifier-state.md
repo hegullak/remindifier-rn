@@ -1,6 +1,6 @@
 # remindifier-rn — Current AI Session State
 
-*Last updated: 2026-05-30 — auto-loaded via Cursor rules + `.cursor/hooks/session-start.js`*
+*Last updated: 2026-05-31 — auto-loaded via Cursor rules + `.cursor/hooks/session-start.js`*
 
 **This file is the session snapshot.** Architecture lives in [`PROJECT_MEMORY.md`](./PROJECT_MEMORY.md).  
 Agent protocol: `.cursor/rules/session-handoff.mdc` · Skill: `.cursor/skills/project-memory/SKILL.md`
@@ -13,7 +13,7 @@ Agent protocol: `.cursor/rules/session-handoff.mdc` · Skill: `.cursor/skills/pr
 
 - **Repo:** `https://github.com/hegullak/remindifier-rn`
 - **Active branch:** `sandbox`
-- **Latest commit:** `2a2c9ee` — `feat(ux): consistent icon system + confirm delete + input alignment`
+- **Latest commit:** `8ecfc43` — `fix(brief): use NativeWind preset classes for greeting size and spacing`
 - **CI:** lint + typecheck + test:coverage (expected green)
 
 ### Git workflow (user rule)
@@ -24,7 +24,7 @@ Agent protocol: `.cursor/rules/session-handoff.mdc` · Skill: `.cursor/skills/pr
 
 ### Uncommitted local changes
 
-None (clean after this handoff commit).
+None — clean after this session's push.
 
 ---
 
@@ -55,6 +55,7 @@ Planned: CloudKit sync (user's iCloud only) — not started.
 | Calendar | expo-calendar → brief «Uken min» |
 | Weather | Open-Meteo + expo-location |
 | Haptics | expo-haptics |
+| Blur | `expo-blur` installed (~15.0.8) — **requires new dev client build to activate** |
 | Logging | react-native-logs + expo-file-system (local only) |
 | Testing | Jest (~183 tests, 20 suites) |
 | Lint/format | Biome 2.4.16 |
@@ -71,28 +72,46 @@ Planned: CloudKit sync (user's iCloud only) — not started.
 
 | Tab | Route | Purpose |
 |---|---|---|
-| ☀️ Brief | `(tabs)/brief.tsx` | Draggable morning sections |
+| ☀️ Brief | `(tabs)/brief.tsx` | Morning brief with sections |
 | 🌿 Events | `(tabs)/gather/` | Gatherings + talking points |
 | 👤 People | `(tabs)/people/` | Person library |
 | 🪪 Myself | `(tabs)/myself.tsx` | Profile + QR |
 
 Other: `sign-in`, `onboarding`, `settings`, `me-scan`, `sso-callback`
 
-### Brief sections
+### Brief — current layout (top → bottom)
 
-Weather · Dagens program · Uken min (calendar, Mon–Sun + week nav) · Heads-up · Trening · Merkedager denne uken
+1. **Weather topline** (centered, tappable → BottomSheet): `⛅ 12° 🌧️ 0mm 💨 3km/h ›`
+2. **Date nav**: `← 25. mai – 31. mai · Uke 22 →`
+3. **Greeting** (`text-5xl leading-tight`, pt-6 pb-8): `God kveld, Henning.` (name in accent)
+4. **Pill cards** (flex-row): I DAG · KVELDEN → each opens BottomSheet (`large`)
+5. **Sections** (sectionOrder): Dagens program · Uken min · Heads-up · Merkedager · Trening
+   - Weather section returns `null` (moved to topline)
 
-- Schedule/calendar rows **clickable** → event or `/gather/new?prefill=…` via `briefLinks.ts`
-- Demo schedule `s1` localized → «Middag hos Ida» (NO)
+### Brief — body formatting
+
+Body strings use `"\n"` as sentence separator (all cases including `isEmpty`).
+Renderer splits on `"\n"` with `.filter(Boolean)` — never split on `". "` (breaks "kl. 09:00").
+
+### Brief — NativeWind rules
+
+- Use **preset classes** (`text-5xl`, `pt-6`, `pb-8`) — always work
+- Avoid **arbitrary bracket classes** (`text-[48px]`) — silently dropped if not safelisted
+- Use **inline `style={{}}`** only when value genuinely absent from Tailwind scale
+
+### Tab bar
+
+Custom `FloatingTabBar` (floating pill, absolute bottom 20, borderRadius 30).
+`expo-blur` `BlurView` installed but **inactive until dev client rebuild**.
+Current fallback: `rgba(34,40,56,0.15)` overlay on BlurView → looks solid until rebuild.
 
 ### Events (gatherings)
 
 - Natural language create → `eventParser.ts` (GPT-4o-mini)
 - Kinds: **Spør, Tema, Small-talk, Heads-up**
-- Mac-style kind picker pops **upward** from +; select kind → input appears with autoFocus
-- Delete from list (trash) with confirm BottomSheet; haptic on delete
-- `returnTo` param: create person mid-event → returns to event, not person card
-- Demo `g-1` title localized via `localizeGathering.ts`
+- Mac-style kind picker pops upward from +
+- Delete from list with confirm BottomSheet; haptic on delete
+- `returnTo` param: create person mid-event → returns to event
 
 ### People
 
@@ -101,7 +120,7 @@ Weather · Dagens program · Uken min (calendar, Mon–Sun + week nav) · Heads-
 - Relevance hints in people list
 - Breadcrumb «← Tilbake til event» when opened from gathering
 
-### Icon conventions (current)
+### Icon conventions
 
 - **Back:** ← chevron (20px, hitSlop 12) — not text
 - **Edit:** amber ✎ (20px, top-right row)
@@ -113,13 +132,18 @@ Weather · Dagens program · Uken min (calendar, Mon–Sun + week nav) · Heads-
 ## Recent commits (newest first)
 
 ```
-2a2c9ee feat(ux): consistent icon system + confirm delete + input alignment
-8841e0e fix(ux): keyboard white background debug - transparent input container
-7aa0d4e feat(ux): major flow improvements - delete from list + input flow + navigation icons + event flow fix
-a609fd9 chore: project memory system — rules, skill, and sessionStart hook
-4634ecc feat: brief-to-event navigation, Mac-style kind picker, and localized titles
-65fd42c feat: events tab with AI prep, talking points, and wedding anniversary names (#58, #50)
-34e0833 feat: connect remindifier calendar to morning brief (#61)
+8ecfc43 fix(brief): use NativeWind preset classes for greeting size and spacing
+a7a04e2 fix(brief): inline style padding around greeting to bypass NativeWind purge
+633c416 fix(brief): more breathing room around greeting (pt-6 pb-7)
+257b7b3 fix(brief): increase greeting to 48px to restore visual weight on single line
+b1853fd fix(brief): use inline style for greeting font size (NativeWind dynamic class issue)
+8b9d51f feat(brief): larger greeting as visual anchor (38px, more breathing room)
+a4558b5 fix(brief): center weather topline; fix isEmpty body line breaks
+c14901c fix(brief): weather back on own row above date nav; stronger blur on tab bar
+ea53659 feat(brief): weather + date nav on same row with emoji icons; blur tab bar
+e10b08e fix(brief): always show rain + add wind speed in weather topline
+2e745af fix(brief): use newline separator in body to fix sentence splitting on abbreviations
+ff97611 feat(brief): compact weather topline + single-line greeting + weather bottom sheet
 ```
 
 ---
@@ -135,12 +159,12 @@ a609fd9 chore: project memory system — rules, skill, and sessionStart hook
 
 | # | Title | Status |
 |---|---|---|
-| 61 | Calendar in morning brief | ✅ Done |
-| 58 | Events tab + AI prep | ✅ Mostly done |
 | 50 | Tonight mode — expanded card before meeting | Not started |
 | 52 | Apple Reminders + deep link to event prep | Not started |
 | 53 | Me profile + QR | Partially done |
 | 54 | Settings privacy/export/delete | Partially done |
+| — | Brief blikkfang / visual hero | **Parking — no kicker found yet** |
+| — | Tab bar blur (expo-blur) | Parked — needs new dev client build |
 | — | CloudKit sync | Not started |
 | — | `start:dev:log` npm script (dev client + log file) | Not done |
 | — | Training labels (Push/Pull/Legs) i18n | Not done |
@@ -151,6 +175,8 @@ a609fd9 chore: project memory system — rules, skill, and sessionStart hook
 
 - **Session memory** → `claude-current-remindifier-state.md` only (never ad-hoc files)
 - **Pull before / push after** each agent task
+- **NativeWind preset classes** — never arbitrary `text-[Xpx]`; inline style only as last resort
+- **Discuss before** introducing non-generic/non-reusable solutions
 - **Icons over text** — ← back, amber ✎ edit, red 🗑 delete, green 👤 add
 - **Norwegian bryllupsdager** — traditional names
 - **Monday–Sunday** week navigation on brief
@@ -158,14 +184,14 @@ a609fd9 chore: project memory system — rules, skill, and sessionStart hook
 
 ---
 
-## What Was Done (this session)
+## What Was Done (this session — 2026-05-31)
 
-1. **Brief ↔ events UX** (4634ecc) — clickable brief rows, Mac kind picker, localized demo titles, breadcrumb back from person
-2. **Project memory system** (a609fd9) — `session-handoff.mdc`, `project-memory` skill, `session-start.js` hook; `session-stop.js` auto-handoff on dirty git
-3. **Event/people flow fixes** (7aa0d4e) — delete from gather list; kind picker → input flow; `returnTo` through people/new so mid-event person create returns to event
-4. **Icon system** (2a2c9ee) — consistent ✎/🗑/← across screens; confirm delete on gather list; + row right-aligned on event detail
-5. **Keyboard debug** (8841e0e) — transparent input container for white background issue
-6. **Docs/process** — corrected session file vs Gemini prompt; documented `npm run start:lan:log` for agent log access
+1. **Weather topline** — moved vær from full card to compact centered topline above date nav
+2. **Weather BottomSheet** — tap topline → sheet with 48px temp, description, details grid, 🏃 run flag
+3. **Greeting as visual anchor** — single line `text-5xl`, pt-6 pb-8 breathing room
+4. **Brief body formatting** — fixed sentence splitting: `"\n"` separator, split on `"\n"` in renderer
+5. **Tab bar blur** — installed expo-blur, BlurView wired up (inactive until dev client rebuild)
+6. **NativeWind lesson** — preset classes only; arbitrary bracket values unreliable without safelist
 
 ---
 
