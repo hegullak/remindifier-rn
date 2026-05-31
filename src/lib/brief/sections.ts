@@ -14,8 +14,8 @@ export const DEFAULT_BRIEF_SECTION_ORDER: BriefSectionId[] = [
   "schedule",
   "calendar",
   "headsup",
-  "training",
   "red_letter",
+  "training",
 ];
 
 export const BRIEF_SECTION_LABELS: Record<BriefSectionId, string> = {

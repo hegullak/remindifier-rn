@@ -6,9 +6,10 @@ import { useEffect, useState } from "react";
 import { ActivityIndicator, Alert, Pressable, ScrollView, Switch, Text, View } from "react-native";
 import { useAppTheme } from "@/theme/ThemeProvider";
 import { deleteAllData, exportAllData } from "@/db/repos/settingsRepo";
-import { resetOnboarding } from "@/db/repos/userRepo";
-import { deleteSeedCalendar, seedDevCalendar } from "@/db/seedCalendar";
+import { resetOnboarding, setBriefSectionOrder } from "@/db/repos/userRepo";
+import { DEFAULT_BRIEF_SECTION_ORDER } from "@/lib/brief/sections";
 import { notifyBriefReload } from "@/lib/brief/briefRefresh";
+import { deleteSeedCalendar, seedDevCalendar } from "@/db/seedCalendar";
 import { useUserDrizzleDb } from "@/db/useUserDrizzleDb";
 import { AccountSettingsSection } from "@/features/auth/AccountSettingsSection";
 import { clearClerkAuthStorage } from "@/features/auth/clerk/clearAuthStorage";
@@ -78,6 +79,13 @@ export default function SettingsScreen() {
     if (!userId) return;
     await resetOnboarding(userId);
     router.replace("/onboarding");
+  }
+
+  async function handleResetSectionOrder() {
+    if (!userId) return;
+    await setBriefSectionOrder(userId, DEFAULT_BRIEF_SECTION_ORDER);
+    notifyBriefReload();
+    Alert.alert("Brief", "Seksjons-rekkefølge er tilbakestilt.");
   }
 
   async function handleDeleteAll() {
@@ -177,6 +185,9 @@ export default function SettingsScreen() {
             <View className="gap-2">
               <Button variant="secondary" onPress={() => void handleResetOnboarding()}>
                 Reset onboarding
+              </Button>
+              <Button variant="secondary" onPress={() => void handleResetSectionOrder()}>
+                Reset brief section order
               </Button>
               <Button
                 variant="secondary"
