@@ -154,7 +154,7 @@ ff97611 feat(brief): compact weather topline + single-line greeting + weather bo
 
 | # | Title | GitHub | Implementation |
 |---|---|---|---|
-| 38 | Voice input — speak naturally, AI transcribes + structures | OPEN | **Phase 2** — not in repo yet; extends text parsers on gather/new + people |
+| 38 | Voice input — speak naturally, AI transcribes + structures | OPEN | **MVP:** `/intake` heuristic parser + preview (no custom STT) |
 | 16 | Share conversation (text/screenshot/voice) → AI extract | OPEN | Not started (share sheet) |
 | 50 | Tonight mode — day-of view before meeting | OPEN | Not started — pairs with #58 event prep |
 | 52 | Apple Reminders + deep link to event prep | OPEN | Not started (iOS EventKit) |

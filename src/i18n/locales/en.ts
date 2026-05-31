@@ -1,6 +1,7 @@
 export const en = {
   global: {
     addTitle: "What do you want to add?",
+    quickCapture: "Speak or type",
     newPerson: "New person",
     newEvent: "New event",
   },
@@ -454,6 +455,35 @@ export const en = {
     body: "It looks like you have something coming up with {name}. Create an event with these talking points?",
     create: "Yes, create event",
     skip: "Not now",
+  },
+  intake: {
+    title: "Quick capture",
+    subtitle: "Say or type what’s on your mind — we’ll suggest how to save it.",
+    placeholder: "Dinner with Kenneth Friday at six, remember to ask about the new job.",
+    dictationHint: "Tip: tap the microphone on your keyboard to dictate (iOS).",
+    continue: "Continue",
+    previewHint: "Does this look right?",
+    confirm: "Confirm",
+    edit: "Edit",
+    doneEditing: "Done editing",
+    sendToInbox: "Send to inbox",
+    backToInput: "Back to text",
+    confirmFailed: "Couldn’t save this yet — try editing or send to inbox.",
+    inboxFailed: "Couldn’t add to inbox. Try again.",
+    field: {
+      event: "Event",
+      datetime: "Time",
+      person: "Person",
+      followUp: "Follow-up",
+      note: "Note",
+    },
+    ambiguity: {
+      no_event_or_person: "We’re not sure who or what this is about yet.",
+      person_unclear: "Person name may need a check.",
+      datetime_partial: "Date or time might be incomplete.",
+      follow_up_unclear: "We may have missed a reminder in your text.",
+      free_form_only: "Saved as a note for now.",
+    },
   },
 };
 

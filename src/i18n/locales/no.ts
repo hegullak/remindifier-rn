@@ -3,6 +3,7 @@ import type { Translations } from "./en";
 export const no = {
   global: {
     addTitle: "Hva vil du legge til?",
+    quickCapture: "Si eller skriv",
     newPerson: "Ny person",
     newEvent: "Ny event",
   },
@@ -457,5 +458,34 @@ export const no = {
     body: "Det høres ut som du har noe på gang med {name}. Vil du opprette en event med disse samtalepunktene?",
     create: "Ja, opprett event",
     skip: "Ikke nå",
+  },
+  intake: {
+    title: "Raskt inn",
+    subtitle: "Si eller skriv det du tenker på — vi foreslår hvordan det kan lagres.",
+    placeholder: "Middag med Kenneth fredag kl six, husk å spørre om den nye jobben.",
+    dictationHint: "Tips: trykk mikrofonen på tastaturet for diktering (iOS).",
+    continue: "Fortsett",
+    previewHint: "Ser dette riktig ut?",
+    confirm: "Bekreft",
+    edit: "Rediger",
+    doneEditing: "Ferdig",
+    sendToInbox: "Send til innboks",
+    backToInput: "Tilbake til tekst",
+    confirmFailed: "Klarte ikke lagre ennå — prøv å redigere eller send til innboks.",
+    inboxFailed: "Klarte ikke legge i innboks. Prøv igjen.",
+    field: {
+      event: "Event",
+      datetime: "Tid",
+      person: "Person",
+      followUp: "Oppfølging",
+      note: "Notat",
+    },
+    ambiguity: {
+      no_event_or_person: "Vi er ikke sikre på hvem eller hva dette gjelder ennå.",
+      person_unclear: "Personnavn kan trenge en sjekk.",
+      datetime_partial: "Dato eller tid kan være ufullstendig.",
+      follow_up_unclear: "Vi kan ha oversett en påminnelse i teksten.",
+      free_form_only: "Lagres som notat foreløpig.",
+    },
   },
 } satisfies Translations;

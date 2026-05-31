@@ -4,9 +4,9 @@ import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ProfileHeaderLink } from "@/features/auth/ProfileHeaderLink";
+import { useTranslation } from "@/i18n";
 import { triggerLight } from "@/lib/haptics";
 import { BottomSheet } from "@/ui/BottomSheet";
-import { useTranslation } from "@/i18n";
 
 function GlobalAddButton() {
   const router = useRouter();
@@ -15,23 +15,38 @@ function GlobalAddButton() {
 
   const actions = [
     {
+      icon: "🎙️",
+      bgClass: "bg-sageLight",
+      label: t("global.quickCapture"),
+      onPress: () => {
+        router.push("/intake");
+      },
+    },
+    {
       icon: "👤",
       bgClass: "bg-green-light",
       label: t("global.newPerson"),
-      onPress: () => { router.push("/people/new"); },
+      onPress: () => {
+        router.push("/people/new");
+      },
     },
     {
       icon: "🌿",
       bgClass: "bg-accent-light",
       label: t("global.newEvent"),
-      onPress: () => { router.push("/gather/new"); },
+      onPress: () => {
+        router.push("/gather/new");
+      },
     },
   ];
 
   return (
     <>
       <Pressable
-        onPress={() => { triggerLight(); setOpen(true); }}
+        onPress={() => {
+          triggerLight();
+          setOpen(true);
+        }}
         hitSlop={10}
         className="w-9 h-9 rounded-full bg-accent items-center justify-center"
         accessibilityLabel="New"
@@ -44,10 +59,16 @@ function GlobalAddButton() {
           {actions.map((action) => (
             <Pressable
               key={action.label}
-              onPress={() => { triggerLight(); setOpen(false); action.onPress(); }}
+              onPress={() => {
+                triggerLight();
+                setOpen(false);
+                action.onPress();
+              }}
               className="flex-row items-center gap-4 py-2"
             >
-              <View className={`w-11 h-11 rounded-xl ${action.bgClass} items-center justify-center`}>
+              <View
+                className={`w-11 h-11 rounded-xl ${action.bgClass} items-center justify-center`}
+              >
                 <Text className="text-[22px]">{action.icon}</Text>
               </View>
               <Text className="text-[16px] text-text1 font-bodyMedium">{action.label}</Text>
