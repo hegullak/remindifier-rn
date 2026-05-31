@@ -172,7 +172,7 @@ function buildEnglish(signals: MorningSignals, holiday: UpcomingHolidayInfo | nu
         hasWeekendEvents ? `This weekend: ${weekendSummary}` : "Free weekend ahead.",
         holidayLine,
         holiday?.bridgeDaySuggestion,
-      ].filter(Boolean).join(" "),
+      ].filter(Boolean).join("\n"),
     };
   }
 
@@ -266,7 +266,7 @@ function buildNorwegian(signals: MorningSignals, holiday: UpcomingHolidayInfo | 
         hasWeekendEvents ? `Til helgen: ${weekendSummary}` : "Fri helg i vente.",
         holidayLine,
         holiday?.bridgeDaySuggestion,
-      ].filter(Boolean).join(" "),
+      ].filter(Boolean).join("\n"),
     };
   }
 

@@ -257,7 +257,7 @@ export default function BriefScreen() {
     <View className="pb-2">
       <Pressable
         onPress={() => setShowWeatherSheet(true)}
-        className="flex-row items-center mb-2 self-start active:opacity-70"
+        className="flex-row items-center justify-center mb-2 active:opacity-70"
         accessibilityRole="button"
         hitSlop={8}
       >

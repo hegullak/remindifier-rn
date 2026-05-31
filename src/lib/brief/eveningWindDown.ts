@@ -151,7 +151,7 @@ function buildEnglish(signals: WindDownSignals, holiday: UpcomingHolidayInfo | n
       pillText: "Open day tomorrow",
       headline: "Tomorrow looks open.",
       body: hasWeekendEvents
-        ? `Nothing major on the calendar. This weekend: ${weekendSummary}`
+        ? `Nothing major on the calendar.\nThis weekend: ${weekendSummary}`
         : "Nothing major on the calendar.",
     };
   }
@@ -250,7 +250,7 @@ function buildNorwegian(signals: WindDownSignals, holiday: UpcomingHolidayInfo |
       pillText: "Åpen dag i morgen",
       headline: "I morgen ser åpent ut.",
       body: hasWeekendEvents
-        ? `Ingenting på kalenderen. Til helgen: ${weekendSummary}`
+        ? `Ingenting på kalenderen.\nTil helgen: ${weekendSummary}`
         : "Ingenting på kalenderen.",
     };
   }
