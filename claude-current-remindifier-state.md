@@ -13,7 +13,7 @@ Agent protocol: `.cursor/rules/session-handoff.mdc` · Skill: `.cursor/skills/pr
 
 - **Repo:** `https://github.com/hegullak/remindifier-rn`
 - **Active branch:** `sandbox`
-- **Latest commit:** `21ba9fe` — `fix(startup): React hooks order + visible FatalScreen for Expo Go`
+- **Latest commit:** `e3f8f52` — `fix(startup): React hooks order + visible FatalScreen for Expo Go`
 - **Previous:** `1b95335` / `a10e9be` — dark screen startup hardening
 - **CI:** lint + typecheck + test:coverage (expected green)
 
@@ -94,7 +94,7 @@ Custom tokens: `text-2xs`, `text-3xs`, `text-body`, `text-body-lg`, `text-nav`. 
 ## Recent commits (newest first)
 
 ```
-21ba9fe fix(startup): React hooks order + visible FatalScreen for Expo Go
+e3f8f52 fix(startup): React hooks order + visible FatalScreen for Expo Go
 1b95335 docs: sync session state commit hash
 a10e9be fix(startup): Expo Go dark screen — SafeAreaProvider, startup logging, layout fallbacks
 8e88788 fix(startup): Expo Go white screen — haptics version, non-blocking calendar seed
@@ -124,6 +124,7 @@ df3248c chore: session handoff 2026-05-31 — code review + brief redesign
 
 - Session memory → `claude-current-remindifier-state.md` only
 - Pull before / push after each agent task
+- Session handoff **only when user asks** or session ends — not after every task
 - NativeWind **named tokens**, not arbitrary `text-[Xpx]`
 - Icons over text; no guilt language; `logger` not `console.log`
 
@@ -131,7 +132,7 @@ df3248c chore: session handoff 2026-05-31 — code review + brief redesign
 
 ## What Was Done (this session — 2026-05-31)
 
-### Expo Go black screen — hooks + invisible errors (latest, uncommitted until handoff)
+### Expo Go black screen — hooks + invisible errors (`e3f8f52`, pushed)
 
 **Symptom:** Still **black screen** after server restart; log showed only `app_launched` (+ SafeAreaView deprecation).
 
