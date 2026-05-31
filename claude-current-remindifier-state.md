@@ -13,7 +13,7 @@ Agent protocol: `.cursor/rules/session-handoff.mdc` · Skill: `.cursor/skills/pr
 
 - **Repo:** `https://github.com/hegullak/remindifier-rn`
 - **Active branch:** `sandbox`
-- **Latest commit:** `334d73f` — `feat(intake): datetime conflict picker when two times mentioned`
+- **Latest commit:** `286b384` — `feat(intake): datetime conflict picker when two times mentioned`
 - **Previous:** `c5b3f62` / `3d50bbc` — multi follow-ups + dictation text fix
 - **CI:** lint + typecheck + test:coverage (expected green)
 
@@ -88,7 +88,7 @@ Other: `sign-in`, `onboarding`, `settings`, `me-scan`
 ## Recent commits (newest first)
 
 ```
-334d73f feat(intake): datetime conflict picker when two times mentioned
+286b384 feat(intake): datetime conflict picker when two times mentioned
 c5b3f62 docs: sync session state commit hash
 3d50bbc fix(intake): multi follow-up parser and visible dictation text
 ```
