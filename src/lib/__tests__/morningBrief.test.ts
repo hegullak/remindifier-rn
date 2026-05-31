@@ -138,17 +138,17 @@ describe("buildMorningBrief", () => {
   });
 
   describe("lunch event presence", () => {
-    it("detects hasLunchFree when no event in 11:30–13:30 window", () => {
+    it("detects hasLunchFree when no event in 11:00–12:00 window", () => {
       const events = [makeEvent("e1", 9, 0), makeEvent("e2", 15, 0)];
       const result = buildMorningBrief(events, [], "no");
       expect(result.pillText).toContain("lunsj fri");
     });
 
-    it("hasLunchFree is false when event at 12:00 (no)", () => {
-      const events = [makeEvent("e1", 12, 0)];
+    it("hasLunchFree is false when event at 11:30 (no)", () => {
+      const events = [makeEvent("e1", 11, 30)];
       const result = buildMorningBrief(events, [], "no");
       expect(result.pillText).not.toContain("lunsj fri");
-      expect(result.body).not.toContain("Lunsj ser fri ut");
+      expect(result.body).toContain("lunsjtiden");
     });
 
     it("hasLunchFree is false when event at 12:00 (en)", () => {

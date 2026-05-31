@@ -85,11 +85,12 @@ function analyseEvents(
   const eventsBeforeNoon = timed.filter((e) => e.startDate.getHours() < 12);
   const hasMorningBusy = eventsBeforeNoon.length >= 3;
 
-  const lunchStart = 11 * 60 + 30; // 11:30
-  const lunchEnd = 13 * 60 + 30; // 13:30
+  // Lunch window: 11:00–12:00 (user's actual lunch time)
+  const lunchStart = 11 * 60; // 11:00
+  const lunchEnd = 12 * 60;   // 12:00
   const hasLunchFree = !timed.some((e) => {
-    const mins = e.startDate.getHours() * 60 + e.startDate.getMinutes();
-    return mins >= lunchStart && mins <= lunchEnd;
+    const start = e.startDate.getHours() * 60 + e.startDate.getMinutes();
+    return start >= lunchStart && start < lunchEnd;
   });
 
   const workEvents = timed.filter((e) => isWorkEvent(e));
@@ -214,9 +215,8 @@ function buildEnglish(signals: MorningSignals): MorningBriefSummary {
     parts.push("The morning is fairly packed.");
   }
 
-  if (hasLunchFree) {
-    parts.push("Lunch looks free.");
-  }
+  parts.push(hasLunchFree ? "Lunch 11–12 is free." : "Meeting during lunch.");
+
 
   if (dayEndsEarly && signals.lastEvent) {
     parts.push(`Done with meetings around ${formatTime(signals.lastEvent.startDate, "en")}.`);
@@ -317,9 +317,8 @@ function buildNorwegian(signals: MorningSignals): MorningBriefSummary {
     parts.push("Formiddagen er ganske full.");
   }
 
-  if (hasLunchFree) {
-    parts.push("Lunsj ser fri ut.");
-  }
+  parts.push(hasLunchFree ? "Lunsj kl. 11–12 er fri." : "Møte i lunsjtiden.");
+
 
   if (dayEndsEarly && signals.lastEvent) {
     parts.push(`Ferdig med møter rundt kl. ${formatTime(signals.lastEvent.startDate, "no")}.`);

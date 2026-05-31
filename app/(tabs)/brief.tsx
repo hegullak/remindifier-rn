@@ -171,7 +171,8 @@ export default function BriefScreen() {
         case "calendar": {
           const privateCalendarEvents = brief.calendarEvents.filter((e) => {
             const name = (e.calendarName ?? "").toLowerCase();
-            return !name.includes("jobb") && !name.includes("work") && !name.includes("job");
+            // Only show explicitly private events — block work calendars
+            return name.includes("privat") || name.includes("private") || name.includes("personal");
           });
           if (privateCalendarEvents.length === 0) return null;
           return (

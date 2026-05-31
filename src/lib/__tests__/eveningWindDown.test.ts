@@ -179,10 +179,10 @@ describe("buildEveningWindDown", () => {
   });
 
   describe("lunch availability", () => {
-    it("detects hasLunchFree when no event falls within 11:30–13:30", () => {
+    it("detects hasLunchFree when no event falls within 11:00–12:00", () => {
       const events = [makeEvent("e1", 9, 0), makeEvent("e2", 15, 0)];
       const result = buildEveningWindDown(events, [], "en");
-      expect(result.body).toContain("Lunch looks open");
+      expect(result.body).toContain("Lunch 11–12 is free");
     });
 
     it("hasLunchFree is false when an event lands at 12:00 (en)", () => {
@@ -194,7 +194,7 @@ describe("buildEveningWindDown", () => {
     it("mentions fri lunsj in Norwegian when lunch is free", () => {
       const events = [makeEvent("e1", 9, 0), makeEvent("e2", 15, 0)];
       const result = buildEveningWindDown(events, [], "no");
-      expect(result.body).toContain("Lunsj ser fri ut");
+      expect(result.body).toContain("Lunsj kl. 11–12 er fri");
     });
   });
 

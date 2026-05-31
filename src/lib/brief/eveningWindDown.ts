@@ -76,11 +76,12 @@ function analyseEvents(
   const eventsBeforeNoon = timed.filter((e) => e.startDate.getHours() < 12);
   const hasMorningBusy = eventsBeforeNoon.length >= 3;
 
-  const lunchStart = 11 * 60 + 30; // 11:30
-  const lunchEnd = 13 * 60 + 30; // 13:30
+  // Lunch window: 11:00–12:00 (user's actual lunch time)
+  const lunchStart = 11 * 60; // 11:00
+  const lunchEnd = 12 * 60;   // 12:00
   const hasLunchFree = !timed.some((e) => {
-    const mins = e.startDate.getHours() * 60 + e.startDate.getMinutes();
-    return mins >= lunchStart && mins <= lunchEnd;
+    const start = e.startDate.getHours() * 60 + e.startDate.getMinutes();
+    return start >= lunchStart && start < lunchEnd;
   });
 
   const afternoonCalm = !timed.some((e) => e.startDate.getHours() >= 14);
@@ -186,9 +187,8 @@ function buildEnglish(signals: WindDownSignals): EveningWindDownSummary {
     parts.push("The morning is fairly packed.");
   }
 
-  if (hasLunchFree) {
-    parts.push("Lunch looks open.");
-  }
+  parts.push(hasLunchFree ? "Lunch 11–12 is free." : "Meeting during tomorrow's lunch.");
+
 
   if (afternoonCalm) {
     parts.push("After 14:00 the day gets calmer.");
@@ -279,9 +279,8 @@ function buildNorwegian(signals: WindDownSignals): EveningWindDownSummary {
     parts.push("Formiddagen er ganske full.");
   }
 
-  if (hasLunchFree) {
-    parts.push("Lunsj ser fri ut.");
-  }
+  parts.push(hasLunchFree ? "Lunsj kl. 11–12 er fri." : "Møte i lunsjtiden i morgen.");
+
 
   if (afternoonCalm) {
     parts.push("Ettermiddagen er rolig fra kl. 14:00.");
