@@ -13,7 +13,7 @@ Agent protocol: `.cursor/rules/session-handoff.mdc` · Skill: `.cursor/skills/pr
 
 - **Repo:** `https://github.com/hegullak/remindifier-rn`
 - **Active branch:** `sandbox`
-- **Latest commit:** `17cd054` — `fix(startup): Expo Go white screen — haptics version, non-blocking calendar seed`
+- **Latest commit:** `8e88788` — `fix(startup): Expo Go white screen — haptics version, non-blocking calendar seed`
 - **Previous:** `df3248c` — `chore: session handoff 2026-05-31 — code review + brief redesign`
 - **CI:** lint + typecheck + test:coverage (expected green)
 
@@ -94,7 +94,7 @@ Custom tokens: `text-2xs`, `text-3xs`, `text-body`, `text-body-lg`, `text-nav`. 
 ## Recent commits (newest first)
 
 ```
-17cd054 fix(startup): Expo Go white screen — haptics version, non-blocking calendar seed
+8e88788 fix(startup): Expo Go white screen — haptics version, non-blocking calendar seed
 df3248c chore: session handoff 2026-05-31 — code review + brief redesign
 198b7a8 docs: session handoff — semantic intake MVP and typography tokens
 7d03c8c refactor(styles): replace arbitrary font-size classes with named Tailwind tokens
