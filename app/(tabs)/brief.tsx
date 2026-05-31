@@ -57,12 +57,12 @@ export default function BriefScreen() {
   const upcomingRedLetters = redLettersThisWeek.filter((d) => !d.isToday);
 
   const renderSection = useCallback(
-    (sectionId: BriefSectionId) => {
+    (sectionId: BriefSectionId, drag?: () => void) => {
       switch (sectionId) {
         case "weather":
           return (
             <View>
-              <SectionLabel>{t(briefSectionLabelKey(sectionId))}</SectionLabel>
+              <SectionLabel drag={drag}>{t(briefSectionLabelKey(sectionId))}</SectionLabel>
               <Pressable onPress={() => setWeatherExpanded((v) => !v)}>
                 <BriefCard stripeColor="blue">
                   <View className="flex-row items-start justify-between gap-3">
@@ -123,7 +123,7 @@ export default function BriefScreen() {
           if (weekOffset !== 0) return null;
           return (
             <View>
-              <SectionLabel>{t(briefSectionLabelKey(sectionId))}</SectionLabel>
+              <SectionLabel drag={drag}>{t(briefSectionLabelKey(sectionId))}</SectionLabel>
               <BriefCard stripeColor="blue">
                 {brief.schedule.length === 0 ? (
                   <Text className="text-[13px] text-text3 font-body">
@@ -168,7 +168,7 @@ export default function BriefScreen() {
           if (brief.calendarEvents.length === 0) return null;
           return (
             <View>
-              <SectionLabel>{t(briefSectionLabelKey(sectionId))}</SectionLabel>
+              <SectionLabel drag={drag}>{t(briefSectionLabelKey(sectionId))}</SectionLabel>
               <BriefCard stripeColor="sage">
                 {brief.calendarEvents.map((event, i) => {
                   const title = event.gatheringId
@@ -207,7 +207,7 @@ export default function BriefScreen() {
           if (weekOffset !== 0) return null;
           return (
             <View>
-              <SectionLabel>{t(briefSectionLabelKey(sectionId))}</SectionLabel>
+              <SectionLabel drag={drag}>{t(briefSectionLabelKey(sectionId))}</SectionLabel>
               <BriefCard stripeColor="dusk">
                 {headsupItems.map((item, i) => (
                   <View key={item.day} className={i < headsupItems.length - 1 ? "mb-3" : ""}>
@@ -224,7 +224,7 @@ export default function BriefScreen() {
           if (weekOffset !== 0) return null;
           return (
             <View>
-              <SectionLabel>{t(briefSectionLabelKey(sectionId))}</SectionLabel>
+              <SectionLabel drag={drag}>{t(briefSectionLabelKey(sectionId))}</SectionLabel>
               <BriefCard stripeColor="green">
                 {trainingLines.map((line, i) => (
                   <View
@@ -241,7 +241,7 @@ export default function BriefScreen() {
         case "red_letter":
           return (
             <View>
-              <SectionLabel>{t(briefSectionLabelKey(sectionId))}</SectionLabel>
+              <SectionLabel drag={drag}>{t(briefSectionLabelKey(sectionId))}</SectionLabel>
               <BriefCard stripeColor="amber">
                 {redLettersThisWeek.length === 0 ? (
                   <Text className="text-[13px] text-text3 font-body">
@@ -349,14 +349,9 @@ export default function BriefScreen() {
           ListHeaderComponent={listHeader}
           renderItem={({ item, drag, isActive }) => (
             <ScaleDecorator activeScale={1.02}>
-              <Pressable
-                onLongPress={drag}
-                delayLongPress={150}
-                disabled={isActive}
-                className={`mb-1 ${isActive ? "opacity-90" : ""}`}
-              >
-                {renderSection(item)}
-              </Pressable>
+              <View className={`mb-1 ${isActive ? "opacity-90" : ""}`}>
+                {renderSection(item, drag)}
+              </View>
             </ScaleDecorator>
           )}
         />
