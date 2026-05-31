@@ -336,21 +336,22 @@ export default function BriefScreen() {
   return (
     <AppShell>
       <GestureHandlerRootView style={{ flex: 1 }}>
-      <DraggableFlatList
+        <DraggableFlatList
           data={brief.sectionOrder}
           keyExtractor={(item) => item}
+          extraData={brief}
           onDragEnd={({ data }) => {
             void setSectionOrder(data);
           }}
-          activationDistance={12}
+          activationDistance={10}
           containerStyle={{ flex: 1 }}
           contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 30 }}
           ListHeaderComponent={listHeader}
           renderItem={({ item, drag, isActive }) => (
-            <ScaleDecorator>
+            <ScaleDecorator activeScale={1.02}>
               <Pressable
                 onLongPress={drag}
-                delayLongPress={180}
+                delayLongPress={150}
                 disabled={isActive}
                 className={`mb-1 ${isActive ? "opacity-90" : ""}`}
               >
