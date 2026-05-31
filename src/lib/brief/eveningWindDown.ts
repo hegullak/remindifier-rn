@@ -224,7 +224,7 @@ function buildEnglish(signals: WindDownSignals, holiday: UpcomingHolidayInfo | n
     isEmpty: false,
     pillText,
     headline,
-    body: parts.join(" "),
+    body: parts.join("\n"),
   };
 }
 
@@ -323,7 +323,7 @@ function buildNorwegian(signals: WindDownSignals, holiday: UpcomingHolidayInfo |
     isEmpty: false,
     pillText,
     headline,
-    body: parts.join(" "),
+    body: parts.join("\n"),
   };
 }
 

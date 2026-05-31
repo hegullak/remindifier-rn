@@ -371,9 +371,9 @@ export default function BriefScreen() {
         large
       >
         <Text className="text-[20px] text-text1 font-heading mb-5 leading-[28px]">{morningBrief.headline}</Text>
-        {morningBrief.body.split(". ").map((sentence, i, arr) => (
+        {morningBrief.body.split("\n").filter(Boolean).map((sentence, i) => (
           <Text key={i} className="text-[15px] text-text2 font-body leading-[24px] mb-2">
-            {sentence}{i < arr.length - 1 && !sentence.endsWith(".") ? "." : ""}
+            {sentence}
           </Text>
         ))}
       </BottomSheet>
@@ -385,9 +385,9 @@ export default function BriefScreen() {
         large
       >
         <Text className="text-[20px] text-text1 font-heading mb-5 leading-[28px]">{windDown.headline}</Text>
-        {windDown.body.split(". ").map((sentence, i, arr) => (
+        {windDown.body.split("\n").filter(Boolean).map((sentence, i) => (
           <Text key={i} className="text-[15px] text-text2 font-body leading-[24px] mb-2">
-            {sentence}{i < arr.length - 1 && !sentence.endsWith(".") ? "." : ""}
+            {sentence}
           </Text>
         ))}
       </BottomSheet>

@@ -235,7 +235,7 @@ function buildEnglish(signals: MorningSignals, holiday: UpcomingHolidayInfo | nu
     isEmpty: false,
     pillText,
     headline,
-    body: parts.join(" "),
+    body: parts.join("\n"),
   };
 }
 
@@ -336,7 +336,7 @@ function buildNorwegian(signals: MorningSignals, holiday: UpcomingHolidayInfo | 
     isEmpty: false,
     pillText,
     headline,
-    body: parts.join(" "),
+    body: parts.join("\n"),
   };
 }
 
