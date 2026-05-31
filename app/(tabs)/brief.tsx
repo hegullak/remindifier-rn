@@ -2,6 +2,7 @@ import { Link } from "expo-router";
 import { useCallback, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import DraggableFlatList, { ScaleDecorator } from "react-native-draggable-flatlist";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { useAppAuth, useAppUser } from "@/features/auth/useAppAuth";
 import { useBriefData } from "@/features/brief/useBriefData";
 import { useTranslation } from "@/i18n";
@@ -334,6 +335,7 @@ export default function BriefScreen() {
 
   return (
     <AppShell>
+      <GestureHandlerRootView style={{ flex: 1 }}>
       <DraggableFlatList
           data={brief.sectionOrder}
           keyExtractor={(item) => item}
@@ -357,6 +359,7 @@ export default function BriefScreen() {
             </ScaleDecorator>
           )}
         />
+      </GestureHandlerRootView>
 
       <BottomSheet
         visible={anniversaryDetail !== null}
