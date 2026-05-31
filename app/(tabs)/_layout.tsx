@@ -131,7 +131,6 @@ function TabsWithBootstrap({
   db: ExpoSQLiteDatabase<typeof schema>;
   userId: string;
 }) {
-  const { isDark } = useAppTheme();
   const { t } = useTranslation();
   const migrationState = useMigrations(db, migrations);
   const { ready } = useBootstrapApp(userId, migrationState.success);
@@ -188,6 +187,12 @@ function TabsWithBootstrap({
     };
   }, [ready, userId]);
 
+  useEffect(() => {
+    if (ready && onboardingChecked && !needsOnboarding) {
+      logger.info("tabs_render");
+    }
+  }, [ready, onboardingChecked, needsOnboarding]);
+
   if (migrationState.error || migrationTimedOut) {
     return (
       <FatalScreen
@@ -202,12 +207,6 @@ function TabsWithBootstrap({
   if (!ready || !onboardingChecked) {
     return <LoadingScreen message={t("startup.preparingData")} />;
   }
-
-  useEffect(() => {
-    if (ready && onboardingChecked && !needsOnboarding) {
-      logger.info("tabs_render");
-    }
-  }, [ready, onboardingChecked, needsOnboarding]);
 
   if (needsOnboarding) {
     return <Redirect href="/onboarding" />;
@@ -235,6 +234,12 @@ export default function TabsLayout() {
       : (userId ?? getClerkInstance().session?.user?.id ?? null)
     : null;
   const { db, loading, error } = useUserDrizzleDb(effectiveUserId);
+
+  useEffect(() => {
+    if (loading) logger.info("tabs_db_loading");
+    if (db) logger.info("tabs_db_ready");
+    if (error) logger.error("tabs_db_failed", { error: error.message });
+  }, [loading, db, error]);
 
   if (!isLoaded) {
     return <LoadingScreen message={t("common.loading")} />;

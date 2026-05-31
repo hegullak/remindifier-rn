@@ -1,4 +1,5 @@
-import { ActivityIndicator, SafeAreaView, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useTranslation } from "@/i18n/LanguageContext";
 
 export function LoadingScreen({ message }: { message: string }) {
@@ -35,13 +36,34 @@ const loadingStyles = StyleSheet.create({
 export function FatalScreen({ message }: { message: string }) {
   const { t } = useTranslation();
   return (
-    <SafeAreaView className="flex-1 bg-bg">
-      <View className="flex-1 px-6 pt-20">
-        <Text className="text-nav leading-[28px] text-text1 font-heading">
-          {t("startup.startupError")}
-        </Text>
-        <Text className="text-sm text-red font-body mt-3">{message}</Text>
+    <SafeAreaView style={fatalStyles.container} edges={["top", "bottom"]}>
+      <View style={fatalStyles.body}>
+        <Text style={fatalStyles.title}>{t("startup.startupError")}</Text>
+        <Text style={fatalStyles.message}>{message}</Text>
       </View>
     </SafeAreaView>
   );
 }
+
+const fatalStyles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#1A1E26",
+  },
+  body: {
+    flex: 1,
+    paddingHorizontal: 24,
+    paddingTop: 80,
+  },
+  title: {
+    fontSize: 22,
+    color: "#EEF0F5",
+    fontWeight: "600",
+  },
+  message: {
+    fontSize: 14,
+    color: "#E57373",
+    marginTop: 12,
+    lineHeight: 20,
+  },
+});

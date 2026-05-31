@@ -120,6 +120,7 @@ A contextual memory and heads-up assistant for the people in your life — not a
 
 - `src/lib/logger.ts`, `globalErrorHandler.ts`, `logUtils.ts`
 - Device logs under Documents; dev also `expo-output.log` via `npm run start:lan:log`
+- **Startup debug sequence:** `app_launched` → `root_stack_ready` → `index_ready` → `tabs_db_ready` → `migrations_ready` → `bootstrap_ready` → `tabs_render`
 
 ## Tooling & conventions
 
@@ -150,6 +151,8 @@ A contextual memory and heads-up assistant for the people in your life — not a
 7. **RN StyleSheet** — do not use CSS `var(--token)` for `backgroundColor`; use hex or theme hook
 8. **`ClerkLoaded`** renders nothing while Clerk loads — use explicit `LoadingScreen` + `useAuth().isLoaded`
 9. **`ThemeProvider`** must not block children on SecureStore; apply stored theme async with default slate + style fallback
+10. **Rules of Hooks** — never place `useEffect` after conditional `return` in layout components (caused Expo Go black screen when bootstrap completed)
+11. **`FatalScreen` / `LoadingScreen`** — use `StyleSheet` for guaranteed visibility; do not rely on NativeWind alone for error UI
 
 ## File map (quick)
 

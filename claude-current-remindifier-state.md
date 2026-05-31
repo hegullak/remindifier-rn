@@ -1,6 +1,6 @@
 # remindifier-rn — Current AI Session State
 
-*Last updated: 2026-05-31 (session handoff — Expo Go dark screen / startup hardening)*
+*Last updated: 2026-05-31 (session handoff — hooks fix + visible FatalScreen)*
 
 **This file is the session snapshot.** Architecture lives in [`PROJECT_MEMORY.md`](./PROJECT_MEMORY.md).  
 Agent protocol: `.cursor/rules/session-handoff.mdc` · Skill: `.cursor/skills/project-memory/SKILL.md`
@@ -13,8 +13,8 @@ Agent protocol: `.cursor/rules/session-handoff.mdc` · Skill: `.cursor/skills/pr
 
 - **Repo:** `https://github.com/hegullak/remindifier-rn`
 - **Active branch:** `sandbox`
-- **Latest commit:** `a10e9be` — `fix(startup): Expo Go dark screen — SafeAreaProvider, startup logging, layout fallbacks`
-- **Previous:** `74fa98a` — `docs: sync session state commit hash` · `8e88788` — haptics + non-blocking calendar seed
+- **Latest commit:** `21ba9fe` — `fix(startup): React hooks order + visible FatalScreen for Expo Go`
+- **Previous:** `1b95335` / `a10e9be` — dark screen startup hardening
 - **CI:** lint + typecheck + test:coverage (expected green)
 
 ### Git workflow (user rule)
@@ -94,12 +94,11 @@ Custom tokens: `text-2xs`, `text-3xs`, `text-body`, `text-body-lg`, `text-nav`. 
 ## Recent commits (newest first)
 
 ```
+21ba9fe fix(startup): React hooks order + visible FatalScreen for Expo Go
+1b95335 docs: sync session state commit hash
 a10e9be fix(startup): Expo Go dark screen — SafeAreaProvider, startup logging, layout fallbacks
-74fa98a docs: sync session state commit hash
 8e88788 fix(startup): Expo Go white screen — haptics version, non-blocking calendar seed
 df3248c chore: session handoff 2026-05-31 — code review + brief redesign
-198b7a8 docs: session handoff — semantic intake MVP and typography tokens
-7d03c8c refactor(styles): replace arbitrary font-size classes with named Tailwind tokens
 ```
 
 ---
@@ -115,7 +114,7 @@ df3248c chore: session handoff 2026-05-31 — code review + brief redesign
 | — | Brief blikkfang | Parked |
 | — | Inbox UI (view/process inbox items) | Not started |
 | — | Tab bar blur | Dev client only; Expo Go uses solid fallback |
-| — | **Expo Go startup** | User still testing after dark-screen fix — check log for `migrations_ready` → `bootstrap_ready` → `tabs_render` |
+| — | **Expo Go startup** | User still testing — check log sequence below; hooks fix may resolve black screen |
 
 **Next candidates:** #50 Tonight mode, inbox list UI, #53/#54 polish
 
@@ -132,27 +131,34 @@ df3248c chore: session handoff 2026-05-31 — code review + brief redesign
 
 ## What Was Done (this session — 2026-05-31)
 
-### Expo Go startup (white → dark screen follow-up)
+### Expo Go black screen — hooks + invisible errors (latest, uncommitted until handoff)
 
-**Symptom:** After haptics/calendar fix, app loaded but showed **dark screen with no content** (only `#1A1E26`).
+**Symptom:** Still **black screen** after server restart; log showed only `app_launched` (+ SafeAreaView deprecation).
 
-**Diagnosis:** `app_launched` logged but no `bootstrap_ready` / `migrations_ready`. Likely causes: `ClerkLoaded` rendering null during load, ThemeProvider blocking children, bootstrap step hang, or NativeWind layout collapse (`flex-1` not applied).
+**Root causes found:**
 
-**Fixes applied (uncommitted until this handoff):**
+1. **Rules of Hooks violation** in `app/(tabs)/_layout.tsx` — `useEffect` for `tabs_render` was placed **after** conditional `return` statements. When bootstrap finished, React hook order changed → crash/blank screen.
+2. **`FatalScreen` invisible** — used only NativeWind `className`; DB/migration errors rendered as dark screen with no readable text.
+3. Terminal also showed an earlier JSX typo (`</BlurView>` vs `</TabBarContainer>`) — already fixed in `a10e9be`.
 
-1. **`app/_layout.tsx`** — `SafeAreaProvider`; replaced `ClerkLoaded` with explicit `useAuth().isLoaded` + `LoadingScreen`; font error logging; splash hides on font error too
-2. **`ThemeProvider`** — no longer blocks on SecureStore; default slate theme immediately; `style.backgroundColor` fallback alongside `className`
-3. **`useBootstrapApp`** — per-step try/catch + logging (`bootstrap_seed_local_done`, `bootstrap_ready`); always proceeds on partial failure
-4. **`app/(tabs)/_layout.tsx`** — startup logging (`migrations_ready`, `tabs_bootstrap_ready`, `tabs_render`); 15s migration timeout → `FatalScreen`; **BlurView → View in Expo Go** (`Constants.appOwnership === "expo"`)
-5. **`AppShell` + `onboarding.tsx`** — `style={{ flex: 1, backgroundColor }}` fallbacks so layout works if NativeWind classes drop
+**Fixes applied:**
 
-### Prior commits (same day)
+1. **`app/(tabs)/_layout.tsx`** — moved all `useEffect` hooks before any `return`; added `tabs_db_loading` / `tabs_db_ready` logging
+2. **`src/ui/StartupScreens.tsx`** — `FatalScreen` uses `StyleSheet` + `SafeAreaView` from `react-native-safe-area-context` (visible white/red text on `#1A1E26`)
+3. **`app/_layout.tsx`** — logs `root_stack_ready` when Clerk + fonts ready
+4. **`app/index.tsx`** — logs `index_ready` with auth state
 
-- **`8e88788`** — `expo-haptics ~15.0.8`; non-blocking `seedDevCalendar()`; ThemeProvider LoadingScreen; stack bg `#1A1E26`
-- **`6472256` / `7d03c8c`** — semantic intake MVP; typography tokens
-- **`337dc2e` / brief redesign** — code review + brief UX
+**Expected log sequence after reload:**  
+`app_launched` → `root_stack_ready` → `index_ready` → `tabs_db_ready` → `migrations_ready` → `bootstrap_ready` → `tabs_render`
 
-**Noted for later:** OpenAI API key client-side → backend proxy; verify Expo Go shows brief after reload; `src/lib/haptics.ts` still has `console.log` debug lines → should use `logger`
+### Expo Go startup hardening (committed `a10e9be`)
+
+- `SafeAreaProvider`; `ClerkLoaded` → `useAuth` + `LoadingScreen`
+- `ThemeProvider` non-blocking; bootstrap per-step try/catch
+- Expo Go tab bar View fallback; migration 15s timeout
+- `expo-haptics ~15.0.8`; non-blocking calendar seed (`8e88788`)
+
+**Noted for later:** OpenAI API key → backend proxy; `src/lib/haptics.ts` `console.log` → `logger`; confirm Expo Go shows brief after hooks fix
 
 ---
 

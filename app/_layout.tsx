@@ -72,6 +72,12 @@ function RootStack() {
     }
   }, [fontsLoaded, fontError]);
 
+  useEffect(() => {
+    if (clerkLoaded && (fontsLoaded || fontError)) {
+      logger.info("root_stack_ready", { fontsLoaded, fontError: Boolean(fontError) });
+    }
+  }, [clerkLoaded, fontsLoaded, fontError]);
+
   if (!clerkLoaded) {
     return <LoadingScreen message={t("common.loading")} />;
   }
