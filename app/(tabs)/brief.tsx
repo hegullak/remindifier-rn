@@ -333,7 +333,7 @@ export default function BriefScreen() {
   return (
     <AppShell>
       <ScrollView
-        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 120 }}
+        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 130 }}
       >
         {listHeader}
         {brief.sectionOrder.map((sectionId) => (

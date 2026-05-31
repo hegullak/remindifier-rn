@@ -1,6 +1,11 @@
 import type { Translations } from "./en";
 
 export const no = {
+  global: {
+    addTitle: "Hva vil du legge til?",
+    newPerson: "Ny person",
+    newEvent: "Ny event",
+  },
   common: {
     back: "← Tilbake",
     cancel: "Avbryt",

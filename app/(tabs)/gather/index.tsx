@@ -86,7 +86,7 @@ export default function GatherListScreen() {
             <Text className="text-[13px] text-text3 font-body mt-2">{t("gathering.createFirst")}</Text>
           </View>
         ) : (
-          <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
+          <ScrollView contentContainerStyle={{ paddingBottom: 130 }}>
             {items.map((item) => {
               const count = getGatheringTalkingPointCount(item.description);
               const dateLabel = formatDate(item.scheduledAt, locale);

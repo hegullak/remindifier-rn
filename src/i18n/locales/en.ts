@@ -1,4 +1,9 @@
 export const en = {
+  global: {
+    addTitle: "What do you want to add?",
+    newPerson: "New person",
+    newEvent: "New event",
+  },
   common: {
     back: "← Back",
     cancel: "Cancel",
