@@ -92,27 +92,34 @@ function analyseEvents(
     return mins >= lunchStart && mins <= lunchEnd;
   });
 
-  const lastEndHour = lastEvent
-    ? lastEvent.startDate.getHours() + (lastEvent.startDate.getMinutes() > 0 ? 1 : 0)
-    : 0;
-  const dayEndsEarly = lastEvent !== null && lastEndHour < 15;
-  const dayEndsLate = lastEvent !== null && lastEvent.startDate.getHours() >= 17;
-
   const workEvents = timed.filter((e) => isWorkEvent(e));
   const personalEvents = timed.filter((e) => !isWorkEvent(e));
   const hasPersonalEventsToday = personalEvents.length > 0;
   const personalEventNames = personalEvents.map((e) => e.title).slice(0, 2);
 
-  const hasEveningActivity = timed.some((e) => getHour(e.startDate) >= 17);
-  const eveningActivities = timed
+  // Work hours assumed 08-17. Early finish = last work event before 15:00.
+  const lastWorkEvent = workEvents.length > 0 ? workEvents[workEvents.length - 1] : null;
+  const dayEndsEarly = lastWorkEvent !== null && lastWorkEvent.startDate.getHours() < 15;
+  // Overtime = work event starting at or after 17:00
+  const dayEndsLate = workEvents.some((e) => e.startDate.getHours() >= 17);
+
+  // Evening = personal time after 17:00 (always available unless personal event there)
+  const hasEveningActivity = personalEvents.some((e) => getHour(e.startDate) >= 17);
+  const eveningActivities = personalEvents
     .filter((e) => getHour(e.startDate) >= 17)
     .map((e) => e.title);
 
-  // Weekend signals from weekEvents
+  // Weekend: only mention if there ARE events OR it's Friday
+  const todayDow = new Date().getDay();
+  const isFriday = todayDow === 5;
   const saturday = weekEvents.filter((e) => getDayOfWeek(e.startDate) === 6 && !isAllDay(e));
   const sunday = weekEvents.filter((e) => getDayOfWeek(e.startDate) === 0 && !isAllDay(e));
   const hasWeekendEvents = saturday.length > 0 || sunday.length > 0;
-  const weekendSummary = buildWeekendSummary(saturday, sunday, locale);
+  // Show weekend info on Fridays or when there are weekend events
+  const showWeekend = isFriday || hasWeekendEvents;
+  const weekendSummary = hasWeekendEvents
+    ? buildWeekendSummary(saturday, sunday, locale)
+    : locale === "no" ? "Fri helg." : "Free weekend.";
 
   return {
     eventCount: events.length,
@@ -127,7 +134,7 @@ function analyseEvents(
     hasPersonalEventsToday,
     personalEventNames,
     workEventCount: workEvents.length,
-    hasWeekendEvents,
+    hasWeekendEvents: showWeekend,
     weekendSummary,
   };
 }
@@ -212,9 +219,9 @@ function buildEnglish(signals: MorningSignals): MorningBriefSummary {
   }
 
   if (dayEndsEarly && signals.lastEvent) {
-    parts.push(`Day wraps up around ${formatTime(signals.lastEvent.startDate, "en")}.`);
-  } else if (dayEndsLate && signals.lastEvent) {
-    parts.push(`Last meeting runs until late — ${formatTime(signals.lastEvent.startDate, "en")}.`);
+    parts.push(`Done with meetings around ${formatTime(signals.lastEvent.startDate, "en")}.`);
+  } else if (dayEndsLate) {
+    parts.push("Meetings running past 17:00 today — slightly longer day.");
   }
 
   // Evening personal activity
@@ -315,11 +322,9 @@ function buildNorwegian(signals: MorningSignals): MorningBriefSummary {
   }
 
   if (dayEndsEarly && signals.lastEvent) {
-    parts.push(`Dagen avsluttes rundt kl. ${formatTime(signals.lastEvent.startDate, "no")}.`);
-  } else if (dayEndsLate && signals.lastEvent) {
-    parts.push(
-      `Siste møte går sent — kl. ${formatTime(signals.lastEvent.startDate, "no")}.`,
-    );
+    parts.push(`Ferdig med møter rundt kl. ${formatTime(signals.lastEvent.startDate, "no")}.`);
+  } else if (dayEndsLate) {
+    parts.push("Møter etter arbeidstid i dag — litt lengre dag.");
   }
 
   // Evening personal activity

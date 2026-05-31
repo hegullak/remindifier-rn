@@ -84,16 +84,18 @@ describe("buildEveningWindDown", () => {
       expect(result.pillText).toContain("møter");
     });
 
-    it("pillText includes 'fri fra 17:00' when free evening (no)", () => {
+    it("pillText shows meeting count when free evening (no)", () => {
       const events = [makeEvent("e1", 9, 0, false, "Jobb")];
       const result = buildEveningWindDown(events, [], "no");
-      expect(result.pillText).toContain("fri fra 17:00");
+      expect(result.pillText).toContain("møte");
+      expect(result.pillText).not.toContain("fri fra 17:00");
     });
 
-    it("pillText includes 'free from 17:00' when free evening (en)", () => {
+    it("pillText shows meeting count when free evening (en)", () => {
       const events = [makeEvent("e1", 9, 0)];
       const result = buildEveningWindDown(events, [], "en");
-      expect(result.pillText).toContain("free from 17:00");
+      expect(result.pillText).toContain("meeting");
+      expect(result.pillText).not.toContain("free from 17:00");
     });
 
     it("pillText shows evening activity when not free evening (no)", () => {
@@ -108,16 +110,19 @@ describe("buildEveningWindDown", () => {
   });
 
   describe("free evening detection", () => {
-    it("detects free evening when no events at 17:00 or later (no)", () => {
+    it("free evening: body does NOT say 'fri fra 17' when no personal events (no)", () => {
       const events = [makeEvent("e1", 9, 0, false, "Jobb"), makeEvent("e2", 14, 0, false, "Jobb")];
       const result = buildEveningWindDown(events, [], "no");
-      expect(result.body).toContain("Fri tid fra kl. 17:00");
+      // Work ends at 17 by default — free evening is implied, not stated
+      expect(result.body).not.toContain("Fri tid fra kl. 17:00");
     });
 
-    it("detects free evening when no events at 17:00 or later (en)", () => {
+    it("free evening: body shows weekend preview instead (en)", () => {
       const events = [makeEvent("e1", 9, 0)];
       const result = buildEveningWindDown(events, [], "en");
-      expect(result.body).toContain("Free from 17:00");
+      // No "free from" message, just weekend status
+      expect(result.body).not.toContain("Free from 17:00");
+      expect(result.body).toContain("weekend");
     });
 
     it("does NOT show free evening when there is an event at 19:30 (no)", () => {

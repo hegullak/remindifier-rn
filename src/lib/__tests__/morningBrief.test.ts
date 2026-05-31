@@ -158,31 +158,31 @@ describe("buildMorningBrief", () => {
     });
   });
 
-  describe("dayEndsEarly — last event before 15:00", () => {
-    it("detects dayEndsEarly when last timed event starts before 15:00 (no)", () => {
-      const events = [makeEvent("e1", 9, 0), makeEvent("e2", 11, 0)];
+  describe("dayEndsEarly — last WORK event before 15:00", () => {
+    it("detects dayEndsEarly when last work event starts before 15:00 (no)", () => {
+      const events = [makeEvent("e1", 9, 0, false, "Jobb"), makeEvent("e2", 11, 0, false, "Jobb")];
       const result = buildMorningBrief(events, [], "no");
       expect(result.headline).toBe("Dagen avsluttes tidlig.");
     });
 
-    it("detects dayEndsEarly for single event at 9:00 (en)", () => {
-      const events = [makeEvent("e1", 9, 0)];
+    it("detects dayEndsEarly for single work event at 9:00 (en)", () => {
+      const events = [makeEvent("e1", 9, 0, false, "Jobb")];
       const result = buildMorningBrief(events, [], "en");
       expect(result.headline).toBe("Day wraps up early.");
     });
   });
 
-  describe("dayEndsLate — last event at or after 17:00", () => {
-    it("detects dayEndsLate when last event is at 17:00 or later (no)", () => {
-      const events = [makeEvent("e1", 9, 0), makeEvent("e2", 17, 0)];
+  describe("dayEndsLate — work event at 17:00+ (overtime)", () => {
+    it("detects overtime when work event is at 17:00 (no)", () => {
+      const events = [makeEvent("e1", 9, 0, false, "Jobb"), makeEvent("e2", 17, 0, false, "Jobb")];
       const result = buildMorningBrief(events, [], "no");
-      expect(result.body).toContain("Siste møte går sent");
+      expect(result.body).toContain("Møter etter arbeidstid");
     });
 
-    it("detects dayEndsLate when last event is at 17:00 or later (en)", () => {
-      const events = [makeEvent("e1", 9, 0), makeEvent("e2", 18, 30)];
+    it("detects overtime when work event is at 18:30 (en)", () => {
+      const events = [makeEvent("e1", 9, 0, false, "Jobb"), makeEvent("e2", 18, 30, false, "Jobb")];
       const result = buildMorningBrief(events, [], "en");
-      expect(result.body).toContain("Last meeting runs until late");
+      expect(result.body).toContain("Meetings running past 17:00");
     });
   });
 

@@ -84,22 +84,27 @@ function analyseEvents(
   });
 
   const afternoonCalm = !timed.some((e) => e.startDate.getHours() >= 14);
-  const hasFreeEvening = !timed.some((e) => e.startDate.getHours() >= 17);
 
   const workEvents = timed.filter((e) => isWorkEvent(e));
   const personalEvents = timed.filter((e) => !isWorkEvent(e));
   const personalEventNames = personalEvents.map((e) => e.title).slice(0, 2);
 
-  const hasEveningActivity = timed.some((e) => e.startDate.getHours() >= 17);
-  const eveningActivities = timed
+  // Work hours 08-17. Free evening = no events (work OR personal) after 17:00.
+  // If there IS a personal event after 17, that's a named activity (football etc).
+  const hasEveningActivity = personalEvents.some((e) => e.startDate.getHours() >= 17);
+  const eveningActivities = personalEvents
     .filter((e) => e.startDate.getHours() >= 17)
     .map((e) => e.title);
+  // hasFreeEvening = no personal activities in 17-22 slot (work always ends at 17)
+  const hasFreeEvening = !hasEveningActivity;
 
-  // Weekend signals from weekEvents
+  // Weekend signals — show upcoming Saturday/Sunday events
   const saturday = weekEvents.filter((e) => getDayOfWeek(e.startDate) === 6 && !e.allDay);
   const sunday = weekEvents.filter((e) => getDayOfWeek(e.startDate) === 0 && !e.allDay);
   const hasWeekendEvents = saturday.length > 0 || sunday.length > 0;
-  const weekendSummary = buildWeekendSummary(saturday, sunday, locale);
+  const weekendSummary = hasWeekendEvents
+    ? buildWeekendSummary(saturday, sunday, locale)
+    : locale === "no" ? "Fri helg." : "Free weekend.";
 
   return {
     eventCount: events.length,
@@ -155,9 +160,7 @@ function buildEnglish(signals: WindDownSignals): EveningWindDownSummary {
     const countPart = meetingCount === 1 ? "1 meeting" : `${meetingCount} meetings`;
     pillParts = [`${countPart} · ${lunchPart}`];
   }
-  if (hasFreeEvening) {
-    pillParts.push("free from 17:00");
-  } else if (hasEveningActivity && eveningActivities[0] && signals.lastEvent) {
+  if (hasEveningActivity && eveningActivities[0] && signals.lastEvent) {
     pillParts.push(`${eveningActivities[0]} at ${formatTime(signals.lastEvent.startDate, "en")}`);
   }
   const pillText = pillParts.join(" · ");
@@ -191,20 +194,17 @@ function buildEnglish(signals: WindDownSignals): EveningWindDownSummary {
     parts.push("After 14:00 the day gets calmer.");
   }
 
-  if (hasFreeEvening) {
-    parts.push("Free from 17:00 — a good chance to train or wind down.");
-  } else if (hasEveningActivity && eveningActivities[0] && signals.lastEvent) {
-    const isPersonal = !isWorkEvent(signals.lastEvent);
-    if (isPersonal) {
-      parts.push(
-        `${eveningActivities[0]} at ${formatTime(signals.lastEvent.startDate, "en")}.`,
-      );
-    }
+  if (hasEveningActivity && eveningActivities[0] && signals.lastEvent) {
+    parts.push(
+      `${eveningActivities[0]} at ${formatTime(signals.lastEvent.startDate, "en")} in the evening.`,
+    );
   }
 
-  // Weekend preview
+  // Weekend preview — always show (free or busy)
   if (hasWeekendEvents) {
     parts.push(`This weekend: ${weekendSummary}`);
+  } else {
+    parts.push("Free weekend ahead.");
   }
 
   return {
@@ -253,9 +253,7 @@ function buildNorwegian(signals: WindDownSignals): EveningWindDownSummary {
     const countPart = meetingCount === 1 ? "1 møte" : `${meetingCount} møter`;
     pillParts = [`${countPart} · ${lunchPart}`];
   }
-  if (hasFreeEvening) {
-    pillParts.push("fri fra 17:00");
-  } else if (hasEveningActivity && eveningActivities[0] && signals.lastEvent) {
+  if (hasEveningActivity && eveningActivities[0] && signals.lastEvent) {
     pillParts.push(`${eveningActivities[0]} kl. ${formatTime(signals.lastEvent.startDate, "no")}`);
   }
   const pillText = pillParts.join(" · ");
@@ -289,20 +287,17 @@ function buildNorwegian(signals: WindDownSignals): EveningWindDownSummary {
     parts.push("Ettermiddagen er rolig fra kl. 14:00.");
   }
 
-  if (hasFreeEvening) {
-    parts.push("Fri tid fra kl. 17:00 — god mulighet for trening eller en rolig kveld.");
-  } else if (hasEveningActivity && eveningActivities[0] && signals.lastEvent) {
-    const isPersonal = !isWorkEvent(signals.lastEvent);
-    if (isPersonal) {
-      parts.push(
-        `${eveningActivities[0]} kl. ${formatTime(signals.lastEvent.startDate, "no")}.`,
-      );
-    }
+  if (hasEveningActivity && eveningActivities[0] && signals.lastEvent) {
+    parts.push(
+      `${eveningActivities[0]} kl. ${formatTime(signals.lastEvent.startDate, "no")} om kvelden.`,
+    );
   }
 
-  // Weekend preview
+  // Weekend preview — always show
   if (hasWeekendEvents) {
     parts.push(`Til helgen: ${weekendSummary}`);
+  } else {
+    parts.push("Fri helg i vente.");
   }
 
   return {
