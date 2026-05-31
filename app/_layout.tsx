@@ -1,5 +1,6 @@
 import "react-native-gesture-handler";
 import { ClerkLoaded, ClerkProvider } from "@clerk/clerk-expo";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import {
   DMSans_400Regular,
   DMSans_500Medium,
@@ -30,15 +31,17 @@ export default function RootLayout() {
   }
 
   return (
-    <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
-      <LanguageProvider>
-        <ThemeProvider>
-          <ClerkLoaded>
-            <RootStack />
-          </ClerkLoaded>
-        </ThemeProvider>
-      </LanguageProvider>
-    </ClerkProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
+        <LanguageProvider>
+          <ThemeProvider>
+            <ClerkLoaded>
+              <RootStack />
+            </ClerkLoaded>
+          </ThemeProvider>
+        </LanguageProvider>
+      </ClerkProvider>
+    </GestureHandlerRootView>
   );
 }
 
