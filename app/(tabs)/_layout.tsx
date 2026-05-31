@@ -2,8 +2,9 @@ import { getClerkInstance } from "@clerk/clerk-expo";
 import type { ExpoSQLiteDatabase } from "drizzle-orm/expo-sqlite";
 import { useMigrations } from "drizzle-orm/expo-sqlite/migrator";
 import { Redirect, Tabs } from "expo-router";
+import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { useEffect, useState } from "react";
-import { Text } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import { triggerSelection } from "@/lib/haptics";
 import { useBootstrapApp } from "@/bootstrap/useBootstrapApp";
 import migrations from "@/db/drizzle/migrations";
@@ -16,15 +17,77 @@ import { useTranslation } from "@/i18n";
 import { useAppTheme } from "@/theme/ThemeProvider";
 import { FatalScreen, LoadingScreen } from "@/ui/StartupScreens";
 
-function TabIcon({ emoji, focused }: { emoji: string; focused: boolean }) {
-  return <Text style={{ fontSize: 22, opacity: focused ? 1 : 0.42, lineHeight: 26 }}>{emoji}</Text>;
-}
+function FloatingTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
+  const { isDark } = useAppTheme();
 
-function TabLabel({ label, focused }: { label: string; focused: boolean }) {
   return (
-    <Text className={`text-[11px] font-bodySemi ${focused ? "text-accent" : "text-text3"}`}>
-      {label}
-    </Text>
+    <View
+      style={{
+        position: "absolute",
+        bottom: 20,
+        left: 60,
+        right: 60,
+        height: 60,
+        borderRadius: 30,
+        flexDirection: "row",
+        alignItems: "center",
+        backgroundColor: isDark ? "#222838" : "#F7F4EF",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: isDark ? 0.45 : 0.15,
+        shadowRadius: 16,
+        elevation: 10,
+      }}
+    >
+      {state.routes.map((route, index) => {
+        const { options } = descriptors[route.key];
+        const focused = state.index === index;
+        const accentColor = isDark ? "#7EB8D4" : "#C4784A";
+        const inactiveColor = isDark ? "#7A8CAD" : "#A89E90";
+
+        const emojis: Record<string, string> = {
+          brief: "☀️",
+          gather: "🌿",
+          people: "👤",
+          myself: "🪪",
+        };
+        const labels: Record<string, string> = {
+          brief: options.title ?? "brief",
+          gather: options.title ?? "events",
+          people: options.title ?? "people",
+          myself: options.title ?? "myself",
+        };
+
+        return (
+          <Pressable
+            key={route.key}
+            onPress={() => {
+              triggerSelection();
+              const event = navigation.emit({
+                type: "tabPress",
+                target: route.key,
+                canPreventDefault: true,
+              });
+              if (!focused && !event.defaultPrevented) {
+                navigation.navigate(route.name);
+              }
+            }}
+            style={{ flex: 1, alignItems: "center", justifyContent: "center", gap: 3 }}
+          >
+            <Text style={{ fontSize: 20, opacity: focused ? 1 : 0.4, lineHeight: 24 }}>
+              {emojis[route.name] ?? "●"}
+            </Text>
+            <Text style={{
+              fontSize: 10,
+              fontFamily: "DMSans_600SemiBold",
+              color: focused ? accentColor : inactiveColor,
+            }}>
+              {labels[route.name]}
+            </Text>
+          </Pressable>
+        );
+      })}
+    </View>
   );
 }
 
@@ -80,66 +143,13 @@ function TabsWithBootstrap({
 
   return (
     <Tabs
-      screenOptions={{
-        headerShown: false,
-        tabBarStyle: {
-          position: "absolute",
-          bottom: 20,
-          left: 70,
-          right: 70,
-          borderRadius: 32,
-          height: 60,
-          paddingBottom: 8,
-          paddingTop: 8,
-          backgroundColor: isDark ? "#222838" : "#F7F4EF",
-          borderTopWidth: 0,
-          shadowColor: "#000",
-          shadowOffset: { width: 0, height: 6 },
-          shadowOpacity: isDark ? 0.4 : 0.12,
-          shadowRadius: 16,
-          elevation: 10,
-        },
-        tabBarActiveTintColor: isDark ? "#7EB8D4" : "#C4784A",
-        tabBarInactiveTintColor: isDark ? "#7A8CAD" : "#A89E90",
-      }}
-      screenListeners={{
-        tabPress: () => {
-          triggerSelection();
-        },
-      }}
+      tabBar={(props) => <FloatingTabBar {...props} />}
+      screenOptions={{ headerShown: false }}
     >
-      <Tabs.Screen
-        name="brief"
-        options={{
-          title: "Brief",
-          tabBarIcon: ({ focused }) => <TabIcon emoji="☀️" focused={focused} />,
-          tabBarLabel: ({ focused }) => <TabLabel label={t("tabs.brief")} focused={focused} />,
-        }}
-      />
-      <Tabs.Screen
-        name="gather"
-        options={{
-          title: "Events",
-          tabBarIcon: ({ focused }) => <TabIcon emoji="🌿" focused={focused} />,
-          tabBarLabel: ({ focused }) => <TabLabel label={t("tabs.gather")} focused={focused} />,
-        }}
-      />
-      <Tabs.Screen
-        name="people"
-        options={{
-          title: "People",
-          tabBarIcon: ({ focused }) => <TabIcon emoji="👤" focused={focused} />,
-          tabBarLabel: ({ focused }) => <TabLabel label={t("tabs.people")} focused={focused} />,
-        }}
-      />
-      <Tabs.Screen
-        name="myself"
-        options={{
-          title: "Myself",
-          tabBarIcon: ({ focused }) => <TabIcon emoji="🪪" focused={focused} />,
-          tabBarLabel: ({ focused }) => <TabLabel label={t("tabs.myself")} focused={focused} />,
-        }}
-      />
+      <Tabs.Screen name="brief" options={{ title: t("tabs.brief") }} />
+      <Tabs.Screen name="gather" options={{ title: t("tabs.gather") }} />
+      <Tabs.Screen name="people" options={{ title: t("tabs.people") }} />
+      <Tabs.Screen name="myself" options={{ title: t("tabs.myself") }} />
     </Tabs>
   );
 }
