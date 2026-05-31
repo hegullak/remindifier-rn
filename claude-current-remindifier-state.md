@@ -13,7 +13,7 @@ Agent protocol: `.cursor/rules/session-handoff.mdc` · Skill: `.cursor/skills/pr
 
 - **Repo:** `https://github.com/hegullak/remindifier-rn`
 - **Active branch:** `sandbox`
-- **Latest commit:** `6f96b0e` — `docs: sync session state commit hash` (code fix: `0c40ed1` SecureStore DB key)
+- **Latest commit:** `42935b6` — `docs: session handoff — Expo Go working, voice intake clarified`
 - **Previous:** `1b95335` / `a10e9be` — dark screen startup hardening
 - **CI:** lint + typecheck + test:coverage (expected green)
 
@@ -94,6 +94,7 @@ Custom tokens: `text-2xs`, `text-3xs`, `text-body`, `text-body-lg`, `text-nav`. 
 ## Recent commits (newest first)
 
 ```
+42935b6 docs: session handoff — Expo Go working, voice intake clarified
 6f96b0e docs: sync session state commit hash
 0c40ed1 fix(db): SecureStore read/write use same keychain options
 4dfc00d docs: session handoff — sync commit hash, Expo Go startup status
