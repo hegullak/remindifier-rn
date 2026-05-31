@@ -13,7 +13,7 @@ Agent protocol: `.cursor/rules/session-handoff.mdc` · Skill: `.cursor/skills/pr
 
 - **Repo:** `https://github.com/hegullak/remindifier-rn`
 - **Active branch:** `sandbox`
-- **Latest commit:** `85a3aee` — `chore: session handoff 2026-05-31 — brief weather topline + greeting anchor`
+- **Latest commit:** `fefd756` — `docs: sync brief layout and NativeWind rules in PROJECT_MEMORY`
 - **CI:** lint + typecheck + test:coverage (expected green)
 
 ### Git workflow (user rule)
@@ -132,17 +132,12 @@ Current fallback: `rgba(34,40,56,0.15)` overlay on BlurView → looks solid unti
 ## Recent commits (newest first)
 
 ```
+fefd756 docs: sync brief layout and NativeWind rules in PROJECT_MEMORY
+85a3aee chore: session handoff 2026-05-31 — brief weather topline + greeting anchor
 8ecfc43 fix(brief): use NativeWind preset classes for greeting size and spacing
 a7a04e2 fix(brief): inline style padding around greeting to bypass NativeWind purge
 633c416 fix(brief): more breathing room around greeting (pt-6 pb-7)
 257b7b3 fix(brief): increase greeting to 48px to restore visual weight on single line
-b1853fd fix(brief): use inline style for greeting font size (NativeWind dynamic class issue)
-8b9d51f feat(brief): larger greeting as visual anchor (38px, more breathing room)
-a4558b5 fix(brief): center weather topline; fix isEmpty body line breaks
-c14901c fix(brief): weather back on own row above date nav; stronger blur on tab bar
-ea53659 feat(brief): weather + date nav on same row with emoji icons; blur tab bar
-e10b08e fix(brief): always show rain + add wind speed in weather topline
-2e745af fix(brief): use newline separator in body to fix sentence splitting on abbreviations
 ff97611 feat(brief): compact weather topline + single-line greeting + weather bottom sheet
 ```
 
@@ -186,12 +181,23 @@ ff97611 feat(brief): compact weather topline + single-line greeting + weather bo
 
 ## What Was Done (this session — 2026-05-31)
 
-1. **Weather topline** — moved vær from full card to compact centered topline above date nav
-2. **Weather BottomSheet** — tap topline → sheet with 48px temp, description, details grid, 🏃 run flag
-3. **Greeting as visual anchor** — single line `text-5xl`, pt-6 pb-8 breathing room
-4. **Brief body formatting** — fixed sentence splitting: `"\n"` separator, split on `"\n"` in renderer
-5. **Tab bar blur** — installed expo-blur, BlurView wired up (inactive until dev client rebuild)
-6. **NativeWind lesson** — preset classes only; arbitrary bracket values unreliable without safelist
+### Brief screen (`app/(tabs)/brief.tsx`)
+
+1. **Weather topline** — compact centered row above date nav (`⛅ 12° 🌧️ 0mm 💨 3km/h ›`); tap → BottomSheet with full details
+2. **Weather section** in `sectionOrder` returns `null` (no full card)
+3. **Greeting anchor** — single line `God kveld, Henning.` · `text-5xl` · `pt-6 pb-8`
+4. **Body formatting** — `"\n"` sentence separator; renderer splits on `"\n"` (fixes «kl. 09:00» splitting)
+5. **Tab bar blur** — `expo-blur` installed; inactive until new dev client build
+6. **NativeWind** — preset classes only; arbitrary `text-[Xpx]` unreliable; inline style last resort
+
+### Docs / handoff
+
+7. **`PROJECT_MEMORY.md`** — brief layout, body newline rule, NativeWind conventions, tab bar blur note
+8. **Session continuity** — `git pull --rebase`; state file synced; next candidates: #50, #53, #54
+
+### Parked
+
+- Brief **blikkfang** / visual hero — no kicker found yet
 
 ---
 
