@@ -14,6 +14,7 @@ import { localizeGatheringTitle } from "@/lib/gatherings/localizeGathering";
 import { anniversaryMilestoneDetail } from "@/lib/milestones/anniversaries";
 import type { UpcomingRedLetterDay } from "@/lib/timeline/red-letter-days";
 import { buildEveningWindDown } from "@/lib/brief/eveningWindDown";
+import { buildMorningBrief } from "@/lib/brief/morningBrief";
 import { AppShell } from "@/ui/AppShell";
 import { BottomSheet } from "@/ui/BottomSheet";
 import { BriefCard } from "@/ui/BriefCard";
@@ -34,8 +35,11 @@ export default function BriefScreen() {
     shiftWeek,
     resetWeek,
   } = useBriefData(userId);
-  const windDown = buildEveningWindDown(brief.tomorrowEvents, locale);
+  const morningBrief = buildMorningBrief(brief.todayEvents ?? [], locale);
+  const windDown = buildEveningWindDown(brief.tomorrowEvents ?? [], locale);
   const [weatherExpanded, setWeatherExpanded] = useState(false);
+  const [showMorningBrief, setShowMorningBrief] = useState(false);
+  const [showEveningWindDown, setShowEveningWindDown] = useState(false);
   const [anniversaryDetail, setAnniversaryDetail] = useState<{
     personName: string;
     years: number;
@@ -268,35 +272,6 @@ export default function BriefScreen() {
               </BriefCard>
             </View>
           );
-        case "evening_wind_down":
-          if (weekOffset !== 0) return null;
-          return (
-            <View>
-              <SectionLabel>{t(briefSectionLabelKey(sectionId))}</SectionLabel>
-              <BriefCard stripeColor="dusk">
-                {!windDown.available ? (
-                  <Text className="text-[13px] text-text3 font-body">
-                    {t("brief.eveningWindDown.unavailable")}
-                  </Text>
-                ) : windDown.isEmpty ? (
-                  <Text className="text-[13px] text-text3 font-body">
-                    {t("brief.eveningWindDown.tomorrowEmpty")}
-                  </Text>
-                ) : (
-                  <View>
-                    <Text className="text-[16px] text-text1 font-heading leading-[22px]">
-                      {windDown.headline}
-                    </Text>
-                    {windDown.body ? (
-                      <Text className="text-[14px] text-text2 font-body mt-2 leading-[20px]">
-                        {windDown.body}
-                      </Text>
-                    ) : null}
-                  </View>
-                )}
-              </BriefCard>
-            </View>
-          );
         default:
           return null;
       }
@@ -310,14 +285,63 @@ export default function BriefScreen() {
       upcomingRedLetters,
       weatherExpanded,
       weekOffset,
-      windDown,
       locale,
       t,
     ],
   );
 
+  const morningPillText = morningBrief.available
+    ? morningBrief.isEmpty
+      ? t("brief.morningBrief.pillEmpty")
+      : morningBrief.pillText
+    : t("brief.morningBrief.pillUnavailable");
+
+  const eveningPillText = !windDown.available
+    ? t("brief.eveningWindDown.pillUnavailable")
+    : windDown.isEmpty
+      ? t("brief.eveningWindDown.pillEmpty")
+      : windDown.headline;
+
   const listHeader = (
     <View className="pb-2">
+      <View className="flex-row gap-2 mb-3">
+        <Pressable
+          onPress={() => setShowMorningBrief(true)}
+          className="flex-1 active:opacity-70"
+          accessibilityRole="button"
+        >
+          <View className="bg-card border border-border rounded-[18px] px-4 py-3 flex-row items-center justify-between">
+            <View className="flex-1 mr-2">
+              <Text className="text-[10px] uppercase tracking-[1.5px] text-text3 font-bodySemi">
+                {t("brief.morningBrief.sectionLabel")}
+              </Text>
+              <Text className="text-[14px] text-text1 font-bodyMedium mt-0.5" numberOfLines={1}>
+                {morningPillText}
+              </Text>
+            </View>
+            <Text className="text-[18px] text-text3 font-body">›</Text>
+          </View>
+        </Pressable>
+
+        <Pressable
+          onPress={() => setShowEveningWindDown(true)}
+          className="flex-1 active:opacity-70"
+          accessibilityRole="button"
+        >
+          <View className="bg-card border border-border rounded-[18px] px-4 py-3 flex-row items-center justify-between">
+            <View className="flex-1 mr-2">
+              <Text className="text-[10px] uppercase tracking-[1.5px] text-text3 font-bodySemi">
+                {t("brief.eveningWindDown.sectionLabel")}
+              </Text>
+              <Text className="text-[14px] text-text1 font-bodyMedium mt-0.5" numberOfLines={1}>
+                {eveningPillText}
+              </Text>
+            </View>
+            <Text className="text-[18px] text-text3 font-body">›</Text>
+          </View>
+        </Pressable>
+      </View>
+
       <View className="flex-row items-center justify-center gap-4 mb-2">
         <Pressable
           onPress={() => shiftWeek(-1)}
@@ -374,6 +398,24 @@ export default function BriefScreen() {
           </View>
         ))}
       </ScrollView>
+
+      <BottomSheet
+        visible={showMorningBrief}
+        onDismiss={() => setShowMorningBrief(false)}
+        title={t("brief.morningBrief.sectionLabel")}
+      >
+        <Text className="text-[18px] text-text1 font-heading mb-3">{morningBrief.headline}</Text>
+        <Text className="text-[15px] text-text2 font-body leading-[22px]">{morningBrief.body}</Text>
+      </BottomSheet>
+
+      <BottomSheet
+        visible={showEveningWindDown}
+        onDismiss={() => setShowEveningWindDown(false)}
+        title={t("brief.eveningWindDown.sectionLabel")}
+      >
+        <Text className="text-[18px] text-text1 font-heading mb-3">{windDown.headline}</Text>
+        <Text className="text-[15px] text-text2 font-body leading-[22px]">{windDown.body}</Text>
+      </BottomSheet>
 
       <BottomSheet
         visible={anniversaryDetail !== null}

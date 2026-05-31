@@ -127,6 +127,13 @@ export const en = {
       sectionLabel: "WIND-DOWN",
       tomorrowEmpty: "Tomorrow looks open. Nothing major on the calendar.",
       unavailable: "Calendar data unavailable.",
+      pillEmpty: "Open day tomorrow",
+      pillUnavailable: "Calendar unavailable",
+    },
+    morningBrief: {
+      sectionLabel: "TODAY",
+      pillEmpty: "Open day",
+      pillUnavailable: "Calendar unavailable",
     },
     calendar: {
       today: "Today",

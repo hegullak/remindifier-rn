@@ -17,7 +17,6 @@ describe("normalizeBriefSectionOrder", () => {
       "weather",
       "headsup",
       "training",
-      "evening_wind_down",
     ];
     expect(normalizeBriefSectionOrder(custom)).toEqual(custom);
   });

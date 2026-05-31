@@ -38,6 +38,7 @@ interface BriefState {
     gatheringId: string | null;
   }[];
   calendarEvents: (CalendarBriefEvent & { gatheringId: string | null })[];
+  todayEvents: CalendarBriefEvent[];
   tomorrowEvents: CalendarBriefEvent[];
   redLetterDays: UpcomingRedLetterDay[];
   sectionOrder: BriefSectionId[];
@@ -56,6 +57,7 @@ const initialState: BriefState = {
   weather: initialWeather,
   schedule: [],
   calendarEvents: [],
+  todayEvents: [],
   tomorrowEvents: [],
   redLetterDays: [],
   sectionOrder: DEFAULT_BRIEF_SECTION_ORDER,
@@ -108,6 +110,11 @@ export function useBriefData(userId: string | null | undefined) {
     tomorrowStart.setDate(tomorrowStart.getDate() + 1);
     const tomorrowEnd = new Date(tomorrowStart);
     tomorrowEnd.setDate(tomorrowEnd.getDate() + 1);
+    const todayEnd = new Date(todayStart);
+    todayEnd.setHours(23, 59, 59, 999);
+    const todayEvents = calendarEvents.filter(
+      (e) => e.startDate >= todayStart && e.startDate <= todayEnd,
+    );
     const tomorrowEvents = calendarEvents.filter(
       (e) => e.startDate >= tomorrowStart && e.startDate < tomorrowEnd,
     );
@@ -116,6 +123,7 @@ export function useBriefData(userId: string | null | undefined) {
       ...prev,
       schedule,
       calendarEvents: calendarLinked,
+      todayEvents,
       tomorrowEvents,
       redLetterDays,
       sectionOrder,

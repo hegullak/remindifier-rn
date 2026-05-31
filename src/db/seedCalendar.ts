@@ -10,6 +10,57 @@ function daysFromToday(days: number): Date {
   return d;
 }
 
+function todayAt(hour: number, minute: number): Date {
+  const d = new Date();
+  d.setHours(hour, minute, 0, 0);
+  return d;
+}
+
+type SeedEventBase = {
+  key: string;
+  title: string;
+  notes: string;
+  allDay: boolean;
+};
+
+type NextFridayEvent = SeedEventBase & {
+  nextFriday: true;
+  durationHours: number;
+};
+
+type OffsetAllDayEvent = SeedEventBase & {
+  offsetDays: number;
+  allDay: true;
+};
+
+type OffsetTimedEvent = SeedEventBase & {
+  offsetDays: number;
+  allDay: false;
+  durationHours: number;
+};
+
+type FixedTimeEvent = SeedEventBase & {
+  fixedHour: number;
+  fixedMinute: number;
+  durationMinutes: number;
+  allDay: false;
+};
+
+type OffsetFixedTimeEvent = SeedEventBase & {
+  offsetDays: number;
+  fixedHour: number;
+  fixedMinute: number;
+  durationMinutes: number;
+  allDay: false;
+};
+
+type SeedEvent =
+  | NextFridayEvent
+  | OffsetAllDayEvent
+  | OffsetTimedEvent
+  | FixedTimeEvent
+  | OffsetFixedTimeEvent;
+
 function nextWeekday(weekday: number): Date {
   // weekday: 0=Sun, 1=Mon, ..., 5=Fri, 6=Sat
   const d = new Date();
@@ -19,7 +70,7 @@ function nextWeekday(weekday: number): Date {
   return d;
 }
 
-const SEED_EVENTS = [
+const SEED_EVENTS: SeedEvent[] = [
   {
     key: "visit-ivan",
     title: "Helgebesøk Ivan 🏡",
@@ -65,7 +116,116 @@ const SEED_EVENTS = [
     allDay: true,
     offsetDays: 12,
   },
-] as const;
+  // Today — work meetings
+  {
+    key: "today-standup",
+    title: "Standup",
+    notes: "",
+    allDay: false,
+    fixedHour: 9,
+    fixedMinute: 0,
+    durationMinutes: 15,
+  },
+  {
+    key: "today-1on1",
+    title: "1:1 med leder",
+    notes: "",
+    allDay: false,
+    fixedHour: 10,
+    fixedMinute: 30,
+    durationMinutes: 45,
+  },
+  {
+    key: "today-produktgjennomgang",
+    title: "Produktgjennomgang",
+    notes: "",
+    allDay: false,
+    fixedHour: 13,
+    fixedMinute: 0,
+    durationMinutes: 45,
+  },
+  {
+    key: "today-ukesavslutning",
+    title: "Ukesavslutning",
+    notes: "",
+    allDay: false,
+    fixedHour: 16,
+    fixedMinute: 0,
+    durationMinutes: 30,
+  },
+  // Tomorrow — work meetings
+  {
+    key: "tomorrow-morgenmote",
+    title: "Morgenmøte",
+    notes: "",
+    allDay: false,
+    offsetDays: 1,
+    fixedHour: 8,
+    fixedMinute: 30,
+    durationMinutes: 30,
+  },
+  {
+    key: "tomorrow-standup",
+    title: "Standup",
+    notes: "",
+    allDay: false,
+    offsetDays: 1,
+    fixedHour: 9,
+    fixedMinute: 30,
+    durationMinutes: 30,
+  },
+  {
+    key: "tomorrow-designgjennomgang",
+    title: "Designgjennomgang",
+    notes: "",
+    allDay: false,
+    offsetDays: 1,
+    fixedHour: 11,
+    fixedMinute: 0,
+    durationMinutes: 60,
+  },
+  {
+    key: "tomorrow-klientmote",
+    title: "Klientmøte",
+    notes: "",
+    allDay: false,
+    offsetDays: 1,
+    fixedHour: 14,
+    fixedMinute: 0,
+    durationMinutes: 60,
+  },
+  {
+    key: "tomorrow-oppfolging",
+    title: "Oppfølging prosjekt",
+    notes: "",
+    allDay: false,
+    offsetDays: 1,
+    fixedHour: 15,
+    fixedMinute: 30,
+    durationMinutes: 30,
+  },
+  // Day after tomorrow — light day
+  {
+    key: "day2-standup",
+    title: "Standup",
+    notes: "",
+    allDay: false,
+    offsetDays: 2,
+    fixedHour: 10,
+    fixedMinute: 0,
+    durationMinutes: 30,
+  },
+  {
+    key: "day2-planlegging",
+    title: "Planleggingsmøte",
+    notes: "",
+    allDay: false,
+    offsetDays: 2,
+    fixedHour: 15,
+    fixedMinute: 0,
+    durationMinutes: 60,
+  },
+];
 
 async function findOrCreateSeedCalendar(): Promise<string> {
   const calendars = await Calendar.getCalendarsAsync(Calendar.EntityTypes.EVENT);
@@ -101,8 +261,16 @@ async function clearSeedEvents(calendarId: string): Promise<number> {
 async function createSeedEvents(calendarId: string) {
   for (const event of SEED_EVENTS) {
     let startDate: Date;
+
     if ("nextFriday" in event) {
       startDate = nextWeekday(5);
+    } else if ("offsetDays" in event && "fixedHour" in event) {
+      // Specific offset day at a specific time
+      startDate = daysFromToday(event.offsetDays);
+      startDate.setHours(event.fixedHour, event.fixedMinute, 0, 0);
+    } else if ("fixedHour" in event) {
+      // Today at a specific time
+      startDate = todayAt(event.fixedHour, event.fixedMinute);
     } else if ("offsetDays" in event) {
       startDate = daysFromToday(event.offsetDays);
     } else {
@@ -112,6 +280,8 @@ async function createSeedEvents(calendarId: string) {
     const endDate = new Date(startDate);
     if (event.allDay) {
       endDate.setDate(endDate.getDate() + 1);
+    } else if ("durationMinutes" in event) {
+      endDate.setMinutes(endDate.getMinutes() + event.durationMinutes);
     } else if ("durationHours" in event) {
       endDate.setHours(endDate.getHours() + event.durationHours);
     }
@@ -144,7 +314,7 @@ export async function seedDevCalendar(): Promise<SeedCalendarResult> {
     const calendarId = await findOrCreateSeedCalendar();
     const removed = await clearSeedEvents(calendarId);
     await createSeedEvents(calendarId);
-    const created = SEED_EVENTS.length;
+    const created = SEED_EVENTS.length as number;
     logger.info("seed_calendar_refreshed", { calendarId, removed, created });
     return { ok: true, removed, created };
   } catch (err) {

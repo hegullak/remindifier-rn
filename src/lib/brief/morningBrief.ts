@@ -1,0 +1,209 @@
+import type { CalendarBriefEvent } from "@/lib/brief/calendarEvents";
+
+export type MorningBriefSummary = {
+  available: boolean;
+  isEmpty: boolean;
+  pillText: string;
+  headline: string;
+  body: string;
+};
+
+type MorningSignals = {
+  eventCount: number;
+  firstEvent: CalendarBriefEvent | null;
+  lastEvent: CalendarBriefEvent | null;
+  hasLunchFree: boolean;
+  hasMorningBusy: boolean;
+  dayEndsEarly: boolean;
+  dayEndsLate: boolean;
+};
+
+function formatTime(date: Date, locale: "en" | "no"): string {
+  return date.toLocaleTimeString(locale === "no" ? "nb-NO" : "en-GB", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function analyseEvents(events: CalendarBriefEvent[]): MorningSignals {
+  const timed = events.filter((e) => !e.allDay);
+
+  const firstEvent = timed.length > 0 ? timed[0] : null;
+  const lastEvent = timed.length > 0 ? timed[timed.length - 1] : null;
+
+  const eventsBeforeNoon = timed.filter((e) => e.startDate.getHours() < 12);
+  const hasMorningBusy = eventsBeforeNoon.length >= 3;
+
+  const lunchStart = 11 * 60 + 30; // 11:30
+  const lunchEnd = 13 * 60 + 30; // 13:30
+  const hasLunchFree = !timed.some((e) => {
+    const mins = e.startDate.getHours() * 60 + e.startDate.getMinutes();
+    return mins >= lunchStart && mins <= lunchEnd;
+  });
+
+  const lastEndHour = lastEvent
+    ? lastEvent.startDate.getHours() + (lastEvent.startDate.getMinutes() > 0 ? 1 : 0)
+    : 0;
+  const dayEndsEarly = lastEvent !== null && lastEndHour < 15;
+  const dayEndsLate = lastEvent !== null && lastEvent.startDate.getHours() >= 17;
+
+  return {
+    eventCount: events.length,
+    firstEvent,
+    lastEvent,
+    hasLunchFree,
+    hasMorningBusy,
+    dayEndsEarly,
+    dayEndsLate,
+  };
+}
+
+function buildEnglish(signals: MorningSignals): MorningBriefSummary {
+  const { eventCount, firstEvent, hasMorningBusy, hasLunchFree, dayEndsEarly, dayEndsLate } =
+    signals;
+
+  if (eventCount === 0) {
+    return {
+      available: true,
+      isEmpty: true,
+      pillText: "Open day",
+      headline: "An open day ahead.",
+      body: "Nothing on the calendar. The day is yours.",
+    };
+  }
+
+  // pillText
+  const lunchPart = hasLunchFree ? " · lunch free" : "";
+  const countPart = eventCount === 1 ? "1 meeting" : `${eventCount} meetings`;
+  const busyPart = hasMorningBusy ? "Busy day" : null;
+  const pillText = busyPart ? `${busyPart} · ${eventCount} meetings` : `${countPart}${lunchPart}`;
+
+  // headline
+  let headline: string;
+  if (hasMorningBusy && dayEndsLate) {
+    headline = "A full day ahead.";
+  } else if (hasMorningBusy) {
+    headline = "A busy morning ahead.";
+  } else if (dayEndsEarly) {
+    headline = "Day wraps up early.";
+  } else if (eventCount <= 2) {
+    headline = "A calm day ahead.";
+  } else {
+    headline = "Day looks manageable.";
+  }
+
+  // body
+  const parts: string[] = [];
+
+  if (firstEvent) {
+    parts.push(`First meeting at ${formatTime(firstEvent.startDate, "en")}.`);
+  }
+
+  if (hasMorningBusy) {
+    parts.push("The morning is fairly packed.");
+  }
+
+  if (hasLunchFree) {
+    parts.push("Lunch looks free.");
+  }
+
+  if (dayEndsEarly && signals.lastEvent) {
+    parts.push(`Day wraps up around ${formatTime(signals.lastEvent.startDate, "en")}.`);
+  } else if (dayEndsLate && signals.lastEvent) {
+    parts.push(`Last meeting runs until late — ${formatTime(signals.lastEvent.startDate, "en")}.`);
+  }
+
+  return {
+    available: true,
+    isEmpty: false,
+    pillText,
+    headline,
+    body: parts.join(" "),
+  };
+}
+
+function buildNorwegian(signals: MorningSignals): MorningBriefSummary {
+  const { eventCount, firstEvent, hasMorningBusy, hasLunchFree, dayEndsEarly, dayEndsLate } =
+    signals;
+
+  if (eventCount === 0) {
+    return {
+      available: true,
+      isEmpty: true,
+      pillText: "Åpen dag",
+      headline: "En åpen dag venter.",
+      body: "Ingenting på programmet. En åpen dag.",
+    };
+  }
+
+  // pillText
+  const lunchPart = hasLunchFree ? " · lunsj fri" : "";
+  const countPart = eventCount === 1 ? "1 møte" : `${eventCount} møter`;
+  const busyPart = hasMorningBusy ? "Travel dag" : null;
+  const pillText = busyPart
+    ? `${busyPart} · ${eventCount} møter`
+    : `${countPart}${lunchPart}`;
+
+  // headline
+  let headline: string;
+  if (hasMorningBusy && dayEndsLate) {
+    headline = "En travel dag venter.";
+  } else if (hasMorningBusy) {
+    headline = "Travel formiddag i vente.";
+  } else if (dayEndsEarly) {
+    headline = "Dagen avsluttes tidlig.";
+  } else if (eventCount <= 2) {
+    headline = "En rolig dag venter.";
+  } else {
+    headline = "Dagen ser overkommelig ut.";
+  }
+
+  // body
+  const parts: string[] = [];
+
+  if (firstEvent) {
+    parts.push(`Første møte er kl. ${formatTime(firstEvent.startDate, "no")}.`);
+  }
+
+  if (hasMorningBusy) {
+    parts.push("Formiddagen er ganske full.");
+  }
+
+  if (hasLunchFree) {
+    parts.push("Lunsj ser fri ut.");
+  }
+
+  if (dayEndsEarly && signals.lastEvent) {
+    parts.push(`Dagen avsluttes rundt kl. ${formatTime(signals.lastEvent.startDate, "no")}.`);
+  } else if (dayEndsLate && signals.lastEvent) {
+    parts.push(
+      `Siste møte går sent — kl. ${formatTime(signals.lastEvent.startDate, "no")}.`,
+    );
+  }
+
+  return {
+    available: true,
+    isEmpty: false,
+    pillText,
+    headline,
+    body: parts.join(" "),
+  };
+}
+
+export function buildMorningBrief(
+  todayEvents: CalendarBriefEvent[],
+  locale: "en" | "no",
+): MorningBriefSummary {
+  const signals = analyseEvents(todayEvents);
+  return locale === "no" ? buildNorwegian(signals) : buildEnglish(signals);
+}
+
+export function buildMorningBriefUnavailable(locale: "en" | "no"): MorningBriefSummary {
+  return {
+    available: false,
+    isEmpty: false,
+    pillText: locale === "no" ? "Kalender utilgjengelig" : "Calendar unavailable",
+    headline: locale === "no" ? "Kalenderdata utilgjengelig." : "Calendar data unavailable.",
+    body: "",
+  };
+}

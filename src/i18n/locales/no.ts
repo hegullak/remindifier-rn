@@ -129,6 +129,13 @@ export const no = {
       sectionLabel: "KVELDEN",
       tomorrowEmpty: "I morgen ser åpent ut. Ingenting på kalenderen.",
       unavailable: "Kalenderdata utilgjengelig.",
+      pillEmpty: "Åpen dag i morgen",
+      pillUnavailable: "Kalenderdata utilgjengelig",
+    },
+    morningBrief: {
+      sectionLabel: "I DAG",
+      pillEmpty: "Åpen dag",
+      pillUnavailable: "Kalender utilgjengelig",
     },
     calendar: {
       today: "I dag",
