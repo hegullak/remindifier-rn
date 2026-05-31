@@ -85,8 +85,8 @@ function TabsWithBootstrap({
         tabBarStyle: {
           position: "absolute",
           bottom: 20,
-          left: 40,
-          right: 40,
+          left: 70,
+          right: 70,
           borderRadius: 32,
           height: 60,
           paddingBottom: 8,
