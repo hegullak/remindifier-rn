@@ -25,8 +25,8 @@ function FloatingTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
       style={{
         position: "absolute",
         bottom: 20,
-        left: 60,
-        right: 60,
+        left: 33,
+        right: 33,
         height: 60,
         borderRadius: 30,
         flexDirection: "row",
