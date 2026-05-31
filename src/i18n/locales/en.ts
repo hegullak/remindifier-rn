@@ -121,6 +121,12 @@ export const en = {
       headsup: "Heads up this week",
       training: "Today's training",
       redLetter: "Red-letter days this week",
+      eveningWindDown: "WIND-DOWN",
+    },
+    eveningWindDown: {
+      sectionLabel: "WIND-DOWN",
+      tomorrowEmpty: "Tomorrow looks open. Nothing major on the calendar.",
+      unavailable: "Calendar data unavailable.",
     },
     calendar: {
       today: "Today",

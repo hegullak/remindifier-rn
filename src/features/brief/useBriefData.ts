@@ -14,6 +14,7 @@ import type { Locale } from "@/i18n/types";
 import {
   type CalendarBriefEvent,
   fetchCalendarBriefEvents,
+  startOfToday,
 } from "@/lib/brief/calendarEvents";
 import {
   enrichCalendarWithGatheringIds,
@@ -37,6 +38,7 @@ interface BriefState {
     gatheringId: string | null;
   }[];
   calendarEvents: (CalendarBriefEvent & { gatheringId: string | null })[];
+  tomorrowEvents: CalendarBriefEvent[];
   redLetterDays: UpcomingRedLetterDay[];
   sectionOrder: BriefSectionId[];
 }
@@ -54,6 +56,7 @@ const initialState: BriefState = {
   weather: initialWeather,
   schedule: [],
   calendarEvents: [],
+  tomorrowEvents: [],
   redLetterDays: [],
   sectionOrder: DEFAULT_BRIEF_SECTION_ORDER,
 };
@@ -99,10 +102,21 @@ export function useBriefData(userId: string | null | undefined) {
     const scheduleLocalized = scheduleRaw.map((item) => localizeScheduleItem(item, locale));
     const schedule = enrichScheduleWithGatheringIds(scheduleLocalized, gatherings, locale);
     const calendarLinked = enrichCalendarWithGatheringIds(calendarEvents, gatherings, locale);
+
+    const todayStart = startOfToday();
+    const tomorrowStart = new Date(todayStart);
+    tomorrowStart.setDate(tomorrowStart.getDate() + 1);
+    const tomorrowEnd = new Date(tomorrowStart);
+    tomorrowEnd.setDate(tomorrowEnd.getDate() + 1);
+    const tomorrowEvents = calendarEvents.filter(
+      (e) => e.startDate >= tomorrowStart && e.startDate < tomorrowEnd,
+    );
+
     setBrief((prev) => ({
       ...prev,
       schedule,
       calendarEvents: calendarLinked,
+      tomorrowEvents,
       redLetterDays,
       sectionOrder,
       weather,

@@ -123,6 +123,12 @@ export const no = {
       headsup: "Ting å huske denne uken",
       training: "Dagens trening",
       redLetter: "Merkedager denne uken",
+      eveningWindDown: "KVELDEN",
+    },
+    eveningWindDown: {
+      sectionLabel: "KVELDEN",
+      tomorrowEmpty: "I morgen ser åpent ut. Ingenting på kalenderen.",
+      unavailable: "Kalenderdata utilgjengelig.",
     },
     calendar: {
       today: "I dag",

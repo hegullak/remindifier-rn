@@ -13,6 +13,7 @@ import { briefGatheringHref } from "@/lib/gatherings/briefLinks";
 import { localizeGatheringTitle } from "@/lib/gatherings/localizeGathering";
 import { anniversaryMilestoneDetail } from "@/lib/milestones/anniversaries";
 import type { UpcomingRedLetterDay } from "@/lib/timeline/red-letter-days";
+import { buildEveningWindDown } from "@/lib/brief/eveningWindDown";
 import { AppShell } from "@/ui/AppShell";
 import { BottomSheet } from "@/ui/BottomSheet";
 import { BriefCard } from "@/ui/BriefCard";
@@ -33,6 +34,7 @@ export default function BriefScreen() {
     shiftWeek,
     resetWeek,
   } = useBriefData(userId);
+  const windDown = buildEveningWindDown(brief.tomorrowEvents, locale);
   const [weatherExpanded, setWeatherExpanded] = useState(false);
   const [anniversaryDetail, setAnniversaryDetail] = useState<{
     personName: string;
@@ -266,6 +268,35 @@ export default function BriefScreen() {
               </BriefCard>
             </View>
           );
+        case "evening_wind_down":
+          if (weekOffset !== 0) return null;
+          return (
+            <View>
+              <SectionLabel>{t(briefSectionLabelKey(sectionId))}</SectionLabel>
+              <BriefCard stripeColor="dusk">
+                {!windDown.available ? (
+                  <Text className="text-[13px] text-text3 font-body">
+                    {t("brief.eveningWindDown.unavailable")}
+                  </Text>
+                ) : windDown.isEmpty ? (
+                  <Text className="text-[13px] text-text3 font-body">
+                    {t("brief.eveningWindDown.tomorrowEmpty")}
+                  </Text>
+                ) : (
+                  <View>
+                    <Text className="text-[16px] text-text1 font-heading leading-[22px]">
+                      {windDown.headline}
+                    </Text>
+                    {windDown.body ? (
+                      <Text className="text-[14px] text-text2 font-body mt-2 leading-[20px]">
+                        {windDown.body}
+                      </Text>
+                    ) : null}
+                  </View>
+                )}
+              </BriefCard>
+            </View>
+          );
         default:
           return null;
       }
@@ -279,6 +310,7 @@ export default function BriefScreen() {
       upcomingRedLetters,
       weatherExpanded,
       weekOffset,
+      windDown,
       locale,
       t,
     ],

@@ -9,4 +9,8 @@ describe("briefSectionLabelKey", () => {
     expect(briefSectionLabelKey("weather")).toBe("brief.sections.weather");
     expect(briefSectionLabelKey("training")).toBe("brief.sections.training");
   });
+
+  it("maps evening_wind_down to brief.sections.eveningWindDown", () => {
+    expect(briefSectionLabelKey("evening_wind_down")).toBe("brief.sections.eveningWindDown");
+  });
 });

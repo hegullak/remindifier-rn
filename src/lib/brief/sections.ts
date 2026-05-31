@@ -5,6 +5,7 @@ export const BRIEF_SECTION_IDS = [
   "headsup",
   "training",
   "red_letter",
+  "evening_wind_down",
 ] as const;
 
 export type BriefSectionId = (typeof BRIEF_SECTION_IDS)[number];
@@ -16,6 +17,7 @@ export const DEFAULT_BRIEF_SECTION_ORDER: BriefSectionId[] = [
   "headsup",
   "red_letter",
   "training",
+  "evening_wind_down",
 ];
 
 export const BRIEF_SECTION_LABELS: Record<BriefSectionId, string> = {
@@ -25,6 +27,7 @@ export const BRIEF_SECTION_LABELS: Record<BriefSectionId, string> = {
   headsup: "Heads up this week",
   training: "Today's training",
   red_letter: "Red-letter days",
+  evening_wind_down: "Wind-down",
 };
 
 export function normalizeBriefSectionOrder(order: string[] | undefined): BriefSectionId[] {
