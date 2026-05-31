@@ -32,6 +32,7 @@ A contextual memory and heads-up assistant for the people in your life — not a
 | Route | Purpose |
 |-------|---------|
 | `app/(tabs)/brief.tsx` | Home — weather topline, greeting, pill cards, draggable sections |
+| `app/intake.tsx` | Semantic voice/text capture — parse → preview → confirm/inbox |
 | `app/(tabs)/gather/` | Events — list, create (AI prep), detail, talking points |
 | `app/(tabs)/people/` | People list, detail, new, edit |
 | `app/(tabs)/myself.tsx` | User profile + QR (toggle Show/Hide QR) |
@@ -72,9 +73,17 @@ A contextual memory and heads-up assistant for the people in your life — not a
 
 ### NativeWind (brief + app-wide)
 
-- Use **preset classes** (`text-5xl`, `pt-6`, `pb-8`) — avoid arbitrary `text-[48px]` (silently dropped without safelist)
-- **Inline `style={{}}`** only when value is absent from Tailwind scale
+- Use **preset classes** (`text-5xl`, `pt-6`, `pb-8`, `text-sm`, `text-base`, `text-xl`) — avoid arbitrary `text-[15px]` (silently dropped without safelist)
+- **Custom typography tokens** in `tailwind.config.js`: `text-2xs` (10px), `text-3xs` (11px), `text-body` (13px), `text-body-lg` (15px), `text-nav` (22px)
+- **Inline `style={{}}`** only when value is absent from Tailwind scale (e.g. `text-[28px]` greeting — rare one-offs)
 - Discuss before introducing non-generic / non-reusable solutions
+
+### Semantic intake (`app/intake.tsx`)
+
+- Entry: global **+** menu → «Speak or type» / «Si eller skriv»
+- Flow: type/paste/iOS keyboard dictation → `parseSemanticIntake` (heuristics) → preview card → confirm / edit / inbox
+- **No auto-save** on parse; confirm creates gathering or follow-up; inbox → AsyncStorage (`intakeInboxRepo`)
+- Parser: `src/lib/intake/semanticIntakeParser.ts` (testable, no custom STT)
 
 ## Auth (Clerk)
 

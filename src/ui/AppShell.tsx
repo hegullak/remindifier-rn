@@ -51,7 +51,7 @@ function GlobalAddButton() {
         className="w-9 h-9 rounded-full bg-accent items-center justify-center"
         accessibilityLabel="New"
       >
-        <Text className="text-[20px] text-card font-body leading-[22px]">+</Text>
+        <Text className="text-xl text-card font-body leading-[22px]">+</Text>
       </Pressable>
 
       <BottomSheet visible={open} onDismiss={() => setOpen(false)} title={t("global.addTitle")}>
@@ -69,9 +69,9 @@ function GlobalAddButton() {
               <View
                 className={`w-11 h-11 rounded-xl ${action.bgClass} items-center justify-center`}
               >
-                <Text className="text-[22px]">{action.icon}</Text>
+                <Text className="text-nav">{action.icon}</Text>
               </View>
-              <Text className="text-[16px] text-text1 font-bodyMedium">{action.label}</Text>
+              <Text className="text-base text-text1 font-bodyMedium">{action.label}</Text>
             </Pressable>
           ))}
         </View>

@@ -34,7 +34,7 @@ function PreviewRow({
 
   return (
     <View className="mb-3 last:mb-0">
-      <Text className="text-[11px] uppercase tracking-wide text-text3 font-bodySemi mb-1">
+      <Text className="text-3xs uppercase tracking-wide text-text3 font-bodySemi mb-1">
         {label}
       </Text>
       {editing ? (
@@ -43,10 +43,10 @@ function PreviewRow({
           onChangeText={onChangeText}
           placeholder={placeholder}
           placeholderTextColor="#7A8CAD"
-          className="bg-bg2 border border-border rounded-lg px-3 py-2 text-[15px] text-text1 font-body"
+          className="bg-bg2 border border-border rounded-lg px-3 py-2 text-body-lg text-text1 font-body"
         />
       ) : (
-        <Text className="text-[15px] text-text1 font-body">{value || "—"}</Text>
+        <Text className="text-body-lg text-text1 font-body">{value || "—"}</Text>
       )}
     </View>
   );
@@ -59,7 +59,7 @@ export function SemanticIntakePreviewCard({ parsed, editing, values, onChange }:
 
   return (
     <BriefCard stripeColor="sage">
-      <Text className="text-[13px] text-text2 font-body mb-3">{t("intake.previewHint")}</Text>
+      <Text className="text-body text-text2 font-body mb-3">{t("intake.previewHint")}</Text>
 
       <PreviewRow
         label={t("intake.field.event")}
@@ -92,16 +92,16 @@ export function SemanticIntakePreviewCard({ parsed, editing, values, onChange }:
 
       {!parsed.event && !parsed.person && parsed.freeFormNote ? (
         <View className="mb-3">
-          <Text className="text-[11px] uppercase tracking-wide text-text3 font-bodySemi mb-1">
+          <Text className="text-3xs uppercase tracking-wide text-text3 font-bodySemi mb-1">
             {t("intake.field.note")}
           </Text>
-          <Text className="text-[15px] text-text1 font-body">{parsed.freeFormNote}</Text>
+          <Text className="text-body-lg text-text1 font-body">{parsed.freeFormNote}</Text>
         </View>
       ) : null}
 
       {ambiguityLabels.length > 0 ? (
         <View className="mt-2 pt-2 border-t border-border">
-          <Text className="text-[12px] text-text3 font-body">{ambiguityLabels.join(" · ")}</Text>
+          <Text className="text-xs text-text3 font-body">{ambiguityLabels.join(" · ")}</Text>
         </View>
       ) : null}
     </BriefCard>

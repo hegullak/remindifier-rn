@@ -143,13 +143,13 @@ export default function SemanticIntakeScreen() {
         contentContainerStyle={{ paddingBottom: 32 }}
       >
         <Pressable onPress={() => router.back()} hitSlop={12} className="self-start mb-3">
-          <Text className="text-[20px] text-accent font-body">←</Text>
+          <Text className="text-xl text-accent font-body">←</Text>
         </Pressable>
 
         <Text className="text-[28px] leading-[34px] text-text1 font-heading mb-1">
           {t("intake.title")}
         </Text>
-        <Text className="text-[14px] text-text2 font-body mb-4">{t("intake.subtitle")}</Text>
+        <Text className="text-sm text-text2 font-body mb-4">{t("intake.subtitle")}</Text>
 
         {step === "input" ? (
           <View>
@@ -162,9 +162,9 @@ export default function SemanticIntakeScreen() {
               numberOfLines={6}
               textAlignVertical="top"
               style={{ color: inputTextColor }}
-              className="min-h-[160px] bg-bg2 border border-border rounded-xl px-4 py-3 text-[15px] text-text1 font-body"
+              className="min-h-[160px] bg-bg2 border border-border rounded-xl px-4 py-3 text-body-lg text-text1 font-body"
             />
-            <Text className="text-[12px] text-text3 font-body mt-2">
+            <Text className="text-xs text-text3 font-body mt-2">
               {t("intake.dictationHint")}
             </Text>
             <Pressable
@@ -172,7 +172,7 @@ export default function SemanticIntakeScreen() {
               disabled={!inputText.trim()}
               className="mt-4 min-h-[48px] rounded-xl bg-accent items-center justify-center disabled:opacity-50"
             >
-              <Text className="text-[16px] text-card font-bodySemi">{t("intake.continue")}</Text>
+              <Text className="text-base text-card font-bodySemi">{t("intake.continue")}</Text>
             </Pressable>
           </View>
         ) : null}
@@ -186,7 +186,7 @@ export default function SemanticIntakeScreen() {
               onChange={setValues}
             />
 
-            {error ? <Text className="text-[13px] text-red font-body">{error}</Text> : null}
+            {error ? <Text className="text-body text-red font-body">{error}</Text> : null}
 
             <View className="gap-2">
               <Button
