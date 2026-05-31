@@ -1,4 +1,9 @@
 import type { CalendarBriefEvent } from "@/lib/brief/calendarEvents";
+import {
+  getUpcomingHoliday,
+  formatHolidayLine,
+  type UpcomingHolidayInfo,
+} from "@/lib/brief/norwegianHolidays";
 
 export type MorningBriefSummary = {
   available: boolean;
@@ -140,7 +145,7 @@ function analyseEvents(
   };
 }
 
-function buildEnglish(signals: MorningSignals): MorningBriefSummary {
+function buildEnglish(signals: MorningSignals, holiday: UpcomingHolidayInfo | null): MorningBriefSummary {
   const {
     eventCount,
     firstEvent,
@@ -156,15 +161,18 @@ function buildEnglish(signals: MorningSignals): MorningBriefSummary {
   } = signals;
 
   if (eventCount === 0) {
-    const freeWeekend = !hasWeekendEvents;
+    const holidayLine = holiday ? formatHolidayLine(holiday, "en") : null;
     return {
       available: true,
       isEmpty: true,
-      pillText: freeWeekend ? "Open day · free weekend" : "Open day",
-      headline: "An open day ahead.",
-      body: hasWeekendEvents
-        ? `Nothing on the calendar today. This weekend: ${weekendSummary}`
-        : "Nothing on the calendar. The day is yours.",
+      pillText: hasWeekendEvents ? "Open day" : "Open day · free weekend",
+      headline: "An open day ahead — enjoy the space! ☀️",
+      body: [
+        "Nothing on the calendar today.",
+        hasWeekendEvents ? `This weekend: ${weekendSummary}` : "Free weekend ahead.",
+        holidayLine,
+        holiday?.bridgeDaySuggestion,
+      ].filter(Boolean).join(" "),
     };
   }
 
@@ -179,64 +187,47 @@ function buildEnglish(signals: MorningSignals): MorningBriefSummary {
   } else {
     pillParts = [`${countPart}${lunchPart}`];
   }
-  if (hasEveningActivity && eveningActivities[0]) {
-    const t = eveningActivities[0];
-    const firstEvening = signals.firstEvent; // we need time of evening event
-    // find the evening event object
-    // We'll just show time from the raw timed list via lastEvent if it's evening
-    if (signals.lastEvent && signals.lastEvent.startDate.getHours() >= 17) {
-      pillParts.push(`${t} at ${formatTime(signals.lastEvent.startDate, "en")}`);
-    }
+  if (hasEveningActivity && eveningActivities[0] && signals.lastEvent && signals.lastEvent.startDate.getHours() >= 17) {
+    pillParts.push(`${eveningActivities[0]} at ${formatTime(signals.lastEvent.startDate, "en")}`);
   }
   const pillText = pillParts.join(" · ");
 
   // headline
   let headline: string;
   if (hasMorningBusy && dayEndsLate) {
-    headline = "A full day ahead.";
+    headline = "Full day ahead — you've got this! 💪";
   } else if (hasMorningBusy) {
-    headline = "A busy morning ahead.";
+    headline = "Busy morning, but the evening is yours. 🌿";
   } else if (dayEndsEarly) {
-    headline = "Day wraps up early.";
+    headline = "Short day — time for what matters. ☀️";
   } else if (eventCount <= 2) {
-    headline = "A calm day ahead.";
+    headline = "Calm day ahead — room to breathe. 😌";
   } else {
-    headline = "Day looks manageable.";
+    headline = "Day looks manageable. Good start! 👍";
   }
 
   // body
   const parts: string[] = [];
-
-  if (firstEvent) {
-    parts.push(`First meeting at ${formatTime(firstEvent.startDate, "en")}.`);
-  }
-
-  if (hasMorningBusy) {
-    parts.push("The morning is fairly packed.");
-  }
-
-  parts.push(hasLunchFree ? "Lunch 11–12 is free." : "Meeting during lunch.");
-
-
+  if (firstEvent) parts.push(`First meeting at ${formatTime(firstEvent.startDate, "en")}.`);
+  if (hasMorningBusy) parts.push("The morning is packed — take short breaks.");
+  parts.push(hasLunchFree ? "Lunch 11–12 is free. ✓" : "Meeting during lunch — remember to eat.");
   if (dayEndsEarly && signals.lastEvent) {
-    parts.push(`Done with meetings around ${formatTime(signals.lastEvent.startDate, "en")}.`);
+    parts.push(`Done with meetings at ${formatTime(signals.lastEvent.startDate, "en")} — early finish!`);
   } else if (dayEndsLate) {
-    parts.push("Meetings running past 17:00 today — slightly longer day.");
+    parts.push("Meetings past 17:00 today — slightly longer day.");
   }
-
-  // Evening personal activity
   if (hasEveningActivity && eveningActivities[0] && signals.lastEvent) {
-    const isPersonal = !isWorkEvent(signals.lastEvent);
-    if (isPersonal) {
-      parts.push(
-        `${eveningActivities[0]} at ${formatTime(signals.lastEvent.startDate, "en")} this evening.`,
-      );
+    const evtHour = signals.lastEvent.startDate.getHours();
+    if (evtHour >= 17 && !isWorkEvent(signals.lastEvent)) {
+      parts.push(`${eveningActivities[0]} at ${formatTime(signals.lastEvent.startDate, "en")} this evening — something to look forward to! 🎉`);
     }
   }
-
-  // Weekend preview
   if (hasWeekendEvents) {
     parts.push(`This weekend: ${weekendSummary}`);
+  }
+  if (holiday) {
+    parts.push(formatHolidayLine(holiday, "en"));
+    if (holiday.bridgeDaySuggestion) parts.push(holiday.bridgeDaySuggestion);
   }
 
   return {
@@ -248,7 +239,7 @@ function buildEnglish(signals: MorningSignals): MorningBriefSummary {
   };
 }
 
-function buildNorwegian(signals: MorningSignals): MorningBriefSummary {
+function buildNorwegian(signals: MorningSignals, holiday: UpcomingHolidayInfo | null): MorningBriefSummary {
   const {
     eventCount,
     firstEvent,
@@ -264,15 +255,18 @@ function buildNorwegian(signals: MorningSignals): MorningBriefSummary {
   } = signals;
 
   if (eventCount === 0) {
-    const freeWeekend = !hasWeekendEvents;
+    const holidayLine = holiday ? formatHolidayLine(holiday, "no") : null;
     return {
       available: true,
       isEmpty: true,
-      pillText: freeWeekend ? "Åpen dag · fri helg" : "Åpen dag",
-      headline: "En åpen dag venter.",
-      body: hasWeekendEvents
-        ? `Ingenting på programmet i dag. Til helgen: ${weekendSummary}`
-        : "Ingenting på programmet. En åpen dag.",
+      pillText: hasWeekendEvents ? "Åpen dag" : "Åpen dag · fri helg",
+      headline: "En åpen dag venter — nyt friheten! ☀️",
+      body: [
+        "Ingenting på programmet i dag.",
+        hasWeekendEvents ? `Til helgen: ${weekendSummary}` : "Fri helg i vente.",
+        holidayLine,
+        holiday?.bridgeDaySuggestion,
+      ].filter(Boolean).join(" "),
     };
   }
 
@@ -292,53 +286,49 @@ function buildNorwegian(signals: MorningSignals): MorningBriefSummary {
   }
   const pillText = pillParts.join(" · ");
 
-  // headline
+  // headline — varm og motiverende
   let headline: string;
   if (hasMorningBusy && dayEndsLate) {
-    headline = "En travel dag venter.";
+    headline = "Full dag foran deg — du klarer det! 💪";
   } else if (hasMorningBusy) {
-    headline = "Travel formiddag i vente.";
+    headline = "Travel formiddag, men kvelden er din. 🌿";
   } else if (dayEndsEarly) {
-    headline = "Dagen avsluttes tidlig.";
+    headline = "Kort dag — god tid til det som teller. ☀️";
   } else if (eventCount <= 2) {
-    headline = "En rolig dag venter.";
+    headline = "Rolig dag i vente — rom til å puste. 😌";
   } else {
-    headline = "Dagen ser overkommelig ut.";
+    headline = "Dagen ser overkommelig ut. God start! 👍";
   }
 
   // body
   const parts: string[] = [];
 
   if (firstEvent) {
-    parts.push(`Første møte er kl. ${formatTime(firstEvent.startDate, "no")}.`);
+    parts.push(`Første møte kl. ${formatTime(firstEvent.startDate, "no")}.`);
   }
-
   if (hasMorningBusy) {
-    parts.push("Formiddagen er ganske full.");
+    parts.push("Formiddagen er full — husk å ta korte pauser.");
   }
-
-  parts.push(hasLunchFree ? "Lunsj kl. 11–12 er fri." : "Møte i lunsjtiden.");
-
-
+  parts.push(hasLunchFree ? "Lunsj kl. 11–12 er fri. ✓" : "Møte i lunsjtiden — husk å spise noe.");
   if (dayEndsEarly && signals.lastEvent) {
-    parts.push(`Ferdig med møter rundt kl. ${formatTime(signals.lastEvent.startDate, "no")}.`);
+    parts.push(`Ferdig med møter kl. ${formatTime(signals.lastEvent.startDate, "no")} — tidlig slutt!`);
   } else if (dayEndsLate) {
-    parts.push("Møter etter arbeidstid i dag — litt lengre dag.");
+    parts.push("Møter etter 17 i dag — litt lengre dag enn vanlig.");
   }
-
-  // Evening personal activity
   if (hasEveningActivity && eveningActivities[0] && signals.lastEvent) {
-    const isPersonal = !isWorkEvent(signals.lastEvent);
-    if (isPersonal) {
-      parts.push(
-        `${eveningActivities[0]} kl. ${formatTime(signals.lastEvent.startDate, "no")} i kveld.`,
-      );
+    const evtHour = signals.lastEvent.startDate.getHours();
+    if (evtHour >= 17 && !isWorkEvent(signals.lastEvent)) {
+      parts.push(`${eveningActivities[0]} kl. ${formatTime(signals.lastEvent.startDate, "no")} i kveld — noe å glede seg til! 🎉`);
     }
   }
-
-  // Weekend preview
   if (hasWeekendEvents) {
     parts.push(`Til helgen: ${weekendSummary}`);
+  } else if (!hasWeekendEvents && signals.hasWeekendEvents === false) {
+    parts.push("Fri helg i vente.");
+  }
+  if (holiday) {
+    parts.push(formatHolidayLine(holiday, "no"));
+    if (holiday.bridgeDaySuggestion) parts.push(holiday.bridgeDaySuggestion);
   }
 
   return {
@@ -354,9 +344,11 @@ export function buildMorningBrief(
   todayEvents: CalendarBriefEvent[],
   weekEvents: CalendarBriefEvent[],
   locale: "en" | "no",
+  today = new Date(),
 ): MorningBriefSummary {
   const signals = analyseEvents(todayEvents, weekEvents, locale);
-  return locale === "no" ? buildNorwegian(signals) : buildEnglish(signals);
+  const holiday = getUpcomingHoliday(today, locale, 21);
+  return locale === "no" ? buildNorwegian(signals, holiday) : buildEnglish(signals, holiday);
 }
 
 export function buildMorningBriefUnavailable(locale: "en" | "no"): MorningBriefSummary {

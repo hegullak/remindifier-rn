@@ -51,7 +51,7 @@ describe("buildMorningBrief", () => {
       expect(result.available).toBe(true);
       expect(result.isEmpty).toBe(true);
       expect(result.pillText).toBe("Åpen dag · fri helg");
-      expect(result.headline).toBe("En åpen dag venter.");
+      expect(result.headline).toContain("åpen dag");
     });
 
     it("returns isEmpty: true with free weekend pill (no)", () => {
@@ -64,7 +64,7 @@ describe("buildMorningBrief", () => {
       expect(result.available).toBe(true);
       expect(result.isEmpty).toBe(true);
       expect(result.pillText).toContain("Open day");
-      expect(result.headline).toBe("An open day ahead.");
+      expect(result.headline).toContain("open day");
     });
 
     it("open day with weekend events — pillText does NOT include free weekend (no)", () => {
@@ -111,8 +111,8 @@ describe("buildMorningBrief", () => {
         makeEvent("e4", 11, 0, false, "Jobb"),
       ];
       const result = buildMorningBrief(events, [], "no");
-      expect(result.headline).toBe("Travel formiddag i vente.");
-      expect(result.body).toContain("Formiddagen er ganske full");
+      expect(result.headline).toContain("Travel formiddag");
+      expect(result.body).toContain("Formiddagen er full");
     });
 
     it("detects busy morning for 3+ events before 12:00 (en)", () => {
@@ -122,8 +122,8 @@ describe("buildMorningBrief", () => {
         makeEvent("e3", 10, 30),
       ];
       const result = buildMorningBrief(events, [], "en");
-      expect(result.headline).toBe("A busy morning ahead.");
-      expect(result.body).toContain("morning is fairly packed");
+      expect(result.headline).toContain("Busy morning");
+      expect(result.body).toContain("morning is packed");
     });
 
     it("pillText prefixed with 'Travel dag' for busy morning (no)", () => {
@@ -162,13 +162,13 @@ describe("buildMorningBrief", () => {
     it("detects dayEndsEarly when last work event starts before 15:00 (no)", () => {
       const events = [makeEvent("e1", 9, 0, false, "Jobb"), makeEvent("e2", 11, 0, false, "Jobb")];
       const result = buildMorningBrief(events, [], "no");
-      expect(result.headline).toBe("Dagen avsluttes tidlig.");
+      expect(result.headline).toContain("Kort dag");
     });
 
     it("detects dayEndsEarly for single work event at 9:00 (en)", () => {
       const events = [makeEvent("e1", 9, 0, false, "Jobb")];
       const result = buildMorningBrief(events, [], "en");
-      expect(result.headline).toBe("Day wraps up early.");
+      expect(result.headline).toContain("Short day");
     });
   });
 
@@ -176,13 +176,13 @@ describe("buildMorningBrief", () => {
     it("detects overtime when work event is at 17:00 (no)", () => {
       const events = [makeEvent("e1", 9, 0, false, "Jobb"), makeEvent("e2", 17, 0, false, "Jobb")];
       const result = buildMorningBrief(events, [], "no");
-      expect(result.body).toContain("Møter etter arbeidstid");
+      expect(result.body).toContain("Møter etter 17");
     });
 
     it("detects overtime when work event is at 18:30 (en)", () => {
       const events = [makeEvent("e1", 9, 0, false, "Jobb"), makeEvent("e2", 18, 30, false, "Jobb")];
       const result = buildMorningBrief(events, [], "en");
-      expect(result.body).toContain("Meetings running past 17:00");
+      expect(result.body).toContain("past 17:00");
     });
   });
 

@@ -409,18 +409,20 @@ export default function BriefScreen() {
         visible={showMorningBrief}
         onDismiss={() => setShowMorningBrief(false)}
         title={t("brief.morningBrief.sectionLabel")}
+        large
       >
-        <Text className="text-[18px] text-text1 font-heading mb-3">{morningBrief.headline}</Text>
-        <Text className="text-[15px] text-text2 font-body leading-[22px]">{morningBrief.body}</Text>
+        <Text className="text-[20px] text-text1 font-heading mb-4 leading-[28px]">{morningBrief.headline}</Text>
+        <Text className="text-[16px] text-text2 font-body leading-[26px]">{morningBrief.body}</Text>
       </BottomSheet>
 
       <BottomSheet
         visible={showEveningWindDown}
         onDismiss={() => setShowEveningWindDown(false)}
         title={t("brief.eveningWindDown.sectionLabel")}
+        large
       >
-        <Text className="text-[18px] text-text1 font-heading mb-3">{windDown.headline}</Text>
-        <Text className="text-[15px] text-text2 font-body leading-[22px]">{windDown.body}</Text>
+        <Text className="text-[20px] text-text1 font-heading mb-4 leading-[28px]">{windDown.headline}</Text>
+        <Text className="text-[16px] text-text2 font-body leading-[26px]">{windDown.body}</Text>
       </BottomSheet>
 
       <BottomSheet

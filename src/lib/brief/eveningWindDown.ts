@@ -1,4 +1,9 @@
 import type { CalendarBriefEvent } from "@/lib/brief/calendarEvents";
+import {
+  getUpcomingHoliday,
+  formatHolidayLine,
+  type UpcomingHolidayInfo,
+} from "@/lib/brief/norwegianHolidays";
 
 export type EveningWindDownSummary = {
   available: boolean;
@@ -124,7 +129,7 @@ function analyseEvents(
   };
 }
 
-function buildEnglish(signals: WindDownSignals): EveningWindDownSummary {
+function buildEnglish(signals: WindDownSignals, holiday: UpcomingHolidayInfo | null): EveningWindDownSummary {
   const {
     eventCount,
     firstEvent,
@@ -196,15 +201,22 @@ function buildEnglish(signals: WindDownSignals): EveningWindDownSummary {
 
   if (hasEveningActivity && eveningActivities[0] && signals.lastEvent) {
     parts.push(
-      `${eveningActivities[0]} at ${formatTime(signals.lastEvent.startDate, "en")} in the evening.`,
+      `${eveningActivities[0]} at ${formatTime(signals.lastEvent.startDate, "en")} — something to look forward to! 🎉`,
     );
+  } else if (!hasEveningActivity) {
+    parts.push("Evening is free — good time to train or unwind. 🌙");
   }
 
   // Weekend preview — always show (free or busy)
   if (hasWeekendEvents) {
     parts.push(`This weekend: ${weekendSummary}`);
   } else {
-    parts.push("Free weekend ahead.");
+    parts.push("Free weekend ahead — recharge! ⚡");
+  }
+
+  if (holiday) {
+    parts.push(formatHolidayLine(holiday, "en"));
+    if (holiday.bridgeDaySuggestion) parts.push(holiday.bridgeDaySuggestion);
   }
 
   return {
@@ -216,7 +228,7 @@ function buildEnglish(signals: WindDownSignals): EveningWindDownSummary {
   };
 }
 
-function buildNorwegian(signals: WindDownSignals): EveningWindDownSummary {
+function buildNorwegian(signals: WindDownSignals, holiday: UpcomingHolidayInfo | null): EveningWindDownSummary {
   const {
     eventCount,
     firstEvent,
@@ -288,15 +300,22 @@ function buildNorwegian(signals: WindDownSignals): EveningWindDownSummary {
 
   if (hasEveningActivity && eveningActivities[0] && signals.lastEvent) {
     parts.push(
-      `${eveningActivities[0]} kl. ${formatTime(signals.lastEvent.startDate, "no")} om kvelden.`,
+      `${eveningActivities[0]} kl. ${formatTime(signals.lastEvent.startDate, "no")} — noe å glede seg til! 🎉`,
     );
+  } else if (!hasEveningActivity) {
+    parts.push("Kvelden er fri — god tid til trening eller å koble av. 🌙");
   }
 
   // Weekend preview — always show
   if (hasWeekendEvents) {
     parts.push(`Til helgen: ${weekendSummary}`);
   } else {
-    parts.push("Fri helg i vente.");
+    parts.push("Fri helg i vente — lad opp! ⚡");
+  }
+
+  if (holiday) {
+    parts.push(formatHolidayLine(holiday, "no"));
+    if (holiday.bridgeDaySuggestion) parts.push(holiday.bridgeDaySuggestion);
   }
 
   return {
@@ -312,9 +331,14 @@ export function buildEveningWindDown(
   tomorrowEvents: CalendarBriefEvent[],
   weekEvents: CalendarBriefEvent[],
   locale: "en" | "no",
+  today = new Date(),
 ): EveningWindDownSummary {
   const signals = analyseEvents(tomorrowEvents, weekEvents, locale);
-  return locale === "no" ? buildNorwegian(signals) : buildEnglish(signals);
+  // Look ahead up to 10 days for tomorrow's holiday context
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const holiday = getUpcomingHoliday(tomorrow, locale, 14);
+  return locale === "no" ? buildNorwegian(signals, holiday) : buildEnglish(signals, holiday);
 }
 
 export function buildEveningWindDownUnavailable(locale: "en" | "no"): EveningWindDownSummary {
