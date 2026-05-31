@@ -5,6 +5,12 @@ import * as SQLite from "expo-sqlite";
 import * as schema from "@/db/schema";
 
 const DB_KEY_PREFIX = "remindifier.db.key.";
+
+const dbKeySecureStoreOpts = {
+  keychainAccessible: SecureStore.WHEN_UNLOCKED,
+  keychainService: "remindifier-local-db-key",
+} as const;
+
 const dbCache = new Map<string, ExpoSQLiteDatabase<typeof schema>>();
 const sqliteCache = new Map<string, SQLite.SQLiteDatabase>();
 
@@ -14,14 +20,12 @@ function sanitizeUserId(userId: string) {
 
 async function getOrCreateDbKey(userId: string): Promise<string> {
   const secureStoreKey = `${DB_KEY_PREFIX}${userId}`;
-  const existing = await SecureStore.getItemAsync(secureStoreKey);
+  const existing = await SecureStore.getItemAsync(secureStoreKey, dbKeySecureStoreOpts);
   if (existing) return existing;
 
   const created = `${Crypto.randomUUID()}-${Crypto.randomUUID()}`;
-  await SecureStore.setItemAsync(secureStoreKey, created, {
-    keychainService: "remindifier-local-db-key",
-  });
-  const verified = await SecureStore.getItemAsync(secureStoreKey);
+  await SecureStore.setItemAsync(secureStoreKey, created, dbKeySecureStoreOpts);
+  const verified = await SecureStore.getItemAsync(secureStoreKey, dbKeySecureStoreOpts);
   if (!verified) throw new Error("remindifier: failed to persist database key to secure storage");
   return verified;
 }

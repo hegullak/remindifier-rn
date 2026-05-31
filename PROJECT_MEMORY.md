@@ -98,6 +98,7 @@ A contextual memory and heads-up assistant for the people in your life — not a
 
 - Schema: `src/db/schema.ts` — Drizzle migrations in `src/db/drizzle/`
 - Per-user encrypted DB via `useUserDrizzleDb` / `getDrizzleDbForUser`
+- DB key in SecureStore (`drizzleClient.ts`) — **same options** on get and set (`keychainService` + `WHEN_UNLOCKED`)
 - Repos: `peopleRepo`, `briefRepo`, `myProfileRepo`, `settingsRepo`, `userRepo`
 - Seed: `src/db/seed.ts` (demo people, schedule `s1`, etc.)
 - **Bootstrap** (`useBootstrapApp`): seeds local data + preferences (per-step try/catch, logs `bootstrap_ready`); **calendar seed runs in background** (never block UI on `requestCalendarPermissionsAsync`)
@@ -153,6 +154,7 @@ A contextual memory and heads-up assistant for the people in your life — not a
 9. **`ThemeProvider`** must not block children on SecureStore; apply stored theme async with default slate + style fallback
 10. **Rules of Hooks** — never place `useEffect` after conditional `return` in layout components (caused Expo Go black screen when bootstrap completed)
 11. **`FatalScreen` / `LoadingScreen`** — use `StyleSheet` for guaranteed visibility; do not rely on NativeWind alone for error UI
+12. **SecureStore** — `getItemAsync` / `setItemAsync` must use **identical options** (e.g. `keychainService`); mismatch causes «failed to persist database key» on iOS
 
 ## File map (quick)
 

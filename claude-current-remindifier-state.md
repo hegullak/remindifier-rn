@@ -1,6 +1,6 @@
 # remindifier-rn — Current AI Session State
 
-*Last updated: 2026-05-31 (session handoff — hooks fix + visible FatalScreen)*
+*Last updated: 2026-05-31 (session handoff — SecureStore DB key fix)*
 
 **This file is the session snapshot.** Architecture lives in [`PROJECT_MEMORY.md`](./PROJECT_MEMORY.md).  
 Agent protocol: `.cursor/rules/session-handoff.mdc` · Skill: `.cursor/skills/project-memory/SKILL.md`
@@ -13,7 +13,7 @@ Agent protocol: `.cursor/rules/session-handoff.mdc` · Skill: `.cursor/skills/pr
 
 - **Repo:** `https://github.com/hegullak/remindifier-rn`
 - **Active branch:** `sandbox`
-- **Latest commit:** `e3f8f52` — `fix(startup): React hooks order + visible FatalScreen for Expo Go`
+- **Latest commit:** *(this handoff)* — `fix(db): SecureStore read/write use same keychain options`
 - **Previous:** `1b95335` / `a10e9be` — dark screen startup hardening
 - **CI:** lint + typecheck + test:coverage (expected green)
 
@@ -94,11 +94,11 @@ Custom tokens: `text-2xs`, `text-3xs`, `text-body`, `text-body-lg`, `text-nav`. 
 ## Recent commits (newest first)
 
 ```
+(this handoff) fix(db): SecureStore read/write use same keychain options
+4dfc00d docs: session handoff — sync commit hash, Expo Go startup status
 e3f8f52 fix(startup): React hooks order + visible FatalScreen for Expo Go
-1b95335 docs: sync session state commit hash
 a10e9be fix(startup): Expo Go dark screen — SafeAreaProvider, startup logging, layout fallbacks
 8e88788 fix(startup): Expo Go white screen — haptics version, non-blocking calendar seed
-df3248c chore: session handoff 2026-05-31 — code review + brief redesign
 ```
 
 ---
@@ -114,7 +114,7 @@ df3248c chore: session handoff 2026-05-31 — code review + brief redesign
 | — | Brief blikkfang | Parked |
 | — | Inbox UI (view/process inbox items) | Not started |
 | — | Tab bar blur | Dev client only; Expo Go uses solid fallback |
-| — | **Expo Go startup** | User still testing — check log sequence below; hooks fix may resolve black screen |
+| — | **Expo Go startup** | SecureStore DB key fix applied — user to confirm brief loads |
 
 **Next candidates:** #50 Tonight mode, inbox list UI, #53/#54 polish
 
@@ -132,34 +132,32 @@ df3248c chore: session handoff 2026-05-31 — code review + brief redesign
 
 ## What Was Done (this session — 2026-05-31)
 
-### Expo Go black screen — hooks + invisible errors (`e3f8f52`, pushed)
+### SecureStore DB key — startup error visible in FatalScreen (latest)
 
-**Symptom:** Still **black screen** after server restart; log showed only `app_launched` (+ SafeAreaView deprecation).
+**Symptom:** User saw **«Oppstartsfeil: failed to persist database key to secure storage»** (FatalScreen working after `e3f8f52`). Log:
+```
+index_ready → root_stack_ready → tabs_db_loading → tabs_db_failed
+```
 
-**Root causes found:**
+**Root cause:** `drizzleClient.ts` wrote DB encryption key with `keychainService` but read back **without** the same SecureStore options → iOS could not verify the key.
 
-1. **Rules of Hooks violation** in `app/(tabs)/_layout.tsx` — `useEffect` for `tabs_render` was placed **after** conditional `return` statements. When bootstrap finished, React hook order changed → crash/blank screen.
-2. **`FatalScreen` invisible** — used only NativeWind `className`; DB/migration errors rendered as dark screen with no readable text.
-3. Terminal also showed an earlier JSX typo (`</BlurView>` vs `</TabBarContainer>`) — already fixed in `a10e9be`.
+**Fix:**
+- `dbKeySecureStoreOpts` shared for all `getItemAsync` / `setItemAsync` calls
+- `expo-router` bumped to `~6.0.24` (Metro version warning only)
 
-**Fixes applied:**
+**Files:** `src/db/drizzleClient.ts`, `package.json`, `package-lock.json`
 
-1. **`app/(tabs)/_layout.tsx`** — moved all `useEffect` hooks before any `return`; added `tabs_db_loading` / `tabs_db_ready` logging
-2. **`src/ui/StartupScreens.tsx`** — `FatalScreen` uses `StyleSheet` + `SafeAreaView` from `react-native-safe-area-context` (visible white/red text on `#1A1E26`)
-3. **`app/_layout.tsx`** — logs `root_stack_ready` when Clerk + fonts ready
-4. **`app/index.tsx`** — logs `index_ready` with auth state
+### Expo Go startup chain (same session, already pushed)
 
-**Expected log sequence after reload:**  
+1. **`8e88788`** — white screen: `expo-haptics ~15.0.8`, non-blocking calendar seed
+2. **`a10e9be`** — dark screen: SafeAreaProvider, Clerk loading, bootstrap logging
+3. **`e3f8f52`** — black screen: React hooks order fix + visible `FatalScreen` (StyleSheet)
+4. **`4dfc00d`** — docs sync
+
+**Expected log after SecureStore fix:**  
 `app_launched` → `root_stack_ready` → `index_ready` → `tabs_db_ready` → `migrations_ready` → `bootstrap_ready` → `tabs_render`
 
-### Expo Go startup hardening (committed `a10e9be`)
-
-- `SafeAreaProvider`; `ClerkLoaded` → `useAuth` + `LoadingScreen`
-- `ThemeProvider` non-blocking; bootstrap per-step try/catch
-- Expo Go tab bar View fallback; migration 15s timeout
-- `expo-haptics ~15.0.8`; non-blocking calendar seed (`8e88788`)
-
-**Noted for later:** OpenAI API key → backend proxy; `src/lib/haptics.ts` `console.log` → `logger`; confirm Expo Go shows brief after hooks fix
+**Noted for later:** OpenAI API key → backend proxy; `src/lib/haptics.ts` `console.log` → `logger`
 
 ---
 
