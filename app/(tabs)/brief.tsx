@@ -255,54 +255,56 @@ export default function BriefScreen() {
 
   const listHeader = (
     <View className="pb-2">
-      <Pressable
-        onPress={() => setShowWeatherSheet(true)}
-        className="flex-row items-center mb-3 self-start active:opacity-70"
-        accessibilityRole="button"
-        hitSlop={8}
-      >
-        <Text className="text-[16px] mr-1">{brief.weather.icon}</Text>
-        <Text className="text-[15px] text-text1 font-bodyMedium">{brief.weather.temp}</Text>
-        <Text className="text-[13px] text-text3 font-body"> · {rainText}</Text>
-        {windText ? (
-          <Text className="text-[13px] text-text3 font-body"> · {windText}</Text>
-        ) : null}
-        <Text className="text-[14px] text-text3 font-body ml-1.5">›</Text>
-      </Pressable>
-
-      <View className="flex-row items-center justify-center gap-4 mb-2">
+      <View className="flex-row items-center mb-2">
         <Pressable
-          onPress={() => shiftWeek(-1)}
+          onPress={() => setShowWeatherSheet(true)}
+          className="flex-row items-center active:opacity-70"
           accessibilityRole="button"
-          accessibilityLabel={t("brief.weekPrev")}
-          hitSlop={16}
-          className="active:opacity-60"
-        >
-          <Text className="text-[22px] text-accent font-body">←</Text>
-        </Pressable>
-        <Pressable
-          onPress={resetWeek}
-          disabled={weekOffset === 0}
-          accessibilityRole="button"
-          accessibilityLabel={t("brief.weekThis")}
           hitSlop={8}
-          className="active:opacity-70"
         >
-          <Text
-            className={`text-[13px] font-bodySemi ${weekOffset === 0 ? "text-text3" : "text-accent"}`}
+          <Text className="text-[15px] mr-0.5">{brief.weather.icon}</Text>
+          <Text className="text-[14px] text-text1 font-bodyMedium">{brief.weather.temp}</Text>
+          <Text className="text-[13px] text-text3 font-body">  🌧️ {rainText}</Text>
+          {windText ? (
+            <Text className="text-[13px] text-text3 font-body">  💨 {windText}</Text>
+          ) : null}
+          <Text className="text-[13px] text-text3 font-body ml-1">›</Text>
+        </Pressable>
+
+        <View className="flex-1 flex-row items-center justify-end gap-4">
+          <Pressable
+            onPress={() => shiftWeek(-1)}
+            accessibilityRole="button"
+            accessibilityLabel={t("brief.weekPrev")}
+            hitSlop={16}
+            className="active:opacity-60"
           >
-            {dateLine}
-          </Text>
-        </Pressable>
-        <Pressable
-          onPress={() => shiftWeek(1)}
-          accessibilityRole="button"
-          accessibilityLabel={t("brief.weekNext")}
-          hitSlop={16}
-          className="active:opacity-60"
-        >
-          <Text className="text-[22px] text-accent font-body">→</Text>
-        </Pressable>
+            <Text className="text-[22px] text-accent font-body">←</Text>
+          </Pressable>
+          <Pressable
+            onPress={resetWeek}
+            disabled={weekOffset === 0}
+            accessibilityRole="button"
+            accessibilityLabel={t("brief.weekThis")}
+            hitSlop={8}
+            className="active:opacity-70"
+          >
+            <Text
+              className={`text-[13px] font-bodySemi ${weekOffset === 0 ? "text-text3" : "text-accent"}`}
+            >
+              {dateLine}
+            </Text>
+          </Pressable>
+          <Pressable
+            onPress={() => shiftWeek(1)}
+            accessibilityRole="button"
+            accessibilityLabel={t("brief.weekNext")}
+            hitSlop={16}
+            className="active:opacity-60"
+          >
+            <Text className="text-[22px] text-accent font-body">→</Text>
+          </Pressable>
+        </View>
       </View>
       <View className="pt-1 pb-3">
         <Text className="text-[30px] leading-[36px] text-text1 font-heading mt-1">

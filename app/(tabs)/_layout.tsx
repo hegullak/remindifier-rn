@@ -1,6 +1,7 @@
 import { getClerkInstance } from "@clerk/clerk-expo";
 import type { ExpoSQLiteDatabase } from "drizzle-orm/expo-sqlite";
 import { useMigrations } from "drizzle-orm/expo-sqlite/migrator";
+import { BlurView } from "expo-blur";
 import { Redirect, Tabs } from "expo-router";
 import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { useEffect, useState } from "react";
@@ -21,7 +22,9 @@ function FloatingTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const { isDark } = useAppTheme();
 
   return (
-    <View
+    <BlurView
+      intensity={55}
+      tint={isDark ? "dark" : "light"}
       style={{
         position: "absolute",
         bottom: 20,
@@ -29,9 +32,9 @@ function FloatingTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
         right: 33,
         height: 60,
         borderRadius: 30,
+        overflow: "hidden",
         flexDirection: "row",
         alignItems: "center",
-        backgroundColor: isDark ? "#222838" : "#F7F4EF",
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 6 },
         shadowOpacity: isDark ? 0.45 : 0.15,
@@ -39,6 +42,13 @@ function FloatingTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
         elevation: 10,
       }}
     >
+      <View
+        style={{
+          position: "absolute",
+          top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: isDark ? "rgba(34,40,56,0.45)" : "rgba(247,244,239,0.45)",
+        }}
+      />
       {state.routes.map((route, index) => {
         const { options } = descriptors[route.key];
         const focused = state.index === index;
@@ -87,7 +97,7 @@ function FloatingTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
           </Pressable>
         );
       })}
-    </View>
+    </BlurView>
   );
 }
 
