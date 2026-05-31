@@ -1,7 +1,7 @@
 # remindifier-rn — project memory
 
 Living context for AI agents. **Update this file** when architecture, UX, or conventions change.
-Last updated: 2026-05-30.
+Last updated: 2026-05-31.
 
 ## Session handoff (read every time)
 
@@ -31,7 +31,7 @@ A contextual memory and heads-up assistant for the people in your life — not a
 
 | Route | Purpose |
 |-------|---------|
-| `app/(tabs)/brief.tsx` | Home — draggable sections (weather, schedule, headsup, training, merkedager) |
+| `app/(tabs)/brief.tsx` | Home — weather topline, greeting, pill cards, draggable sections |
 | `app/(tabs)/gather/` | Events — list, create (AI prep), detail, talking points |
 | `app/(tabs)/people/` | People list, detail, new, edit |
 | `app/(tabs)/myself.tsx` | User profile + QR (toggle Show/Hide QR) |
@@ -60,12 +60,21 @@ A contextual memory and heads-up assistant for the people in your life — not a
 ## Brief / weather
 
 - Data hook: `src/features/brief/useBriefData.ts` — reloads on `locale` change
-- Weather: `src/lib/brief/weather.ts` + `weatherLocation.ts`
+- **Layout (top → bottom):** compact weather topline → date nav → greeting (`text-5xl`) → pill cards (I DAG / KVELDEN) → draggable sections
+- **Weather topline** (centered, tappable → BottomSheet): icon + temp + rain + wind + `›` — weather section in `sectionOrder` returns `null`
+- Weather data: `src/lib/brief/weather.ts` + `weatherLocation.ts`
   - GPS via `expo-location` → else `EXPO_PUBLIC_BRIEF_WEATHER_LAT/LON` → default Hagavik
-  - Place name: Open-Meteo reverse geocoding
-  - Open-Meteo forecast API; expanded card shows icon grid (wind, rain, feels like, humidity, cloud, location, updated)
+  - Open-Meteo forecast; BottomSheet shows full details grid
+- **Body text:** use `"\n"` as sentence separator in brief bodies; renderer splits on `"\n"` — never `". "` (breaks «kl. 09:00»)
 - Static demo content: `getHeadsupItems(locale)`, `getFallbackTraining(locale)` in `briefContent.ts`
 - Section order: per-user in DB, draggable list in `brief.tsx`
+- **Tab bar:** `FloatingTabBar` with `expo-blur` — blur inactive until new dev client build
+
+### NativeWind (brief + app-wide)
+
+- Use **preset classes** (`text-5xl`, `pt-6`, `pb-8`) — avoid arbitrary `text-[48px]` (silently dropped without safelist)
+- **Inline `style={{}}`** only when value is absent from Tailwind scale
+- Discuss before introducing non-generic / non-reusable solutions
 
 ## Auth (Clerk)
 
@@ -105,7 +114,7 @@ A contextual memory and heads-up assistant for the people in your life — not a
 - **Lint/format**: Biome (`npm run lint:fix`)
 - **Types**: `npm run typecheck`
 - **Tests**: Jest (`npm test`) — lib tests under `src/lib/__tests__/`
-- **Styling**: NativeWind class names; fonts Lora (headings) + DM Sans (body)
+- **Styling**: NativeWind preset classes (not arbitrary `text-[Xpx]`); inline style only as last resort; fonts Lora (headings) + DM Sans (body)
 - **Commits**: end each agent session with a commit if there are code changes; never commit `.env`, `expo-output.log`, `coverage/`, `node_modules/`
 - **Session git**: start with `git pull --rebase origin sandbox`; end with commit + `git push origin sandbox`
 - **Scope**: minimal diffs; match existing patterns; no over-engineering

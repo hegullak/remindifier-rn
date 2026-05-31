@@ -13,7 +13,7 @@ Agent protocol: `.cursor/rules/session-handoff.mdc` · Skill: `.cursor/skills/pr
 
 - **Repo:** `https://github.com/hegullak/remindifier-rn`
 - **Active branch:** `sandbox`
-- **Latest commit:** `8ecfc43` — `fix(brief): use NativeWind preset classes for greeting size and spacing`
+- **Latest commit:** `85a3aee` — `chore: session handoff 2026-05-31 — brief weather topline + greeting anchor`
 - **CI:** lint + typecheck + test:coverage (expected green)
 
 ### Git workflow (user rule)
