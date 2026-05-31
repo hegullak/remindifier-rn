@@ -41,7 +41,9 @@ export default function BriefScreen() {
   const [showMorningBrief, setShowMorningBrief] = useState(false);
   const [showEveningWindDown, setShowEveningWindDown] = useState(false);
   const rainDetail = brief.weather.details.find((d) => d.icon === "🌧️");
-  const rainText = rainDetail && rainDetail.value !== "0 mm" ? rainDetail.value : null;
+  const rainText = rainDetail?.value ?? "0 mm";
+  const windDetail = brief.weather.details.find((d) => d.icon === "💨");
+  const windText = windDetail?.value ?? null;
   const [anniversaryDetail, setAnniversaryDetail] = useState<{
     personName: string;
     years: number;
@@ -261,8 +263,9 @@ export default function BriefScreen() {
       >
         <Text className="text-[16px] mr-1">{brief.weather.icon}</Text>
         <Text className="text-[15px] text-text1 font-bodyMedium">{brief.weather.temp}</Text>
-        {rainText ? (
-          <Text className="text-[13px] text-text3 font-body"> · {rainText}</Text>
+        <Text className="text-[13px] text-text3 font-body"> · {rainText}</Text>
+        {windText ? (
+          <Text className="text-[13px] text-text3 font-body"> · {windText}</Text>
         ) : null}
         <Text className="text-[14px] text-text3 font-body ml-1.5">›</Text>
       </Pressable>
