@@ -13,7 +13,7 @@ Agent protocol: `.cursor/rules/session-handoff.mdc` · Skill: `.cursor/skills/pr
 
 - **Repo:** `https://github.com/hegullak/remindifier-rn`
 - **Active branch:** `sandbox`
-- **Latest commit:** `999fee5` — `fix(startup): Expo Go dark screen — SafeAreaProvider, startup logging, layout fallbacks`
+- **Latest commit:** `a10e9be` — `fix(startup): Expo Go dark screen — SafeAreaProvider, startup logging, layout fallbacks`
 - **Previous:** `74fa98a` — `docs: sync session state commit hash` · `8e88788` — haptics + non-blocking calendar seed
 - **CI:** lint + typecheck + test:coverage (expected green)
 
@@ -94,7 +94,7 @@ Custom tokens: `text-2xs`, `text-3xs`, `text-body`, `text-body-lg`, `text-nav`. 
 ## Recent commits (newest first)
 
 ```
-999fee5 fix(startup): Expo Go dark screen — SafeAreaProvider, startup logging, layout fallbacks
+a10e9be fix(startup): Expo Go dark screen — SafeAreaProvider, startup logging, layout fallbacks
 74fa98a docs: sync session state commit hash
 8e88788 fix(startup): Expo Go white screen — haptics version, non-blocking calendar seed
 df3248c chore: session handoff 2026-05-31 — code review + brief redesign
