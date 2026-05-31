@@ -474,6 +474,7 @@ export const no = {
     confirmFailed: "Klarte ikke lagre ennå — prøv å redigere eller send til innboks.",
     inboxFailed: "Klarte ikke legge i innboks. Prøv igjen.",
     followUpPlaceholder: "Ett punkt per linje",
+    datetimeConflictHint: "To tider ble nevnt — hvilken skal vi lagre?",
     field: {
       event: "Event",
       datetime: "Tid",
@@ -485,6 +486,7 @@ export const no = {
       no_event_or_person: "Vi er ikke sikre på hvem eller hva dette gjelder ennå.",
       person_unclear: "Personnavn kan trenge en sjekk.",
       datetime_partial: "Dato eller tid kan være ufullstendig.",
+      datetime_conflict: "Velg ett av tidspunktene over før du bekrefter.",
       follow_up_unclear: "Vi kan ha oversett en påminnelse i teksten.",
       free_form_only: "Lagres som notat foreløpig.",
     },

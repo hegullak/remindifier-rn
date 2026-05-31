@@ -471,6 +471,7 @@ export const en = {
     confirmFailed: "Couldn’t save this yet — try editing or send to inbox.",
     inboxFailed: "Couldn’t add to inbox. Try again.",
     followUpPlaceholder: "One reminder per line",
+    datetimeConflictHint: "Two times were mentioned — which one should we save?",
     field: {
       event: "Event",
       datetime: "Time",
@@ -482,6 +483,7 @@ export const en = {
       no_event_or_person: "We’re not sure who or what this is about yet.",
       person_unclear: "Person name may need a check.",
       datetime_partial: "Date or time might be incomplete.",
+      datetime_conflict: "Pick one of the times above before confirming.",
       follow_up_unclear: "We may have missed a reminder in your text.",
       free_form_only: "Saved as a note for now.",
     },

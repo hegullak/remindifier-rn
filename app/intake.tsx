@@ -198,7 +198,14 @@ export default function SemanticIntakeScreen() {
                 variant="primary"
                 onPress={() => void handleConfirm()}
                 loading={busy}
-                disabled={busy}
+                disabled={
+                  busy ||
+                  (Boolean(
+                    parsed.ambiguities.includes("datetime_conflict") &&
+                      (parsed.scheduledAtOptions?.length ?? 0) >= 2 &&
+                      !values.scheduledLabel.trim(),
+                  ))
+                }
               >
                 {t("intake.confirm")}
               </Button>

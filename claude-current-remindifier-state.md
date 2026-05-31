@@ -1,6 +1,6 @@
 # remindifier-rn — Current AI Session State
 
-*Last updated: 2026-05-29 (session handoff — intake parser + dictation text visibility)*
+*Last updated: 2026-05-31 (session handoff — intake datetime conflict picker)*
 
 **This file is the session snapshot.** Architecture lives in [`PROJECT_MEMORY.md`](./PROJECT_MEMORY.md).  
 Agent protocol: `.cursor/rules/session-handoff.mdc` · Skill: `.cursor/skills/project-memory/SKILL.md`
@@ -13,8 +13,8 @@ Agent protocol: `.cursor/rules/session-handoff.mdc` · Skill: `.cursor/skills/pr
 
 - **Repo:** `https://github.com/hegullak/remindifier-rn`
 - **Active branch:** `sandbox`
-- **Latest commit:** `29fab6c` — `docs: sync session state commit hash`
-- **Previous:** `3d50bbc` — intake parser multi follow-ups + dictation text fix
+- **Latest commit:** `334d73f` — `feat(intake): datetime conflict picker when two times mentioned`
+- **Previous:** `c5b3f62` / `3d50bbc` — multi follow-ups + dictation text fix
 - **CI:** lint + typecheck + test:coverage (expected green)
 
 ### Git workflow (user rule)
@@ -53,7 +53,7 @@ None after this handoff commit.
 | AI (user-initiated) | GPT-4o-mini (person/event parsers); intake MVP = heuristics only |
 | Haptics | expo-haptics `~15.0.8` (SDK 54 — **not** v56) |
 | Blur | `expo-blur` in dev client; **Expo Go uses solid View fallback** for tab bar |
-| Testing | Jest (~254 tests, semantic intake suite expanded) |
+| Testing | Jest (~256 tests, semantic intake suite) |
 
 **Dev server:** `npm run start:lan:log` · dev client: `npx expo start --dev-client --lan --clear`
 
@@ -77,31 +77,20 @@ Other: `sign-in`, `onboarding`, `settings`, `me-scan`
 
 - **+ menu → «Si eller skriv»** → `/intake`
 - Type / paste / **iOS keyboard dictation** (no custom STT, **no in-app record button**)
-- `parseSemanticIntake` → preview card (event, time, person, **bullet follow-ups**) → **Confirm** / **Edit** / **Send to inbox**
-- Confirm: creates gathering (+ talking points from follow-ups) or follow-up entry; inbox in AsyncStorage
+- `parseSemanticIntake` → preview card → **Confirm** / **Edit** / **Send to inbox**
+- **Multiple follow-ups** as bullet list; edit = one per line
+- **Datetime conflict:** two times in one utterance → user picks (e.g. onsdag 12 vs torsdag 13); Confirm blocked until chosen
+- Confirm: creates gathering (+ talking points) or follow-up entry; inbox in AsyncStorage
 - Files: `src/lib/intake/*`, `src/features/intake/SemanticIntakePreviewCard.tsx`, `intakeInboxRepo.ts`
-
-### Brief layout
-
-Weather topline → date nav → greeting (`text-5xl`) → pill cards → draggable sections. Body uses `"\n"` separator.
-
-### Typography (NativeWind)
-
-Custom tokens: `text-2xs`, `text-3xs`, `text-body`, `text-body-lg`, `text-nav`. Standard: `xs`, `sm`, `base`, `xl`, `3xl`, `5xl`. Avoid `text-[Npx]` except rare one-offs (28px greeting title).
 
 ---
 
 ## Recent commits (newest first)
 
 ```
-29fab6c docs: sync session state commit hash
-ecbcd5b docs: sync session state commit hash
+334d73f feat(intake): datetime conflict picker when two times mentioned
+c5b3f62 docs: sync session state commit hash
 3d50bbc fix(intake): multi follow-up parser and visible dictation text
-5e56498 docs: sync session state commit hash
-42935b6 docs: session handoff — Expo Go working, voice intake clarified
-0c40ed1 fix(db): SecureStore read/write use same keychain options
-e3f8f52 fix(startup): React hooks order + visible FatalScreen for Expo Go
-a10e9be fix(startup): Expo Go dark screen — SafeAreaProvider, startup logging, layout fallbacks
 ```
 
 ---
@@ -110,17 +99,16 @@ a10e9be fix(startup): Expo Go dark screen — SafeAreaProvider, startup logging,
 
 | # | Title | Status |
 |---|---|---|
-| 38 | Voice input | **MVP done** — + menu → `/intake`, iOS keyboard dictation; **no in-app recorder** yet; STT/transcription = future |
+| 38 | Voice input | **MVP done** — keyboard dictation; no in-app recorder yet |
 | 50 | Tonight mode | Not started |
 | 52 | Apple Reminders deep link | Not started |
 | 58 | Event prep | Mostly done (gather tab) |
-| — | Brief blikkfang | Parked |
-| — | Inbox UI (view/process inbox items) | Not started |
-| — | Tab bar blur | Dev client only; Expo Go uses solid fallback |
-| — | ~~Expo Go startup~~ | **Resolved** — user confirmed app loads in Expo Go |
-| — | Intake parser edge cases | **Improved** — multi follow-ups; still heuristic (e.g. conflicting weekdays Jonas onsdag/torsdag not resolved) |
+| — | Inbox UI | Not started |
+| — | ~~Expo Go startup~~ | **Resolved** |
+| — | ~~Intake multi follow-ups~~ | **Done** (`3d50bbc`) |
+| — | ~~Intake datetime conflict~~ | **Done** (this session) |
 
-**Next candidates:** #38 in-app mic button / STT, #50 Tonight mode, inbox list UI, intake datetime conflict handling
+**Next candidates:** #38 in-app mic / STT, #50 Tonight mode, inbox list UI
 
 ---
 
@@ -128,41 +116,33 @@ a10e9be fix(startup): Expo Go dark screen — SafeAreaProvider, startup logging,
 
 - Session memory → `claude-current-remindifier-state.md` only
 - Pull before / push after each agent task
-- Session handoff **only when user asks** or session ends — not after every task
-- NativeWind **named tokens**, not arbitrary `text-[Xpx]`
-- Icons over text; no guilt language; `logger` not `console.log`
+- Session handoff **only when user asks** or session ends
+- NativeWind **named tokens**; icons over text; `logger` not `console.log`
 
 ---
 
-## What Was Done (this session — 2026-05-29)
+## What Was Done (this session — 2026-05-31)
 
-### Semantic intake — user feedback + fixes
+### Intake — datetime conflict (user feedback)
 
-User tested natural-language prompts (Norwegian) and reported:
+User tested Marte/Jonas lunch text again: parser got most fields but **missed torsdag kl. 13** vs onsdag kl. 12. Wanted app to **ask which time** to save.
 
-1. **Text invisible during dictation** on intake screen
-2. **Single follow-up blob** instead of multiple bullets
-3. **Missed follow-ups** («flytte i vår», bryllup/gratulere, etc.)
-4. **Whole paragraph in event title** on some parses
-
-**Fixes shipped:**
+**Shipped:**
 
 | Area | Change |
 |---|---|
-| `app/intake.tsx` | `TextInput` uses explicit `StyleSheet` + `useAppTheme` colors (not NativeWind `className` on input) |
-| `semanticIntakeParser.ts` | Strip follow-ups inline (don't drop whole clause); multiple bullets via `splitFollowUpPhrase`; patterns for `nevnte noe om`, `nevnte at`, `vil også ta opp at`; prefer specific event keyword (`lunsj`) over generic `møte`; shorter titles (`MAX_EVENT_TITLE_LEN` 55); `og` lowercase in names |
-| `SemanticIntakePreviewCard.tsx` | Follow-ups as bullet list in preview; multiline edit (one per line); theme-aware input colors |
-| `applySemanticIntakeEdits` | Split `followUpText` on newlines → multiple follow-ups |
-| i18n | `intake.followUpPlaceholder` (EN/NO) |
-| Tests | User's three Norwegian examples + edit split test (11 tests in suite) |
+| `semanticIntakeParser.ts` | `extractAllDateTimes()` finds every weekday+clock in text; `resolveScheduledAt()` returns `scheduledAtOptions` + `datetime_conflict` when ≥2 distinct times; scan uses **full `rawText`**; clock regex supports `klokken`, avoids `to` false-match in «torsdag» |
+| `semanticIntakeParser.types.ts` | `ScheduledAtOption`, `scheduledAtOptions?` on parse result |
+| `SemanticIntakePreviewCard.tsx` | Tappable time choices when conflict; Confirm hint via ambiguity line |
+| `app/intake.tsx` | Confirm disabled until user picks a time |
+| i18n | `intake.datetimeConflictHint`, `intake.ambiguity.datetime_conflict` (EN/NO) |
+| Tests | Complex lunch + conflict resolution + pick clears ambiguity (12 tests in suite) |
 
 **Verified:** `npm test -- semanticIntakeParser`, `npm run typecheck` green.
 
-**Known limits (not fixed):** conflicting datetimes in one sentence (Jonas onsdag vs torsdag); hyttetur discussion not auto-extracted as follow-up unless phrased as reminder.
+### Prior session (still valid)
 
-### Prior session context (still valid)
-
-Expo Go startup resolved (`0c40ed1` SecureStore). Voice = iOS keyboard dictation via **+ → Si eller skriv** — no in-app recorder.
+Multi follow-up parser, visible dictation text (`3d50bbc`), Expo Go startup fixed.
 
 ---
 

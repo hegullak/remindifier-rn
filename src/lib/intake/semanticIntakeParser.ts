@@ -1,5 +1,6 @@
 import type {
   IntakeConfidence,
+  ScheduledAtOption,
   SemanticIntakeField,
   SemanticIntakeParseOptions,
   SemanticIntakeParseResult,
@@ -309,7 +310,141 @@ function parseHourToken(
   return hour;
 }
 
-function extractDateTime(
+function parseClockFromFragment(
+  fragment: string,
+  eveningBias: boolean,
+): { hour: number; minute: number } | null {
+  const slice = fragment.slice(0, 48);
+  const lower = slice.toLowerCase();
+  const clockMatch =
+    lower.match(
+      /\b(?:klokken|kl\.?|at|ca\.?|på)\s*(\d{1,2})(?::(\d{2}))?\s*(am|pm)?\b/i,
+    ) ??
+    lower.match(
+      /\b(?:klokken|kl\.?|at|ca\.?|på)\s*(one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|en|tre|fire|fem|seks|syv|sju|åtte|ni|ti|elleve|tolv)\b/i,
+    ) ??
+    lower.match(/\b(\d{1,2}):(\d{2})\b/);
+
+  if (!clockMatch) return null;
+
+  let hour: number | null = null;
+  let minute = 0;
+
+  if (clockMatch[2] != null && /^\d{2}$/.test(clockMatch[2]) && clockMatch[0].includes(":")) {
+    hour = Number.parseInt(clockMatch[1], 10);
+    minute = Number.parseInt(clockMatch[2], 10);
+  } else {
+    hour = parseHourToken(clockMatch[1], clockMatch[3], eveningBias);
+    if (clockMatch[2] && /^\d{2}$/.test(clockMatch[2])) {
+      minute = Number.parseInt(clockMatch[2], 10);
+    }
+  }
+
+  if (hour == null || hour < 0 || hour > 23 || minute < 0 || minute > 59) return null;
+  return { hour, minute };
+}
+
+function buildScheduledAtOption(
+  weekdayIndex: number,
+  weekdayLabel: string,
+  hour: number | null,
+  minute: number,
+  referenceDate: Date,
+  locale: "en" | "no",
+): ScheduledAtOption {
+  const target = new Date(referenceDate);
+  target.setHours(0, 0, 0, 0);
+  const delta = (weekdayIndex - target.getDay() + 7) % 7;
+  target.setDate(target.getDate() + delta);
+  if (hour != null) {
+    target.setHours(hour, minute, 0, 0);
+  }
+
+  const timeLabel =
+    hour != null
+      ? target.toLocaleTimeString(locale === "no" ? "nb-NO" : "en-GB", {
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+      : null;
+
+  const parts: string[] = [weekdayLabel];
+  if (timeLabel) parts.push(timeLabel);
+
+  const confidence: IntakeConfidence =
+    hour != null ? "high" : "medium";
+
+  return {
+    label: parts.join(" "),
+    date: target,
+    confidence,
+  };
+}
+
+function extractAllDateTimes(
+  text: string,
+  referenceDate: Date,
+  locale: "en" | "no",
+): ScheduledAtOption[] {
+  const eveningBias = EVENING_CONTEXT.test(text);
+  const seen = new Set<string>();
+  const options: ScheduledAtOption[] = [];
+
+  for (const [name, weekdayIndex] of Object.entries(WEEKDAYS)) {
+    const pattern = new RegExp(`\\b${name}\\b`, "gi");
+    let match: RegExpExecArray | null = pattern.exec(text);
+    while (match != null) {
+      const fragment = text.slice(match.index);
+      const clock = parseClockFromFragment(fragment, eveningBias);
+      const weekdayLabel = capitalizeWord(name);
+      const option = buildScheduledAtOption(
+        weekdayIndex,
+        weekdayLabel,
+        clock?.hour ?? null,
+        clock?.minute ?? 0,
+        referenceDate,
+        locale,
+      );
+      const key = `${weekdayIndex}-${clock?.hour ?? "x"}-${clock?.minute ?? 0}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        options.push(option);
+      }
+      match = pattern.exec(text);
+    }
+  }
+
+  return options.sort((a, b) => (a.date?.getTime() ?? 0) - (b.date?.getTime() ?? 0));
+}
+
+function resolveScheduledAt(
+  text: string,
+  referenceDate: Date,
+  locale: "en" | "no",
+): {
+  scheduledAt: ScheduledAtOption | null;
+  scheduledAtOptions?: ScheduledAtOption[];
+} {
+  const options = extractAllDateTimes(text, referenceDate, locale);
+
+  if (options.length >= 2) {
+    const distinctTimes = new Set(
+      options.map((o) => `${o.date?.getDay()}-${o.date?.getHours()}-${o.date?.getMinutes()}`),
+    );
+    if (distinctTimes.size >= 2) {
+      return { scheduledAt: null, scheduledAtOptions: options };
+    }
+  }
+
+  if (options.length === 1) {
+    return { scheduledAt: options[0] };
+  }
+
+  const fallback = extractDateTimeFallback(text, referenceDate, locale);
+  return { scheduledAt: fallback };
+}
+
+function extractDateTimeFallback(
   text: string,
   referenceDate: Date,
   locale: "en" | "no",
@@ -450,7 +585,7 @@ export function parseSemanticIntake(
   const { followUps: followUpTexts, remainder } = extractFollowUps(rawText);
   const personExtract = extractPerson(remainder);
   const eventExtract = extractEventTitle(remainder, personExtract.name);
-  const scheduledAt = extractDateTime(remainder, referenceDate, locale);
+  const { scheduledAt, scheduledAtOptions } = resolveScheduledAt(rawText, referenceDate, locale);
 
   const ambiguities: string[] = [];
   if (!eventExtract.title && !personExtract.name) {
@@ -459,7 +594,9 @@ export function parseSemanticIntake(
   if (personExtract.name && !PERSON_WITH_PATTERN.test(rawText)) {
     ambiguities.push("person_unclear");
   }
-  if (scheduledAt?.confidence === "medium") {
+  if (scheduledAtOptions && scheduledAtOptions.length >= 2) {
+    ambiguities.push("datetime_conflict");
+  } else if (scheduledAt?.confidence === "medium") {
     ambiguities.push("datetime_partial");
   }
   if (followUpTexts.length === 0 && /\b(remember|husk|ask|spør|nevnte)\b/i.test(rawText)) {
@@ -487,6 +624,7 @@ export function parseSemanticIntake(
       ? { title: eventExtract.title, confidence: eventExtract.confidence }
       : null,
     scheduledAt,
+    scheduledAtOptions,
     followUps,
     freeFormNote,
   };
@@ -516,13 +654,6 @@ export function applySemanticIntakeEdits(
     person: edits.personName?.trim()
       ? { name: edits.personName.trim(), confidence: "high" }
       : base.person,
-    scheduledAt: edits.scheduledLabel?.trim()
-      ? {
-          label: edits.scheduledLabel.trim(),
-          date: base.scheduledAt?.date ?? null,
-          confidence: "high",
-        }
-      : base.scheduledAt,
     followUps:
       edits.followUpText != null
         ? edits.followUpText
@@ -533,6 +664,21 @@ export function applySemanticIntakeEdits(
             .map((text) => ({ text, confidence: "high" as const }))
         : base.followUps,
   };
+
+  if (edits.scheduledLabel != null) {
+    const label = edits.scheduledLabel.trim();
+    const matchedOption = base.scheduledAtOptions?.find((o) => o.label === label);
+    next.scheduledAt = label
+      ? {
+          label,
+          date: matchedOption?.date ?? base.scheduledAt?.date ?? null,
+          confidence: "high",
+        }
+      : base.scheduledAt;
+    if (label && base.ambiguities.includes("datetime_conflict")) {
+      next.ambiguities = base.ambiguities.filter((a) => a !== "datetime_conflict");
+    }
+  }
 
   const fields = buildFields(next);
   return {

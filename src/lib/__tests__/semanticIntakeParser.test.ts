@@ -114,6 +114,27 @@ describe("parseSemanticIntake", () => {
     expect(result.followUps.some((f) => /gifter seg|Per/i.test(f.text))).toBe(true);
     expect(result.followUps.some((f) => /skylder|500/i.test(f.text))).toBe(true);
     expect(result.event?.title?.length ?? 0).toBeLessThanOrEqual(55);
+    expect(result.ambiguities).toContain("datetime_conflict");
+    expect(result.scheduledAt).toBeNull();
+    expect(result.scheduledAtOptions).toHaveLength(2);
+    expect(result.scheduledAtOptions?.[0]?.label).toMatch(/onsdag/i);
+    expect(result.scheduledAtOptions?.[0]?.label).toMatch(/12/);
+    expect(result.scheduledAtOptions?.[1]?.label).toMatch(/torsdag/i);
+    expect(result.scheduledAtOptions?.[1]?.label).toMatch(/13/);
+  });
+
+  it("clears datetime conflict after user picks an option", () => {
+    const parsed = parseSemanticIntake(
+      "Lunsj onsdag kl. 12, men Jonas kan ikke før torsdag kl. 13.",
+      { referenceDate: WEDNESDAY, locale: "no" },
+    );
+    expect(parsed.scheduledAtOptions).toHaveLength(2);
+    const edited = applySemanticIntakeEdits(parsed, {
+      scheduledLabel: parsed.scheduledAtOptions?.[1]?.label ?? "",
+    });
+    expect(edited.ambiguities).not.toContain("datetime_conflict");
+    expect(edited.scheduledAt?.label).toMatch(/torsdag/i);
+    expect(edited.scheduledAt?.date?.getHours()).toBe(13);
   });
 
   it("splits edited follow-up text into multiple items", () => {

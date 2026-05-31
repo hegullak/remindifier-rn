@@ -1,4 +1,4 @@
-import { Text, TextInput, View } from "react-native";
+import { Pressable, Text, TextInput, View } from "react-native";
 import { useTranslation } from "@/i18n";
 import { useAppTheme } from "@/theme/ThemeProvider";
 import type { SemanticIntakeParseResult } from "@/lib/intake/semanticIntakeParser.types";
@@ -76,7 +76,15 @@ export function SemanticIntakePreviewCard({ parsed, editing, values, onChange }:
   const { isDark } = useAppTheme();
   const followUpLines = values.followUpText.split("\n").map((l) => l.trim()).filter(Boolean);
 
-  const ambiguityLabels = parsed.ambiguities.map((key) => t(`intake.ambiguity.${key}`));
+  const ambiguityLabels = parsed.ambiguities
+    .filter((key) => key !== "datetime_conflict")
+    .map((key) => t(`intake.ambiguity.${key}`));
+
+  const datetimeOptions = parsed.scheduledAtOptions ?? [];
+  const showDatetimePicker =
+    !editing &&
+    datetimeOptions.length >= 2 &&
+    parsed.ambiguities.includes("datetime_conflict");
 
   const inputBg = isDark ? "#222838" : "#EFECE3";
   const inputColor = isDark ? "#EEF0F5" : "#1C1915";
@@ -96,16 +104,49 @@ export function SemanticIntakePreviewCard({ parsed, editing, values, onChange }:
         inputColor={inputColor}
         inputBorder={inputBorder}
       />
-      <PreviewRow
-        label={t("intake.field.datetime")}
-        value={values.scheduledLabel}
-        editing={editing}
-        onChangeText={(scheduledLabel) => onChange({ ...values, scheduledLabel })}
-        placeholder={t("intake.field.datetime")}
-        inputBg={inputBg}
-        inputColor={inputColor}
-        inputBorder={inputBorder}
-      />
+      {showDatetimePicker ? (
+        <View className="mb-3">
+          <Text className="text-3xs uppercase tracking-wide text-text3 font-bodySemi mb-1">
+            {t("intake.field.datetime")}
+          </Text>
+          <Text className="text-body text-text2 font-body mb-2">
+            {t("intake.datetimeConflictHint")}
+          </Text>
+          {datetimeOptions.map((option) => {
+            const selected = values.scheduledLabel === option.label;
+            return (
+              <Pressable
+                key={option.label}
+                onPress={() => onChange({ ...values, scheduledLabel: option.label })}
+                style={{
+                  backgroundColor: selected ? (isDark ? "#2E3A52" : "#E2DDD2") : inputBg,
+                  borderWidth: 1,
+                  borderColor: selected ? (isDark ? "#6B8F71" : "#5A7A60") : inputBorder,
+                  borderRadius: 8,
+                  paddingHorizontal: 12,
+                  paddingVertical: 10,
+                  marginBottom: 8,
+                }}
+              >
+                <Text style={{ fontSize: 15, color: inputColor, fontWeight: selected ? "600" : "400" }}>
+                  {option.label}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+      ) : (
+        <PreviewRow
+          label={t("intake.field.datetime")}
+          value={values.scheduledLabel}
+          editing={editing}
+          onChangeText={(scheduledLabel) => onChange({ ...values, scheduledLabel })}
+          placeholder={t("intake.field.datetime")}
+          inputBg={inputBg}
+          inputColor={inputColor}
+          inputBorder={inputBorder}
+        />
+      )}
       <PreviewRow
         label={t("intake.field.person")}
         value={values.personName}
@@ -158,6 +199,12 @@ export function SemanticIntakePreviewCard({ parsed, editing, values, onChange }:
             {t("intake.field.note")}
           </Text>
           <Text className="text-body-lg text-text1 font-body">{parsed.freeFormNote}</Text>
+        </View>
+      ) : null}
+
+      {parsed.ambiguities.includes("datetime_conflict") ? (
+        <View className="mt-2 pt-2 border-t border-border">
+          <Text className="text-xs text-text3 font-body">{t("intake.ambiguity.datetime_conflict")}</Text>
         </View>
       ) : null}
 
