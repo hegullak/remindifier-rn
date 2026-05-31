@@ -36,6 +36,7 @@ export default function PersonDetailScreen() {
   const [deletingEntry, setDeletingEntry] = useState(false);
   const [confirmDeletePerson, setConfirmDeletePerson] = useState(false);
   const [deletingPerson, setDeletingPerson] = useState(false);
+  const [showActions, setShowActions] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -100,38 +101,26 @@ export default function PersonDetailScreen() {
   return (
     <AppShell
       headerLeft={
-        <View className="flex-row items-center gap-4">
-          {returnTo ? (
-            <Pressable
-              onPress={() => { triggerLight(); Keyboard.dismiss(); router.replace(returnTo); }}
-              hitSlop={12}
-              accessibilityLabel="Back"
-            >
-              <Text className="text-[20px] text-accent font-body">←</Text>
-            </Pressable>
-          ) : null}
-          {id ? (
-            <>
-              <Link href={`/people/${id}/edit`} asChild>
-                <Pressable
-                  accessibilityRole="button"
-                  accessibilityLabel={t("people.editPersonA11y")}
-                  onPress={() => { triggerLight(); Keyboard.dismiss(); }}
-                  hitSlop={12}
-                >
-                  <Text className="text-[18px]">✏️</Text>
-                </Pressable>
-              </Link>
-              <Pressable
-                accessibilityLabel={t("people.deletePersonA11y")}
-                onPress={() => { triggerLight(); setConfirmDeletePerson(true); }}
-                hitSlop={12}
-              >
-                <Text className="text-[20px] text-red font-body">🗑</Text>
-              </Pressable>
-            </>
-          ) : null}
-        </View>
+        returnTo ? (
+          <Pressable
+            onPress={() => { triggerLight(); Keyboard.dismiss(); router.replace(returnTo); }}
+            hitSlop={12}
+            accessibilityLabel="Back"
+          >
+            <Text className="text-[20px] text-accent font-body">←</Text>
+          </Pressable>
+        ) : null
+      }
+      headerRight={
+        id ? (
+          <Pressable
+            onPress={() => { triggerLight(); setShowActions(true); }}
+            hitSlop={12}
+            accessibilityLabel="More actions"
+          >
+            <Text className="text-[22px] text-text2 font-body">⋯</Text>
+          </Pressable>
+        ) : null
       }
     >
       <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}>
@@ -376,6 +365,37 @@ export default function PersonDetailScreen() {
           <Button variant="ghost" onPress={() => setEntryToDelete(null)} disabled={deletingEntry}>
             {t("common.cancel")}
           </Button>
+        </View>
+      </BottomSheet>
+
+      <BottomSheet
+        visible={showActions}
+        onDismiss={() => setShowActions(false)}
+        title={bundle?.person.displayName ?? ""}
+      >
+        <View className="gap-1">
+          {id ? (
+            <Link href={`/people/${id}/edit`} asChild>
+              <Pressable
+                onPress={() => { triggerLight(); setShowActions(false); }}
+                className="flex-row items-center gap-4 py-4 border-b border-border"
+              >
+                <Text className="text-[20px]">✏️</Text>
+                <Text className="text-[16px] text-text1 font-bodyMedium">{t("people.editPersonA11y")}</Text>
+              </Pressable>
+            </Link>
+          ) : null}
+          <Pressable
+            onPress={() => {
+              triggerLight();
+              setShowActions(false);
+              setTimeout(() => setConfirmDeletePerson(true), 300);
+            }}
+            className="flex-row items-center gap-4 py-4"
+          >
+            <Text className="text-[20px] text-red font-body">🗑</Text>
+            <Text className="text-[16px] text-red font-bodyMedium">{t("people.deletePersonTitle")}</Text>
+          </Pressable>
         </View>
       </BottomSheet>
 

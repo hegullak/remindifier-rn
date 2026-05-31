@@ -184,6 +184,7 @@ export const no = {
     alreadyInLibrary: "{name} er allerede i biblioteket ditt",
     talkingPointCount: "{count} samtalepunkter",
     addPerson: "+ Legg til person",
+    editTitle: "Rediger tittel",
     deleteEvent: "Slett event",
     deleteEventBody: "Fjerne denne eventen og alle samtalepunktene?",
     breadcrumbBack: "← Tilbake til event",

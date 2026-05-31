@@ -69,6 +69,7 @@ export default function GatheringDetailScreen() {
   const [showInputField, setShowInputField] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
   const [showPersonPicker, setShowPersonPicker] = useState(false);
+  const [showActions, setShowActions] = useState(false);
   const [allPeople, setAllPeople] = useState<{ id: string; displayName: string }[]>([]);
   const [deleting, setDeleting] = useState(false);
 
@@ -243,36 +244,22 @@ export default function GatheringDetailScreen() {
   return (
     <AppShell
       headerLeft={
-        <View className="flex-row items-center gap-4">
-          <Pressable
-            onPress={() => { triggerLight(); Keyboard.dismiss(); router.back(); }}
-            hitSlop={12}
-            accessibilityLabel="Back"
-          >
-            <Text className="text-[20px] text-accent font-body">←</Text>
-          </Pressable>
-          <Pressable
-            onPress={() => { triggerLight(); setShowPersonPicker(true); }}
-            hitSlop={12}
-            accessibilityLabel={t("gathering.addPerson")}
-          >
-            <Text className="text-[20px] text-green font-body">+</Text>
-          </Pressable>
-          <Pressable
-            onPress={() => { triggerLight(); setEditingTitle(true); }}
-            hitSlop={12}
-            accessibilityLabel={t("people.editPersonA11y")}
-          >
-            <Text className="text-[18px]">✏️</Text>
-          </Pressable>
-          <Pressable
-            onPress={() => { triggerLight(); setShowDelete(true); }}
-            hitSlop={12}
-            accessibilityLabel={t("gathering.deleteEvent")}
-          >
-            <Text className="text-[20px] text-red font-body">🗑</Text>
-          </Pressable>
-        </View>
+        <Pressable
+          onPress={() => { triggerLight(); Keyboard.dismiss(); router.back(); }}
+          hitSlop={12}
+          accessibilityLabel="Back"
+        >
+          <Text className="text-[20px] text-accent font-body">←</Text>
+        </Pressable>
+      }
+      headerRight={
+        <Pressable
+          onPress={() => { triggerLight(); setShowActions(true); }}
+          hitSlop={12}
+          accessibilityLabel="More actions"
+        >
+          <Text className="text-[22px] text-text2 font-body">⋯</Text>
+        </Pressable>
       }
     >
       <KeyboardAvoidingView
@@ -467,6 +454,44 @@ export default function GatheringDetailScreen() {
           )}
         </View>
       </KeyboardAvoidingView>
+
+      <BottomSheet visible={showActions} onDismiss={() => setShowActions(false)} title={displayTitle || t("gathering.newTitle")}>
+        <View className="gap-1">
+          <Pressable
+            onPress={() => {
+              triggerLight();
+              setShowActions(false);
+              setTimeout(() => setEditingTitle(true), 300);
+            }}
+            className="flex-row items-center gap-4 py-4 border-b border-border"
+          >
+            <Text className="text-[20px]">✏️</Text>
+            <Text className="text-[16px] text-text1 font-bodyMedium">{t("gathering.editTitle")}</Text>
+          </Pressable>
+          <Pressable
+            onPress={() => {
+              triggerLight();
+              setShowActions(false);
+              setTimeout(() => setShowPersonPicker(true), 300);
+            }}
+            className="flex-row items-center gap-4 py-4 border-b border-border"
+          >
+            <Text className="text-[20px] text-green font-body">+</Text>
+            <Text className="text-[16px] text-text1 font-bodyMedium">{t("gathering.addPerson")}</Text>
+          </Pressable>
+          <Pressable
+            onPress={() => {
+              triggerLight();
+              setShowActions(false);
+              setTimeout(() => setShowDelete(true), 300);
+            }}
+            className="flex-row items-center gap-4 py-4"
+          >
+            <Text className="text-[20px] text-red font-body">🗑</Text>
+            <Text className="text-[16px] text-red font-bodyMedium">{t("gathering.deleteEvent")}</Text>
+          </Pressable>
+        </View>
+      </BottomSheet>
 
       <BottomSheet visible={showDelete} onDismiss={() => setShowDelete(false)} title={t("gathering.deleteEvent")}>
         <Text className="text-[14px] text-text2 font-body mb-4">{t("gathering.deleteEventBody")}</Text>

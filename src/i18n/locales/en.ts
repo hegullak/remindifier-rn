@@ -182,6 +182,7 @@ export const en = {
     alreadyInLibrary: "{name} is already in your library",
     talkingPointCount: "{count} talking points",
     addPerson: "+ Add person",
+    editTitle: "Edit title",
     deleteEvent: "Delete event",
     deleteEventBody: "Remove this event and all its talking points?",
     breadcrumbBack: "← Back to event",
