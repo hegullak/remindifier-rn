@@ -119,7 +119,7 @@ export default function PersonDetailScreen() {
                   onPress={() => { triggerLight(); Keyboard.dismiss(); }}
                   hitSlop={12}
                 >
-                  <Text className="text-[20px] text-text2 font-body">✎</Text>
+                  <Text className="text-[18px]">✏️</Text>
                 </Pressable>
               </Link>
               <Pressable
@@ -249,7 +249,7 @@ export default function PersonDetailScreen() {
                   <Pressable>
                     <Card>
                       <Text className="text-[14px] text-text1 font-bodyMedium">
-                        {link.direction === "outgoing" ? "→" : "←"} {link.otherPersonName}
+                        {link.otherPersonName}
                       </Text>
                       <Text className="text-[12px] text-text3 font-body mt-1">
                         {translateRelationType(link.label, locale) ?? link.label}

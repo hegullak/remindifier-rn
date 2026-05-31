@@ -263,7 +263,7 @@ export default function GatheringDetailScreen() {
             hitSlop={12}
             accessibilityLabel={t("people.editPersonA11y")}
           >
-            <Text className="text-[20px] text-text2 font-body">✎</Text>
+            <Text className="text-[18px]">✏️</Text>
           </Pressable>
           <Pressable
             onPress={() => { triggerLight(); setShowDelete(true); }}
