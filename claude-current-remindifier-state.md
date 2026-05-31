@@ -13,7 +13,7 @@ Agent protocol: `.cursor/rules/session-handoff.mdc` · Skill: `.cursor/skills/pr
 
 - **Repo:** `https://github.com/hegullak/remindifier-rn`
 - **Active branch:** `sandbox`
-- **Latest commit:** `fefd756` — `docs: sync brief layout and NativeWind rules in PROJECT_MEMORY`
+- **Latest commit:** `6bb8e2c` — `docs: session handoff 2026-05-31 — brief status and next candidates`
 - **CI:** lint + typecheck + test:coverage (expected green)
 
 ### Git workflow (user rule)
@@ -152,17 +152,21 @@ ff97611 feat(brief): compact weather topline + single-line greeting + weather bo
 
 ## Open GitHub Issues / next work
 
-| # | Title | Status |
-|---|---|---|
-| 50 | Tonight mode — expanded card before meeting | Not started |
-| 52 | Apple Reminders + deep link to event prep | Not started |
-| 53 | Me profile + QR | Partially done |
-| 54 | Settings privacy/export/delete | Partially done |
-| — | Brief blikkfang / visual hero | **Parking — no kicker found yet** |
-| — | Tab bar blur (expo-blur) | Parked — needs new dev client build |
-| — | CloudKit sync | Not started |
-| — | `start:dev:log` npm script (dev client + log file) | Not done |
-| — | Training labels (Push/Pull/Legs) i18n | Not done |
+| # | Title | GitHub | Implementation |
+|---|---|---|---|
+| 50 | Tonight mode — day-of view before meeting | OPEN | Not started — pairs with #58 event prep |
+| 52 | Apple Reminders + deep link to event prep | OPEN | Not started (iOS EventKit) |
+| 53 | Me profile + QR | **CLOSED** | Mostly done (`myself.tsx`) |
+| 54 | Settings privacy/export/delete | **CLOSED** | Mostly done (`settings.tsx`) |
+| 58 | Social event prep + talking points | OPEN | Mostly done (gather tab) |
+| 61 | Calendar in morning brief | **CLOSED** | Done |
+| 64 | Samvittighet-as-a-Service design principle | OPEN | Guiding principle (not a feature) |
+| — | Brief blikkfang / visual hero | — | **Parked — no kicker found yet** |
+| — | Tab bar blur (expo-blur) | — | Parked — needs new dev client build |
+| — | CloudKit sync | — | Not started |
+| — | Training labels (Push/Pull/Legs) i18n | — | Not done |
+
+**Next candidates to discuss:** #50 (Tonight mode), #53 polish, #54 polish
 
 ---
 
@@ -181,23 +185,20 @@ ff97611 feat(brief): compact weather topline + single-line greeting + weather bo
 
 ## What Was Done (this session — 2026-05-31)
 
-### Brief screen (`app/(tabs)/brief.tsx`)
+### Brief screen (earlier today)
 
-1. **Weather topline** — compact centered row above date nav (`⛅ 12° 🌧️ 0mm 💨 3km/h ›`); tap → BottomSheet with full details
-2. **Weather section** in `sectionOrder` returns `null` (no full card)
-3. **Greeting anchor** — single line `God kveld, Henning.` · `text-5xl` · `pt-6 pb-8`
-4. **Body formatting** — `"\n"` sentence separator; renderer splits on `"\n"` (fixes «kl. 09:00» splitting)
-5. **Tab bar blur** — `expo-blur` installed; inactive until new dev client build
-6. **NativeWind** — preset classes only; arbitrary `text-[Xpx]` unreliable; inline style last resort
+1. Weather topline + BottomSheet · greeting anchor (`text-5xl`) · body `"\n"` separator · expo-blur (pending dev build) · NativeWind preset rules
+2. `PROJECT_MEMORY.md` synced with brief layout conventions (`fefd756`)
 
-### Docs / handoff
+### This handoff continuation
 
-7. **`PROJECT_MEMORY.md`** — brief layout, body newline rule, NativeWind conventions, tab bar blur note
-8. **Session continuity** — `git pull --rebase`; state file synced; next candidates: #50, #53, #54
+3. **GitHub issue review** — fetched all open/closed issues via `gh`; summarized for Henning
+4. **Issue mapping:** #50 = day-of tonight view; #58 event prep largely built; #53/#54 CLOSED on GitHub but may need polish; #52 = Apple Reminders deep link (not started)
+5. **No code changes** this continuation — docs/handoff only
 
 ### Parked
 
-- Brief **blikkfang** / visual hero — no kicker found yet
+- Brief **blikkfang** — no kicker found yet
 
 ---
 
