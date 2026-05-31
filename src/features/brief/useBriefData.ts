@@ -40,6 +40,7 @@ interface BriefState {
   calendarEvents: (CalendarBriefEvent & { gatheringId: string | null })[];
   todayEvents: CalendarBriefEvent[];
   tomorrowEvents: CalendarBriefEvent[];
+  weekEvents: CalendarBriefEvent[];
   redLetterDays: UpcomingRedLetterDay[];
   sectionOrder: BriefSectionId[];
 }
@@ -59,6 +60,7 @@ const initialState: BriefState = {
   calendarEvents: [],
   todayEvents: [],
   tomorrowEvents: [],
+  weekEvents: [],
   redLetterDays: [],
   sectionOrder: DEFAULT_BRIEF_SECTION_ORDER,
 };
@@ -125,6 +127,7 @@ export function useBriefData(userId: string | null | undefined) {
       calendarEvents: calendarLinked,
       todayEvents,
       tomorrowEvents,
+      weekEvents: calendarEvents,
       redLetterDays,
       sectionOrder,
       weather,

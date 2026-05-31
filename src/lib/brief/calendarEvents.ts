@@ -11,6 +11,7 @@ export type CalendarBriefEvent = {
   allDay: boolean;
   daysUntil: number;
   isToday: boolean;
+  calendarName?: string;
 };
 
 export function getRemindifierCalendarName(): string {
@@ -28,7 +29,11 @@ export function computeDaysUntil(eventStart: Date, todayStart: Date): number {
   return Math.max(0, Math.floor(ms / 86400000));
 }
 
-export function mapToCalendarBriefEvent(event: Event, todayStart: Date): CalendarBriefEvent {
+export function mapToCalendarBriefEvent(
+  event: Event,
+  todayStart: Date,
+  calendarName?: string,
+): CalendarBriefEvent {
   const startDate = new Date(event.startDate);
   const daysUntil = computeDaysUntil(startDate, todayStart);
   return {
@@ -38,6 +43,7 @@ export function mapToCalendarBriefEvent(event: Event, todayStart: Date): Calenda
     allDay: event.allDay ?? false,
     daysUntil,
     isToday: daysUntil === 0,
+    calendarName,
   };
 }
 
@@ -68,19 +74,21 @@ export async function fetchCalendarBriefEvents(
     const { status } = await Calendar.requestCalendarPermissionsAsync();
     if (status !== "granted") return [];
 
-    const calendarName = getRemindifierCalendarName();
+    const primaryCalendarName = getRemindifierCalendarName();
+    const calendarNames = [primaryCalendarName, "Jobb", "Privat"];
     const calendars = await Calendar.getCalendarsAsync(Calendar.EntityTypes.EVENT);
-    const match = calendars.find((c) => c.title === calendarName);
-    if (!match) return [];
+    const matches = calendars.filter((c) => calendarNames.includes(c.title));
+    if (matches.length === 0) return [];
 
     const todayStart = startOfToday();
+    const calendarIdToName = new Map(matches.map((c) => [c.id, c.title]));
     const events = await Calendar.getEventsAsync(
-      [match.id],
+      matches.map((c) => c.id),
       weekBounds.start,
       weekBounds.end,
     );
     return events
-      .map((event) => mapToCalendarBriefEvent(event, todayStart))
+      .map((event) => mapToCalendarBriefEvent(event, todayStart, calendarIdToName.get(event.calendarId)))
       .filter((event) => event.startDate >= weekBounds.start && event.startDate <= weekBounds.end)
       .sort((a, b) => a.startDate.getTime() - b.startDate.getTime());
   } catch (err) {

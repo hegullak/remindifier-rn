@@ -129,11 +129,14 @@ export const en = {
       unavailable: "Calendar data unavailable.",
       pillEmpty: "Open day tomorrow",
       pillUnavailable: "Calendar unavailable",
+      freeEvening: "Free from {time}",
     },
     morningBrief: {
       sectionLabel: "TODAY",
       pillEmpty: "Open day",
       pillUnavailable: "Calendar unavailable",
+      freeEvening: "Free evening",
+      weekendFree: "Free weekend",
     },
     calendar: {
       today: "Today",

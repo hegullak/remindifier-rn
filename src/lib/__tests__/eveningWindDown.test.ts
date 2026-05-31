@@ -9,8 +9,9 @@ function makeEvent(
   hour: number,
   minute = 0,
   allDay = false,
+  calendarName?: string,
 ): CalendarBriefEvent {
-  const date = new Date(2026, 5, 1, hour, minute, 0, 0); // 2026-06-01
+  const date = new Date(2026, 5, 2, hour, minute, 0, 0); // 2026-06-02 (Tuesday = tomorrow)
   return {
     id,
     title: `Event ${id}`,
@@ -18,13 +19,35 @@ function makeEvent(
     allDay,
     daysUntil: 1,
     isToday: false,
+    calendarName,
+  };
+}
+
+function makeWeekendEvent(
+  id: string,
+  dayOfWeek: 6 | 0, // 6=Sat, 0=Sun
+  hour: number,
+  minute = 0,
+  title?: string,
+): CalendarBriefEvent {
+  const date = dayOfWeek === 6
+    ? new Date(2026, 5, 6, hour, minute, 0, 0) // Saturday 2026-06-06
+    : new Date(2026, 5, 7, hour, minute, 0, 0); // Sunday 2026-06-07
+  return {
+    id,
+    title: title ?? `Weekend ${id}`,
+    startDate: date,
+    allDay: false,
+    daysUntil: dayOfWeek === 6 ? 5 : 6,
+    isToday: false,
+    calendarName: "Privat",
   };
 }
 
 describe("buildEveningWindDown", () => {
   describe("empty events", () => {
     it("returns isEmpty: true for an empty array (en)", () => {
-      const result = buildEveningWindDown([], "en");
+      const result = buildEveningWindDown([], [], "en");
       expect(result.available).toBe(true);
       expect(result.isEmpty).toBe(true);
       expect(result.headline).toBe("Tomorrow looks open.");
@@ -32,18 +55,85 @@ describe("buildEveningWindDown", () => {
     });
 
     it("returns isEmpty: true for an empty array (no)", () => {
-      const result = buildEveningWindDown([], "no");
+      const result = buildEveningWindDown([], [], "no");
       expect(result.available).toBe(true);
       expect(result.isEmpty).toBe(true);
       expect(result.headline).toBe("I morgen ser åpent ut.");
       expect(result.body).toBe("Ingenting på kalenderen.");
+    });
+
+    it("pillText is 'Open day tomorrow' when no events (en)", () => {
+      const result = buildEveningWindDown([], [], "en");
+      expect(result.pillText).toBe("Open day tomorrow");
+    });
+
+    it("pillText is 'Åpen dag i morgen' when no events (no)", () => {
+      const result = buildEveningWindDown([], [], "no");
+      expect(result.pillText).toBe("Åpen dag i morgen");
+    });
+  });
+
+  describe("pillText populated", () => {
+    it("pillText includes meeting count and lunch status (no)", () => {
+      const events = [
+        makeEvent("e1", 9, 0, false, "Jobb"),
+        makeEvent("e2", 10, 0, false, "Jobb"),
+        makeEvent("e3", 14, 0, false, "Jobb"),
+      ];
+      const result = buildEveningWindDown(events, [], "no");
+      expect(result.pillText).toContain("møter");
+    });
+
+    it("pillText includes 'fri fra 17:00' when free evening (no)", () => {
+      const events = [makeEvent("e1", 9, 0, false, "Jobb")];
+      const result = buildEveningWindDown(events, [], "no");
+      expect(result.pillText).toContain("fri fra 17:00");
+    });
+
+    it("pillText includes 'free from 17:00' when free evening (en)", () => {
+      const events = [makeEvent("e1", 9, 0)];
+      const result = buildEveningWindDown(events, [], "en");
+      expect(result.pillText).toContain("free from 17:00");
+    });
+
+    it("pillText shows evening activity when not free evening (no)", () => {
+      const events = [
+        makeEvent("e1", 9, 0, false, "Jobb"),
+        makeEvent("fotball", 19, 30, false, "Privat"),
+      ];
+      events[1].title = "Fotballtrening";
+      const result = buildEveningWindDown(events, [], "no");
+      expect(result.pillText).toContain("Fotballtrening");
+    });
+  });
+
+  describe("free evening detection", () => {
+    it("detects free evening when no events at 17:00 or later (no)", () => {
+      const events = [makeEvent("e1", 9, 0, false, "Jobb"), makeEvent("e2", 14, 0, false, "Jobb")];
+      const result = buildEveningWindDown(events, [], "no");
+      expect(result.body).toContain("Fri tid fra kl. 17:00");
+    });
+
+    it("detects free evening when no events at 17:00 or later (en)", () => {
+      const events = [makeEvent("e1", 9, 0)];
+      const result = buildEveningWindDown(events, [], "en");
+      expect(result.body).toContain("Free from 17:00");
+    });
+
+    it("does NOT show free evening when there is an event at 19:30 (no)", () => {
+      const events = [
+        makeEvent("e1", 9, 0, false, "Jobb"),
+        makeEvent("fotball", 19, 30, false, "Privat"),
+      ];
+      const result = buildEveningWindDown(events, [], "no");
+      expect(result.body).not.toContain("Fri tid fra kl. 17:00");
     });
   });
 
   describe("single event", () => {
     it("mentions the first event time in the body (en)", () => {
       const events = [makeEvent("e1", 9, 0)];
-      const result = buildEveningWindDown(events, "en");
+      const result = buildEveningWindDown(events, [], "en");
       expect(result.available).toBe(true);
       expect(result.isEmpty).toBe(false);
       expect(result.body).toMatch(/09:00/);
@@ -51,13 +141,13 @@ describe("buildEveningWindDown", () => {
 
     it("mentions the first event time in the body (no)", () => {
       const events = [makeEvent("e1", 9, 0)];
-      const result = buildEveningWindDown(events, "no");
+      const result = buildEveningWindDown(events, [], "no");
       expect(result.body).toMatch(/09:00/);
     });
 
     it("gives a light-day headline when only one event before afternoon (en)", () => {
       const events = [makeEvent("e1", 9, 0)];
-      const result = buildEveningWindDown(events, "en");
+      const result = buildEveningWindDown(events, [], "en");
       expect(result.headline).toBe("Tomorrow looks fairly light.");
     });
   });
@@ -70,14 +160,14 @@ describe("buildEveningWindDown", () => {
         makeEvent("e3", 10, 0),
         makeEvent("e4", 11, 0),
       ];
-      const result = buildEveningWindDown(events, "en");
+      const result = buildEveningWindDown(events, [], "en");
       expect(result.headline).toBe("Tomorrow looks like a full morning.");
       expect(result.body).toContain("morning is fairly packed");
     });
 
     it("does NOT detect hasMorningBusy for 2 events before noon", () => {
       const events = [makeEvent("e1", 9, 0), makeEvent("e2", 11, 0)];
-      const result = buildEveningWindDown(events, "en");
+      const result = buildEveningWindDown(events, [], "en");
       expect(result.headline).not.toBe("Tomorrow looks like a full morning.");
       expect(result.body).not.toContain("morning is fairly packed");
     });
@@ -86,19 +176,19 @@ describe("buildEveningWindDown", () => {
   describe("lunch availability", () => {
     it("detects hasLunchFree when no event falls within 11:30–13:30", () => {
       const events = [makeEvent("e1", 9, 0), makeEvent("e2", 15, 0)];
-      const result = buildEveningWindDown(events, "en");
+      const result = buildEveningWindDown(events, [], "en");
       expect(result.body).toContain("Lunch looks open");
     });
 
     it("hasLunchFree is false when an event lands at 12:00 (en)", () => {
       const events = [makeEvent("e1", 12, 0)];
-      const result = buildEveningWindDown(events, "en");
+      const result = buildEveningWindDown(events, [], "en");
       expect(result.body).not.toContain("Lunch looks open");
     });
 
     it("mentions fri lunsj in Norwegian when lunch is free", () => {
       const events = [makeEvent("e1", 9, 0), makeEvent("e2", 15, 0)];
-      const result = buildEveningWindDown(events, "no");
+      const result = buildEveningWindDown(events, [], "no");
       expect(result.body).toContain("Lunsj ser fri ut");
     });
   });
@@ -106,20 +196,44 @@ describe("buildEveningWindDown", () => {
   describe("afternoon calm detection", () => {
     it("detects afternoonCalm when no events at or after 14:00", () => {
       const events = [makeEvent("e1", 9, 0), makeEvent("e2", 11, 0)];
-      const result = buildEveningWindDown(events, "en");
+      const result = buildEveningWindDown(events, [], "en");
       expect(result.body).toContain("14:00");
     });
 
     it("does NOT show afternoonCalm when there is an event at 15:00", () => {
       const events = [makeEvent("e1", 9, 0), makeEvent("e2", 15, 0)];
-      const result = buildEveningWindDown(events, "en");
+      const result = buildEveningWindDown(events, [], "en");
       expect(result.body).not.toContain("After 14:00");
     });
 
     it("mentions ettermiddag i norsk when afternoon is calm", () => {
       const events = [makeEvent("e1", 9, 0)];
-      const result = buildEveningWindDown(events, "no");
+      const result = buildEveningWindDown(events, [], "no");
       expect(result.body).toContain("Ettermiddagen er rolig");
+    });
+  });
+
+  describe("weekend preview in body", () => {
+    it("includes weekend summary when saturday events exist (no)", () => {
+      const weekEvents = [makeWeekendEvent("s1", 6, 13, 0, "Fotballkamp")];
+      const result = buildEveningWindDown([makeEvent("e1", 9, 0)], weekEvents, "no");
+      expect(result.body).toContain("Til helgen:");
+      expect(result.body).toContain("Fotballkamp");
+      expect(result.body).toContain("lørdag");
+    });
+
+    it("includes weekend summary when saturday events exist (en)", () => {
+      const weekEvents = [makeWeekendEvent("s1", 6, 13, 0, "Football match")];
+      const result = buildEveningWindDown([makeEvent("e1", 9, 0)], weekEvents, "en");
+      expect(result.body).toContain("This weekend:");
+      expect(result.body).toContain("Football match");
+    });
+
+    it("empty tomorrow + weekend events → body includes weekend preview (no)", () => {
+      const weekEvents = [makeWeekendEvent("s1", 6, 18, 0, "Middag med familien")];
+      const result = buildEveningWindDown([], weekEvents, "no");
+      expect(result.body).toContain("Til helgen:");
+      expect(result.body).toContain("Middag med familien");
     });
   });
 
@@ -133,14 +247,14 @@ describe("buildEveningWindDown", () => {
         makeEvent("e5", 14, 30),
         makeEvent("e6", 16, 0),
       ];
-      const result = buildEveningWindDown(events, "en");
+      const result = buildEveningWindDown(events, [], "en");
       expect(result.headline).toBe("Tomorrow looks like a full morning.");
       expect(result.body).not.toContain("After 14:00"); // afternoon is NOT calm
     });
 
     it("all-day events do not count toward timed-event patterns", () => {
       const events = [makeEvent("allday", 0, 0, true)];
-      const result = buildEveningWindDown(events, "en");
+      const result = buildEveningWindDown(events, [], "en");
       // allDay events are included in eventCount but excluded from timed analysis
       expect(result.isEmpty).toBe(false);
       // no timed events → no first-event mention

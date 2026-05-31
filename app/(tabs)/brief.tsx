@@ -35,8 +35,8 @@ export default function BriefScreen() {
     shiftWeek,
     resetWeek,
   } = useBriefData(userId);
-  const morningBrief = buildMorningBrief(brief.todayEvents ?? [], locale);
-  const windDown = buildEveningWindDown(brief.tomorrowEvents ?? [], locale);
+  const morningBrief = buildMorningBrief(brief.todayEvents ?? [], brief.weekEvents ?? [], locale);
+  const windDown = buildEveningWindDown(brief.tomorrowEvents ?? [], brief.weekEvents ?? [], locale);
   const [weatherExpanded, setWeatherExpanded] = useState(false);
   const [showMorningBrief, setShowMorningBrief] = useState(false);
   const [showEveningWindDown, setShowEveningWindDown] = useState(false);
@@ -300,10 +300,52 @@ export default function BriefScreen() {
     ? t("brief.eveningWindDown.pillUnavailable")
     : windDown.isEmpty
       ? t("brief.eveningWindDown.pillEmpty")
-      : windDown.headline;
+      : windDown.pillText;
 
   const listHeader = (
     <View className="pb-2">
+      <View className="flex-row items-center justify-center gap-4 mb-2">
+        <Pressable
+          onPress={() => shiftWeek(-1)}
+          accessibilityRole="button"
+          accessibilityLabel={t("brief.weekPrev")}
+          hitSlop={16}
+          className="active:opacity-60"
+        >
+          <Text className="text-[22px] text-accent font-body">←</Text>
+        </Pressable>
+        <Pressable
+          onPress={resetWeek}
+          disabled={weekOffset === 0}
+          accessibilityRole="button"
+          accessibilityLabel={t("brief.weekThis")}
+          hitSlop={8}
+          className="active:opacity-70"
+        >
+          <Text
+            className={`text-[13px] font-bodySemi ${weekOffset === 0 ? "text-text3" : "text-accent"}`}
+          >
+            {dateLine}
+          </Text>
+        </Pressable>
+        <Pressable
+          onPress={() => shiftWeek(1)}
+          accessibilityRole="button"
+          accessibilityLabel={t("brief.weekNext")}
+          hitSlop={16}
+          className="active:opacity-60"
+        >
+          <Text className="text-[22px] text-accent font-body">→</Text>
+        </Pressable>
+      </View>
+      <View className="pt-1 pb-3">
+        <Text className="text-[30px] leading-[36px] text-text1 font-heading mt-1">
+          {greetingLead}
+          {"\n"}
+          <Text className="text-accent">{greetingName}</Text>
+        </Text>
+      </View>
+
       <View className="flex-row gap-2 mb-3">
         <Pressable
           onPress={() => setShowMorningBrief(true)}
@@ -340,48 +382,6 @@ export default function BriefScreen() {
             <Text className="text-[18px] text-text3 font-body">›</Text>
           </View>
         </Pressable>
-      </View>
-
-      <View className="flex-row items-center justify-center gap-4 mb-2">
-        <Pressable
-          onPress={() => shiftWeek(-1)}
-          accessibilityRole="button"
-          accessibilityLabel={t("brief.weekPrev")}
-          hitSlop={16}
-          className="active:opacity-60"
-        >
-          <Text className="text-[22px] text-accent font-body">←</Text>
-        </Pressable>
-        <Pressable
-          onPress={resetWeek}
-          disabled={weekOffset === 0}
-          accessibilityRole="button"
-          accessibilityLabel={t("brief.weekThis")}
-          hitSlop={8}
-          className="active:opacity-70"
-        >
-          <Text
-            className={`text-[13px] font-bodySemi ${weekOffset === 0 ? "text-text3" : "text-accent"}`}
-          >
-            {dateLine}
-          </Text>
-        </Pressable>
-        <Pressable
-          onPress={() => shiftWeek(1)}
-          accessibilityRole="button"
-          accessibilityLabel={t("brief.weekNext")}
-          hitSlop={16}
-          className="active:opacity-60"
-        >
-          <Text className="text-[22px] text-accent font-body">→</Text>
-        </Pressable>
-      </View>
-      <View className="pt-1 pb-2">
-        <Text className="text-[30px] leading-[36px] text-text1 font-heading mt-1">
-          {greetingLead}
-          {"\n"}
-          <Text className="text-accent">{greetingName}</Text>
-        </Text>
       </View>
     </View>
   );

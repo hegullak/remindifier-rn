@@ -1,7 +1,8 @@
 import * as Calendar from "expo-calendar";
 import { logger } from "@/lib/logger";
 
-const SEED_CALENDAR_NAME = "remindifier (test)";
+const SEED_CALENDAR_JOBB = "Jobb";
+const SEED_CALENDAR_PRIVAT = "Privat";
 
 function daysFromToday(days: number): Date {
   const d = new Date();
@@ -21,6 +22,15 @@ type SeedEventBase = {
   title: string;
   notes: string;
   allDay: boolean;
+  calendar: "Jobb" | "Privat";
+};
+
+type NextWeekdayEvent = SeedEventBase & {
+  nextWeekday: number; // 0=Sun, 1=Mon, ..., 5=Fri, 6=Sat
+  fixedHour: number;
+  fixedMinute: number;
+  durationMinutes: number;
+  allDay: false;
 };
 
 type NextFridayEvent = SeedEventBase & {
@@ -54,12 +64,22 @@ type OffsetFixedTimeEvent = SeedEventBase & {
   allDay: false;
 };
 
+type ThisSaturdayEvent = SeedEventBase & {
+  thisSaturday: true;
+  fixedHour: number;
+  fixedMinute: number;
+  durationMinutes: number;
+  allDay: false;
+};
+
 type SeedEvent =
+  | NextWeekdayEvent
   | NextFridayEvent
   | OffsetAllDayEvent
   | OffsetTimedEvent
   | FixedTimeEvent
-  | OffsetFixedTimeEvent;
+  | OffsetFixedTimeEvent
+  | ThisSaturdayEvent;
 
 function nextWeekday(weekday: number): Date {
   // weekday: 0=Sun, 1=Mon, ..., 5=Fri, 6=Sat
@@ -70,7 +90,17 @@ function nextWeekday(weekday: number): Date {
   return d;
 }
 
+function thisSaturday(): Date {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  const day = d.getDay(); // 0=Sun,1=Mon,...,6=Sat
+  const diff = (6 - day + 7) % 7 || 7; // days until next Sat (never 0)
+  d.setDate(d.getDate() + diff);
+  return d;
+}
+
 const SEED_EVENTS: SeedEvent[] = [
+  // ── Existing personal / legacy events ──────────────────────────────────────
   {
     key: "visit-ivan",
     title: "Helgebesøk Ivan 🏡",
@@ -78,6 +108,7 @@ const SEED_EVENTS: SeedEvent[] = [
     allDay: false,
     nextFriday: true,
     durationHours: 3,
+    calendar: "Privat",
   },
   {
     key: "followup-eirik",
@@ -85,6 +116,7 @@ const SEED_EVENTS: SeedEvent[] = [
     notes: "Han søkte på team lead-stilling. Resultat skulle komme denne uken.",
     allDay: true,
     offsetDays: 4,
+    calendar: "Privat",
   },
   {
     key: "prev-week-lunch",
@@ -93,6 +125,7 @@ const SEED_EVENTS: SeedEvent[] = [
     allDay: false,
     offsetDays: -4,
     durationHours: 1,
+    calendar: "Jobb",
   },
   {
     key: "prev-week-review",
@@ -100,6 +133,7 @@ const SEED_EVENTS: SeedEvent[] = [
     notes: "Forrige uke — seed.",
     allDay: true,
     offsetDays: -6,
+    calendar: "Jobb",
   },
   {
     key: "next-week-workshop",
@@ -108,6 +142,7 @@ const SEED_EVENTS: SeedEvent[] = [
     allDay: false,
     offsetDays: 10,
     durationHours: 2,
+    calendar: "Jobb",
   },
   {
     key: "next-week-dinner",
@@ -115,8 +150,10 @@ const SEED_EVENTS: SeedEvent[] = [
     notes: "Neste uke — seed.",
     allDay: true,
     offsetDays: 12,
+    calendar: "Privat",
   },
-  // Today — work meetings
+
+  // ── Today — Jobb ───────────────────────────────────────────────────────────
   {
     key: "today-standup",
     title: "Standup",
@@ -125,6 +162,7 @@ const SEED_EVENTS: SeedEvent[] = [
     fixedHour: 9,
     fixedMinute: 0,
     durationMinutes: 15,
+    calendar: "Jobb",
   },
   {
     key: "today-1on1",
@@ -134,15 +172,17 @@ const SEED_EVENTS: SeedEvent[] = [
     fixedHour: 10,
     fixedMinute: 30,
     durationMinutes: 45,
+    calendar: "Jobb",
   },
   {
     key: "today-produktgjennomgang",
     title: "Produktgjennomgang",
-    notes: "",
+    notes: "Spiser inn i lunsj.",
     allDay: false,
     fixedHour: 13,
     fixedMinute: 0,
     durationMinutes: 45,
+    calendar: "Jobb",
   },
   {
     key: "today-ukesavslutning",
@@ -152,8 +192,21 @@ const SEED_EVENTS: SeedEvent[] = [
     fixedHour: 16,
     fixedMinute: 0,
     durationMinutes: 30,
+    calendar: "Jobb",
   },
-  // Tomorrow — work meetings
+  // Today — Privat
+  {
+    key: "today-fotball",
+    title: "Fotballtrening",
+    notes: "",
+    allDay: false,
+    fixedHour: 19,
+    fixedMinute: 30,
+    durationMinutes: 90,
+    calendar: "Privat",
+  },
+
+  // ── Tomorrow — Jobb ────────────────────────────────────────────────────────
   {
     key: "tomorrow-morgenmote",
     title: "Morgenmøte",
@@ -163,6 +216,7 @@ const SEED_EVENTS: SeedEvent[] = [
     fixedHour: 8,
     fixedMinute: 30,
     durationMinutes: 30,
+    calendar: "Jobb",
   },
   {
     key: "tomorrow-standup",
@@ -173,16 +227,18 @@ const SEED_EVENTS: SeedEvent[] = [
     fixedHour: 9,
     fixedMinute: 30,
     durationMinutes: 30,
+    calendar: "Jobb",
   },
   {
-    key: "tomorrow-designgjennomgang",
-    title: "Designgjennomgang",
-    notes: "",
+    key: "tomorrow-lunsj-kunde",
+    title: "Lunsj med kunde",
+    notes: "Spiser inn i lunsj.",
     allDay: false,
     offsetDays: 1,
-    fixedHour: 11,
-    fixedMinute: 0,
-    durationMinutes: 60,
+    fixedHour: 12,
+    fixedMinute: 30,
+    durationMinutes: 45,
+    calendar: "Jobb",
   },
   {
     key: "tomorrow-klientmote",
@@ -193,18 +249,22 @@ const SEED_EVENTS: SeedEvent[] = [
     fixedHour: 14,
     fixedMinute: 0,
     durationMinutes: 60,
+    calendar: "Jobb",
   },
+  // Tomorrow — Privat
   {
-    key: "tomorrow-oppfolging",
-    title: "Oppfølging prosjekt",
+    key: "tomorrow-fotball",
+    title: "Fotballtrening",
     notes: "",
     allDay: false,
     offsetDays: 1,
-    fixedHour: 15,
+    fixedHour: 19,
     fixedMinute: 30,
-    durationMinutes: 30,
+    durationMinutes: 90,
+    calendar: "Privat",
   },
-  // Day after tomorrow — light day
+
+  // ── Day after tomorrow — light day (Jobb only) ─────────────────────────────
   {
     key: "day2-standup",
     title: "Standup",
@@ -214,6 +274,7 @@ const SEED_EVENTS: SeedEvent[] = [
     fixedHour: 10,
     fixedMinute: 0,
     durationMinutes: 30,
+    calendar: "Jobb",
   },
   {
     key: "day2-planlegging",
@@ -224,30 +285,72 @@ const SEED_EVENTS: SeedEvent[] = [
     fixedHour: 15,
     fixedMinute: 0,
     durationMinutes: 60,
+    calendar: "Jobb",
+  },
+
+  // ── This Saturday — Privat ─────────────────────────────────────────────────
+  {
+    key: "saturday-fotballkamp",
+    title: "Fotballkamp – Frøya vs Laksevåg",
+    notes: "",
+    allDay: false,
+    thisSaturday: true,
+    fixedHour: 13,
+    fixedMinute: 0,
+    durationMinutes: 120,
+    calendar: "Privat",
+  },
+  {
+    key: "saturday-middag",
+    title: "Middag med familien",
+    notes: "",
+    allDay: false,
+    thisSaturday: true,
+    fixedHour: 18,
+    fixedMinute: 0,
+    durationMinutes: 180,
+    calendar: "Privat",
+  },
+
+  // ── Next week Monday — Jobb ────────────────────────────────────────────────
+  {
+    key: "next-monday-kurs",
+    title: "Kurs: Produktledelse",
+    notes: "Heldagskurs.",
+    allDay: false,
+    nextWeekday: 1,
+    fixedHour: 9,
+    fixedMinute: 0,
+    durationMinutes: 480, // 8 hours
+    calendar: "Jobb",
   },
 ];
 
-async function findOrCreateSeedCalendar(): Promise<string> {
-  const calendars = await Calendar.getCalendarsAsync(Calendar.EntityTypes.EVENT);
-  const existing = calendars.find((c) => c.title === SEED_CALENDAR_NAME);
+async function findOrCreateNamedCalendar(
+  title: string,
+  color: string,
+  allCalendars: Calendar.Calendar[],
+): Promise<string> {
+  const existing = allCalendars.find((c) => c.title === title);
   if (existing) return existing.id;
 
   const defaultSource =
-    calendars.find((c) => c.source?.name === "Default")?.source ?? calendars[0]?.source;
+    allCalendars.find((c) => c.source?.name === "Default")?.source ??
+    allCalendars[0]?.source;
 
   return Calendar.createCalendarAsync({
-    title: SEED_CALENDAR_NAME,
-    color: "#C4784A",
+    title,
+    color,
     entityType: Calendar.EntityTypes.EVENT,
     sourceId: defaultSource?.id,
     source: defaultSource ?? { isLocalAccount: true, name: "remindifier", type: "" },
-    name: SEED_CALENDAR_NAME,
+    name: title,
     ownerAccount: "personal",
     accessLevel: Calendar.CalendarAccessLevel.OWNER,
   });
 }
 
-async function clearSeedEvents(calendarId: string): Promise<number> {
+async function clearSeedEventsForCalendar(calendarId: string): Promise<number> {
   const start = new Date();
   start.setFullYear(start.getFullYear() - 1);
   const end = new Date();
@@ -258,18 +361,25 @@ async function clearSeedEvents(calendarId: string): Promise<number> {
   return events.length;
 }
 
-async function createSeedEvents(calendarId: string) {
+async function createSeedEvents(
+  jobbCalendarId: string,
+  privatCalendarId: string,
+) {
   for (const event of SEED_EVENTS) {
     let startDate: Date;
 
-    if ("nextFriday" in event) {
+    if ("thisSaturday" in event) {
+      startDate = thisSaturday();
+      startDate.setHours(event.fixedHour, event.fixedMinute, 0, 0);
+    } else if ("nextWeekday" in event) {
+      startDate = nextWeekday(event.nextWeekday);
+      startDate.setHours(event.fixedHour, event.fixedMinute, 0, 0);
+    } else if ("nextFriday" in event) {
       startDate = nextWeekday(5);
     } else if ("offsetDays" in event && "fixedHour" in event) {
-      // Specific offset day at a specific time
       startDate = daysFromToday(event.offsetDays);
       startDate.setHours(event.fixedHour, event.fixedMinute, 0, 0);
     } else if ("fixedHour" in event) {
-      // Today at a specific time
       startDate = todayAt(event.fixedHour, event.fixedMinute);
     } else if ("offsetDays" in event) {
       startDate = daysFromToday(event.offsetDays);
@@ -285,6 +395,8 @@ async function createSeedEvents(calendarId: string) {
     } else if ("durationHours" in event) {
       endDate.setHours(endDate.getHours() + event.durationHours);
     }
+
+    const calendarId = event.calendar === "Jobb" ? jobbCalendarId : privatCalendarId;
 
     await Calendar.createEventAsync(calendarId, {
       title: event.title,
@@ -311,11 +423,18 @@ export async function seedDevCalendar(): Promise<SeedCalendarResult> {
       return { ok: false, reason: "no_permission" };
     }
 
-    const calendarId = await findOrCreateSeedCalendar();
-    const removed = await clearSeedEvents(calendarId);
-    await createSeedEvents(calendarId);
+    const allCalendars = await Calendar.getCalendarsAsync(Calendar.EntityTypes.EVENT);
+
+    const jobbId = await findOrCreateNamedCalendar("Jobb", "#5A7EA8", allCalendars);
+    const privatId = await findOrCreateNamedCalendar("Privat", "#4A7460", allCalendars);
+
+    const removedJobb = await clearSeedEventsForCalendar(jobbId);
+    const removedPrivat = await clearSeedEventsForCalendar(privatId);
+    const removed = removedJobb + removedPrivat;
+
+    await createSeedEvents(jobbId, privatId);
     const created = SEED_EVENTS.length as number;
-    logger.info("seed_calendar_refreshed", { calendarId, removed, created });
+    logger.info("seed_calendar_refreshed", { jobbId, privatId, removed, created });
     return { ok: true, removed, created };
   } catch (err) {
     const message = err instanceof Error ? err.message : "unknown";
@@ -330,10 +449,12 @@ export async function deleteSeedCalendar(): Promise<void> {
     const { status } = await Calendar.requestCalendarPermissionsAsync();
     if (status !== "granted") return;
     const calendars = await Calendar.getCalendarsAsync(Calendar.EntityTypes.EVENT);
-    const seed = calendars.find((c) => c.title === SEED_CALENDAR_NAME);
-    if (seed) {
-      await Calendar.deleteCalendarAsync(seed.id);
-      logger.info("seed_calendar_deleted");
+    for (const name of ["Jobb", "Privat"]) {
+      const cal = calendars.find((c) => c.title === name);
+      if (cal) {
+        await Calendar.deleteCalendarAsync(cal.id);
+        logger.info("seed_calendar_deleted", { name });
+      }
     }
   } catch (err) {
     logger.error("seed_calendar_delete_failed", {

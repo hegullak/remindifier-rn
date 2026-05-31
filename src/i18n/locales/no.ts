@@ -131,11 +131,14 @@ export const no = {
       unavailable: "Kalenderdata utilgjengelig.",
       pillEmpty: "Åpen dag i morgen",
       pillUnavailable: "Kalenderdata utilgjengelig",
+      freeEvening: "Fri kveld fra kl. {time}",
     },
     morningBrief: {
       sectionLabel: "I DAG",
       pillEmpty: "Åpen dag",
       pillUnavailable: "Kalender utilgjengelig",
+      freeEvening: "Fri kveld",
+      weekendFree: "Fri helg",
     },
     calendar: {
       today: "I dag",
