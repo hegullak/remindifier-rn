@@ -31,12 +31,12 @@ function SheetChrome({
   contentStyle?: StyleProp<ViewStyle>;
 }) {
   const screenH = Dimensions.get("window").height;
-  const maxH = large ? Math.round(screenH * 0.6) : undefined;
+  const sheetH = large ? Math.round(screenH * 0.55) : undefined;
 
   return (
     <View
       className="bg-card rounded-t-hero px-5 pt-4 pb-8"
-      style={[contentStyle, maxH ? { maxHeight: maxH } : undefined]}
+      style={[contentStyle, sheetH ? { minHeight: sheetH, maxHeight: sheetH } : undefined]}
     >
       <View className="w-10 h-1 rounded-pill bg-border self-center mb-4" />
       {title ? (

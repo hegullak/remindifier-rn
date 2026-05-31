@@ -411,8 +411,12 @@ export default function BriefScreen() {
         title={t("brief.morningBrief.sectionLabel")}
         large
       >
-        <Text className="text-[20px] text-text1 font-heading mb-4 leading-[28px]">{morningBrief.headline}</Text>
-        <Text className="text-[16px] text-text2 font-body leading-[26px]">{morningBrief.body}</Text>
+        <Text className="text-[20px] text-text1 font-heading mb-5 leading-[28px]">{morningBrief.headline}</Text>
+        {morningBrief.body.split(". ").map((sentence, i, arr) => (
+          <Text key={i} className="text-[15px] text-text2 font-body leading-[24px] mb-2">
+            {sentence}{i < arr.length - 1 && !sentence.endsWith(".") ? "." : ""}
+          </Text>
+        ))}
       </BottomSheet>
 
       <BottomSheet
@@ -421,8 +425,12 @@ export default function BriefScreen() {
         title={t("brief.eveningWindDown.sectionLabel")}
         large
       >
-        <Text className="text-[20px] text-text1 font-heading mb-4 leading-[28px]">{windDown.headline}</Text>
-        <Text className="text-[16px] text-text2 font-body leading-[26px]">{windDown.body}</Text>
+        <Text className="text-[20px] text-text1 font-heading mb-5 leading-[28px]">{windDown.headline}</Text>
+        {windDown.body.split(". ").map((sentence, i, arr) => (
+          <Text key={i} className="text-[15px] text-text2 font-body leading-[24px] mb-2">
+            {sentence}{i < arr.length - 1 && !sentence.endsWith(".") ? "." : ""}
+          </Text>
+        ))}
       </BottomSheet>
 
       <BottomSheet
