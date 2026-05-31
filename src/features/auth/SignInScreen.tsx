@@ -403,7 +403,7 @@ export function SignInScreen() {
   return (
     <View className="gap-5">
       {pendingVerification ? (
-        <Text className="text-[16px] leading-[24px] text-text1 font-body mb-1">
+        <Text className="text-base leading-[24px] text-text1 font-body mb-1">
           {pendingFirstFactor ? t("signInForm.confirmDevice") : t("signInForm.confirmSecondFactor")}
         </Text>
       ) : null}
@@ -459,7 +459,7 @@ export function SignInScreen() {
                       }`}
                     >
                       <Text
-                        className={`text-[14px] font-bodyMedium ${
+                        className={`text-sm font-bodyMedium ${
                           active ? "text-card" : "text-text1"
                         }`}
                       >
@@ -487,7 +487,7 @@ export function SignInScreen() {
                       }`}
                     >
                       <Text
-                        className={`text-[14px] font-bodyMedium ${
+                        className={`text-sm font-bodyMedium ${
                           active ? "text-card" : "text-text1"
                         }`}
                       >
@@ -500,7 +500,7 @@ export function SignInScreen() {
             </View>
           ) : null}
 
-          <Text className="text-[16px] leading-[24px] text-text1 font-body">
+          <Text className="text-base leading-[24px] text-text1 font-body">
             {strategyHint(activeStrategy, codeSent, t)}
           </Text>
 
@@ -516,7 +516,7 @@ export function SignInScreen() {
               disabled={submitting}
               className="self-start rounded-xl bg-card2 px-4 py-3 border border-bg2"
             >
-              <Text className="text-[15px] text-accent font-bodyMedium">
+              <Text className="text-body-lg text-accent font-bodyMedium">
                 {t("signInForm.sendCode")}
               </Text>
             </Pressable>
@@ -557,13 +557,13 @@ export function SignInScreen() {
               editable={!submitting && codeSent}
               selectTextOnFocus
             />
-            <Text className="text-[14px] text-text3 font-body mt-2">
+            <Text className="text-sm text-text3 font-body mt-2">
               {t("signInForm.keyboardHint")}
             </Text>
           </Pressable>
 
           <Pressable onPress={onBackToCredentials} className="self-start py-2">
-            <Text className="text-[15px] text-accent font-bodyMedium">
+            <Text className="text-body-lg text-accent font-bodyMedium">
               {t("signInForm.startOver")}
             </Text>
           </Pressable>
@@ -572,7 +572,7 @@ export function SignInScreen() {
 
       {errorMessage ? (
         <View className="rounded-xl bg-redLight px-4 py-3">
-          <Text className="text-[15px] leading-[22px] text-red font-body">{errorMessage}</Text>
+          <Text className="text-body-lg leading-[22px] text-red font-body">{errorMessage}</Text>
         </View>
       ) : null}
 

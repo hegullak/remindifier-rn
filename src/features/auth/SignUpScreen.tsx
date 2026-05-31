@@ -108,7 +108,7 @@ export function SignUpScreen() {
         </>
       ) : (
         <>
-          <Text className="text-[16px] leading-[24px] text-text1 font-body">
+          <Text className="text-base leading-[24px] text-text1 font-body">
             {t("signUpForm.codeSentTo", { email: emailAddress.trim() })}
           </Text>
           <View>
@@ -136,7 +136,7 @@ export function SignUpScreen() {
             }}
             className="self-start py-2"
           >
-            <Text className="text-[15px] text-accent font-bodyMedium">
+            <Text className="text-body-lg text-accent font-bodyMedium">
               {t("signUpForm.changeEmail")}
             </Text>
           </Pressable>
@@ -145,7 +145,7 @@ export function SignUpScreen() {
 
       {errorMessage ? (
         <View className="rounded-xl bg-redLight px-4 py-3">
-          <Text className="text-[15px] leading-[22px] text-red font-body">{errorMessage}</Text>
+          <Text className="text-body-lg leading-[22px] text-red font-body">{errorMessage}</Text>
         </View>
       ) : null}
 

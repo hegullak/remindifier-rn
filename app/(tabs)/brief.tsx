@@ -75,7 +75,7 @@ export default function BriefScreen() {
               <SectionLabel>{t(briefSectionLabelKey(sectionId))}</SectionLabel>
               <BriefCard stripeColor="blue">
                 {brief.schedule.length === 0 ? (
-                  <Text className="text-[13px] text-text3 font-body">
+                  <Text className="text-body text-text3 font-body">
                     {t("brief.scheduleEmpty")}
                   </Text>
                 ) : (
@@ -86,14 +86,14 @@ export default function BriefScreen() {
                     const row = (
                       <View className={i < brief.schedule.length - 1 ? "mb-3" : ""}>
                         <View className="flex-row items-center gap-2">
-                          <Text className="text-[14px]">🕐</Text>
-                          <Text className="text-[12px] text-text3 font-bodyMedium">{item.time}</Text>
+                          <Text className="text-sm">🕐</Text>
+                          <Text className="text-xs text-text3 font-bodyMedium">{item.time}</Text>
                         </View>
-                        <Text className="text-[15px] text-text1 font-bodyMedium mt-1 pl-6">
+                        <Text className="text-body-lg text-text1 font-bodyMedium mt-1 pl-6">
                           {title}
                         </Text>
                         {item.note ? (
-                          <Text className="text-[12px] text-text3 font-body mt-1 pl-6">
+                          <Text className="text-xs text-text3 font-body mt-1 pl-6">
                             {item.note}
                           </Text>
                         ) : null}
@@ -130,12 +130,12 @@ export default function BriefScreen() {
                     : event.title;
                   const row = (
                     <View className={i < privateCalendarEvents.length - 1 ? "mb-3" : ""}>
-                      <Text className="text-[11px] uppercase tracking-[1.2px] text-sage font-bodySemi">
+                      <Text className="text-3xs uppercase tracking-[1.2px] text-sage font-bodySemi">
                         {formatCalendarEventTiming(event, weekOffset, locale, t)}
                       </Text>
-                      <Text className="text-[15px] text-text1 font-bodyMedium mt-1">{title}</Text>
+                      <Text className="text-body-lg text-text1 font-bodyMedium mt-1">{title}</Text>
                       {!event.allDay ? (
-                        <Text className="text-[12px] text-text3 font-body mt-0.5">
+                        <Text className="text-xs text-text3 font-body mt-0.5">
                           {event.startDate.toLocaleTimeString(
                             locale === "no" ? "nb-NO" : "en-GB",
                             { hour: "2-digit", minute: "2-digit" },
@@ -166,10 +166,10 @@ export default function BriefScreen() {
               <BriefCard stripeColor="dusk">
                 {headsupItems.map((item, i) => (
                   <View key={item.day} className={i < headsupItems.length - 1 ? "mb-3" : ""}>
-                    <Text className="text-[11px] uppercase tracking-[1.2px] text-dusk font-bodySemi">
+                    <Text className="text-3xs uppercase tracking-[1.2px] text-dusk font-bodySemi">
                       {item.day}
                     </Text>
-                    <Text className="text-[14px] text-text2 font-body mt-1">{item.text}</Text>
+                    <Text className="text-sm text-text2 font-body mt-1">{item.text}</Text>
                   </View>
                 ))}
               </BriefCard>
@@ -186,8 +186,8 @@ export default function BriefScreen() {
                     key={line}
                     className={`flex-row items-start gap-2${i < trainingLines.length - 1 ? " mb-3" : ""}`}
                   >
-                    <Text className="text-[16px]">{i === 0 ? "🏋️" : "🏃"}</Text>
-                    <Text className="text-[15px] text-text1 font-body flex-1">{line}</Text>
+                    <Text className="text-base">{i === 0 ? "🏋️" : "🏃"}</Text>
+                    <Text className="text-body-lg text-text1 font-body flex-1">{line}</Text>
                   </View>
                 ))}
               </BriefCard>
@@ -199,7 +199,7 @@ export default function BriefScreen() {
               <SectionLabel>{t(briefSectionLabelKey(sectionId))}</SectionLabel>
               <BriefCard stripeColor="amber">
                 {redLettersThisWeek.length === 0 ? (
-                  <Text className="text-[13px] text-text3 font-body">
+                  <Text className="text-body text-text3 font-body">
                     {t("brief.merkedagerEmpty")}
                   </Text>
                 ) : (
@@ -260,13 +260,13 @@ export default function BriefScreen() {
         accessibilityRole="button"
         hitSlop={8}
       >
-        <Text className="text-[15px] mr-0.5">{brief.weather.icon}</Text>
-        <Text className="text-[14px] text-text1 font-bodyMedium">{brief.weather.temp}</Text>
-        <Text className="text-[13px] text-text3 font-body">  🌧️ {rainText}</Text>
+        <Text className="text-body-lg mr-0.5">{brief.weather.icon}</Text>
+        <Text className="text-sm text-text1 font-bodyMedium">{brief.weather.temp}</Text>
+        <Text className="text-body text-text3 font-body">  🌧️ {rainText}</Text>
         {windText ? (
-          <Text className="text-[13px] text-text3 font-body">  💨 {windText}</Text>
+          <Text className="text-body text-text3 font-body">  💨 {windText}</Text>
         ) : null}
-        <Text className="text-[13px] text-text3 font-body ml-1">›</Text>
+        <Text className="text-body text-text3 font-body ml-1">›</Text>
       </Pressable>
 
       <View className="flex-row items-center justify-center gap-4 mb-2">
@@ -277,7 +277,7 @@ export default function BriefScreen() {
           hitSlop={16}
           className="active:opacity-60"
         >
-          <Text className="text-[22px] text-accent font-body">←</Text>
+          <Text className="text-nav text-accent font-body">←</Text>
         </Pressable>
         <Pressable
           onPress={resetWeek}
@@ -288,7 +288,7 @@ export default function BriefScreen() {
           className="active:opacity-70"
         >
           <Text
-            className={`text-[13px] font-bodySemi ${weekOffset === 0 ? "text-text3" : "text-accent"}`}
+            className={`text-body font-bodySemi ${weekOffset === 0 ? "text-text3" : "text-accent"}`}
           >
             {dateLine}
           </Text>
@@ -300,7 +300,7 @@ export default function BriefScreen() {
           hitSlop={16}
           className="active:opacity-60"
         >
-          <Text className="text-[22px] text-accent font-body">→</Text>
+          <Text className="text-nav text-accent font-body">→</Text>
         </Pressable>
       </View>
       <View className="pt-6 pb-8">
@@ -318,14 +318,14 @@ export default function BriefScreen() {
         >
           <View className="bg-card border border-border rounded-[18px] px-4 py-3 flex-row items-center justify-between">
             <View className="flex-1 mr-2">
-              <Text className="text-[10px] uppercase tracking-[1.5px] text-text3 font-bodySemi">
+              <Text className="text-2xs uppercase tracking-[1.5px] text-text3 font-bodySemi">
                 {t("brief.morningBrief.sectionLabel")}
               </Text>
-              <Text className="text-[14px] text-text1 font-bodyMedium mt-0.5" numberOfLines={1}>
+              <Text className="text-sm text-text1 font-bodyMedium mt-0.5" numberOfLines={1}>
                 {morningPillText}
               </Text>
             </View>
-            <Text className="text-[18px] text-text3 font-body">›</Text>
+            <Text className="text-lg text-text3 font-body">›</Text>
           </View>
         </Pressable>
 
@@ -336,14 +336,14 @@ export default function BriefScreen() {
         >
           <View className="bg-card border border-border rounded-[18px] px-4 py-3 flex-row items-center justify-between">
             <View className="flex-1 mr-2">
-              <Text className="text-[10px] uppercase tracking-[1.5px] text-text3 font-bodySemi">
+              <Text className="text-2xs uppercase tracking-[1.5px] text-text3 font-bodySemi">
                 {t("brief.eveningWindDown.sectionLabel")}
               </Text>
-              <Text className="text-[14px] text-text1 font-bodyMedium mt-0.5" numberOfLines={1}>
+              <Text className="text-sm text-text1 font-bodyMedium mt-0.5" numberOfLines={1}>
                 {eveningPillText}
               </Text>
             </View>
-            <Text className="text-[18px] text-text3 font-body">›</Text>
+            <Text className="text-lg text-text3 font-body">›</Text>
           </View>
         </Pressable>
       </View>
@@ -369,9 +369,9 @@ export default function BriefScreen() {
         title={t("brief.morningBrief.sectionLabel")}
         large
       >
-        <Text className="text-[20px] text-text1 font-heading mb-5 leading-[28px]">{morningBrief.headline}</Text>
+        <Text className="text-xl text-text1 font-heading mb-5 leading-[28px]">{morningBrief.headline}</Text>
         {morningBrief.body.split("\n").filter(Boolean).map((sentence, i) => (
-          <Text key={i} className="text-[15px] text-text2 font-body leading-[24px] mb-2">
+          <Text key={i} className="text-body-lg text-text2 font-body leading-[24px] mb-2">
             {sentence}
           </Text>
         ))}
@@ -383,9 +383,9 @@ export default function BriefScreen() {
         title={t("brief.eveningWindDown.sectionLabel")}
         large
       >
-        <Text className="text-[20px] text-text1 font-heading mb-5 leading-[28px]">{windDown.headline}</Text>
+        <Text className="text-xl text-text1 font-heading mb-5 leading-[28px]">{windDown.headline}</Text>
         {windDown.body.split("\n").filter(Boolean).map((sentence, i) => (
-          <Text key={i} className="text-[15px] text-text2 font-body leading-[24px] mb-2">
+          <Text key={i} className="text-body-lg text-text2 font-body leading-[24px] mb-2">
             {sentence}
           </Text>
         ))}
@@ -401,14 +401,14 @@ export default function BriefScreen() {
           <Text className="text-[48px] leading-[52px] text-text1 font-heading">
             {brief.weather.temp}
           </Text>
-          <Text className="text-[15px] text-text2 font-body mb-2 flex-1">
+          <Text className="text-body-lg text-text2 font-body mb-2 flex-1">
             {brief.weather.description}
           </Text>
         </View>
         {brief.weather.goodForRun ? (
           <View className="flex-row items-center gap-2 mb-4">
-            <Text className="text-[16px]">🏃</Text>
-            <Text className="text-[13px] text-green font-bodyMedium flex-1">
+            <Text className="text-base">🏃</Text>
+            <Text className="text-body text-green font-bodyMedium flex-1">
               {t("brief.goodForRun")}
             </Text>
           </View>
@@ -417,12 +417,12 @@ export default function BriefScreen() {
           {brief.weather.details.map((d) => (
             <View key={`${d.icon}-${d.label}`} className="w-[46%] min-w-[140px]">
               <View className="flex-row items-center gap-1.5 mb-0.5">
-                <Text className="text-[15px]">{d.icon}</Text>
-                <Text className="text-[11px] text-text3 font-bodySemi uppercase tracking-wide">
+                <Text className="text-body-lg">{d.icon}</Text>
+                <Text className="text-3xs text-text3 font-bodySemi uppercase tracking-wide">
                   {d.label}
                 </Text>
               </View>
-              <Text className="text-[15px] text-text1 font-bodyMedium pl-5">{d.value}</Text>
+              <Text className="text-body-lg text-text1 font-bodyMedium pl-5">{d.value}</Text>
             </View>
           ))}
         </View>
@@ -435,28 +435,28 @@ export default function BriefScreen() {
       >
         {anniversaryDetail ? (
           <View className="gap-3">
-            <Text className="text-[15px] text-text1 font-bodyMedium">
+            <Text className="text-body-lg text-text1 font-bodyMedium">
               {anniversaryDetail.personName}
             </Text>
-            <Text className="text-[13px] text-text2 font-body">
+            <Text className="text-body text-text2 font-body">
               {t("brief.anniversarySheet.years", { count: anniversaryDetail.years })}
             </Text>
             {anniversaryDetail.norwegian ? (
               <View>
-                <Text className="text-[10px] uppercase tracking-[1.2px] text-text3 font-bodySemi">
+                <Text className="text-2xs uppercase tracking-[1.2px] text-text3 font-bodySemi">
                   {t("brief.anniversarySheet.norwegianLabel")}
                 </Text>
-                <Text className="text-[15px] text-amber font-bodySemi mt-1">
+                <Text className="text-body-lg text-amber font-bodySemi mt-1">
                   {anniversaryDetail.norwegian}
                 </Text>
               </View>
             ) : null}
             {anniversaryDetail.english ? (
               <View>
-                <Text className="text-[10px] uppercase tracking-[1.2px] text-text3 font-bodySemi">
+                <Text className="text-2xs uppercase tracking-[1.2px] text-text3 font-bodySemi">
                   {t("brief.anniversarySheet.englishLabel")}
                 </Text>
-                <Text className="text-[15px] text-text1 font-bodyMedium mt-1">
+                <Text className="text-body-lg text-text1 font-bodyMedium mt-1">
                   {anniversaryDetail.english}
                 </Text>
               </View>
@@ -494,12 +494,12 @@ function RedLetterRow({
       }
       hitSlop={4}
     >
-      <Text className="text-[10px] uppercase tracking-[1.2px] text-amber font-bodySemi mt-1 underline">
+      <Text className="text-2xs uppercase tracking-[1.2px] text-amber font-bodySemi mt-1 underline">
         {item.headline}
       </Text>
     </Pressable>
   ) : (
-    <Text className="text-[10px] uppercase tracking-[1.2px] text-amber font-bodySemi mt-1">
+    <Text className="text-2xs uppercase tracking-[1.2px] text-amber font-bodySemi mt-1">
       {item.headline}
     </Text>
   );
@@ -509,18 +509,18 @@ function RedLetterRow({
       {item.personId ? (
         <Link href={`/people/${item.personId}`} asChild>
           <Pressable>
-            <Text className="text-[15px] text-text1 font-bodyMedium">
+            <Text className="text-body-lg text-text1 font-bodyMedium">
               {item.icon} {item.personName}
             </Text>
           </Pressable>
         </Link>
       ) : (
-        <Text className="text-[15px] text-text1 font-bodyMedium">
+        <Text className="text-body-lg text-text1 font-bodyMedium">
           {item.icon} {item.personName}
         </Text>
       )}
       {headline}
-      <Text className="text-[13px] text-text2 font-body mt-0.5">{item.timing}</Text>
+      <Text className="text-body text-text2 font-body mt-0.5">{item.timing}</Text>
     </View>
   );
 }

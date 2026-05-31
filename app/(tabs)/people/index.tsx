@@ -68,16 +68,16 @@ function PersonRowCard({
         <Card style={{ marginBottom: 8 }}>
           <View>
             <View className="flex-row items-center gap-2">
-              <Text className="text-[18px] text-text1 font-heading">{person.displayName}</Text>
-              {age ? <Text className="text-[12px] text-text3 font-body">{age}</Text> : null}
+              <Text className="text-lg text-text1 font-heading">{person.displayName}</Text>
+              {age ? <Text className="text-xs text-text3 font-body">{age}</Text> : null}
             </View>
             {person.relationType ? (
-              <Text className="text-[11px] uppercase tracking-[1.5px] text-text3 font-bodySemi mt-1">
+              <Text className="text-3xs uppercase tracking-[1.5px] text-text3 font-bodySemi mt-1">
                 {translateRelationType(person.relationType, locale)}
               </Text>
             ) : null}
             {hint ? (
-              <Text className="text-[13px] text-text2 font-body mt-2">{hint}</Text>
+              <Text className="text-body text-text2 font-body mt-2">{hint}</Text>
             ) : null}
           </View>
         </Card>
@@ -103,23 +103,23 @@ export default function PeopleListScreen() {
   const listHeader = (
     <View className="px-4">
       <View className="pt-1 pb-2">
-        <Text className="text-[30px] leading-[36px] text-text1 font-heading">
+        <Text className="text-3xl leading-[36px] text-text1 font-heading">
           {t("people.title")}
         </Text>
-        <Text className="text-[13px] text-text2 font-body mt-1">{t("people.subtitle")}</Text>
+        <Text className="text-body text-text2 font-body mt-1">{t("people.subtitle")}</Text>
       </View>
       <SectionLabel>{t("people.listTitle")}</SectionLabel>
       {loading ? (
-        <Text className="text-[13px] text-text3 font-body">{t("people.loadingPeople")}</Text>
+        <Text className="text-body text-text3 font-body">{t("people.loadingPeople")}</Text>
       ) : null}
-      {error ? <Text className="text-[13px] text-red font-body">{error}</Text> : null}
+      {error ? <Text className="text-body text-red font-body">{error}</Text> : null}
     </View>
   );
 
   const listEmpty =
     !loading && !error ? (
       <View className="px-4">
-        <Text className="text-[13px] text-text3 font-body">{t("people.noPeople")}</Text>
+        <Text className="text-body text-text3 font-body">{t("people.noPeople")}</Text>
       </View>
     ) : null;
 

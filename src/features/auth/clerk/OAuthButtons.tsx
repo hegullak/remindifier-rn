@@ -79,7 +79,7 @@ export function OAuthButtons({ onError }: { onError: (message: string | null) =>
             {loading ? (
               <ActivityIndicator color="#C4784A" />
             ) : (
-              <Text className="text-center text-[16px] text-text1 font-bodyMedium">
+              <Text className="text-center text-base text-text1 font-bodyMedium">
                 {t(provider.labelKey)}
               </Text>
             )}

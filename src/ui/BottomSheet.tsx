@@ -40,7 +40,7 @@ function SheetChrome({
     >
       <View className="w-10 h-1 rounded-pill bg-border self-center mb-4" />
       {title ? (
-        <Text className="text-[18px] text-text1 font-heading mb-3">{title}</Text>
+        <Text className="text-lg text-text1 font-heading mb-3">{title}</Text>
       ) : null}
       {large ? (
         <ScrollView
@@ -53,7 +53,7 @@ function SheetChrome({
         children
       )}
       <Pressable onPress={onDismiss} className="absolute top-3 right-4 p-2" hitSlop={8}>
-        <Text className="text-[20px] text-text3 font-body">✕</Text>
+        <Text className="text-xl text-text3 font-body">✕</Text>
       </Pressable>
     </View>
   );

@@ -20,7 +20,7 @@ import { Card } from "@/ui/Card";
 import { QrCodeView } from "@/ui/QrCodeView";
 
 const fieldClass =
-  "mt-2 bg-bg2 border border-border rounded-md px-3 py-3 text-[14px] text-text1 font-body";
+  "mt-2 bg-bg2 border border-border rounded-md px-3 py-3 text-sm text-text1 font-body";
 
 function formatBirthday(birthday: string | null, yearKnown: boolean | null, locale: Locale) {
   if (!birthday) return null;
@@ -101,18 +101,18 @@ export function MyselfProfileScreen() {
   return (
     <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40 }}>
       <View className="flex-row items-start justify-between pt-1 pb-3">
-        <Text className="text-[30px] leading-[36px] text-text1 font-heading">
+        <Text className="text-3xl leading-[36px] text-text1 font-heading">
           {t("myself.title")}
         </Text>
         {!editing ? (
           <Pressable onPress={() => setEditing(true)} className="py-2">
-            <Text className="text-[12px] text-accent font-bodyMedium">{t("common.edit")}</Text>
+            <Text className="text-xs text-accent font-bodyMedium">{t("common.edit")}</Text>
           </Pressable>
         ) : null}
       </View>
 
       {loading ? <ActivityIndicator style={{ marginVertical: 24 }} color="#C4784A" /> : null}
-      {error ? <Text className="text-[13px] text-red font-body mb-3">{error}</Text> : null}
+      {error ? <Text className="text-body text-red font-body mb-3">{error}</Text> : null}
 
       {!loading && !editing ? (
         <View className="gap-3">
@@ -121,28 +121,28 @@ export function MyselfProfileScreen() {
           </Text>
           {birthdayLabel ? (
             <View>
-              <Text className="text-[10px] uppercase tracking-[1.2px] text-text3 font-bodySemi">
+              <Text className="text-2xs uppercase tracking-[1.2px] text-text3 font-bodySemi">
                 {t("myself.birthday")}
               </Text>
-              <Text className="text-[15px] text-text2 font-body mt-1">{birthdayLabel}</Text>
+              <Text className="text-body-lg text-text2 font-body mt-1">{birthdayLabel}</Text>
             </View>
           ) : null}
           {viewProfile.about ? (
             <View>
-              <Text className="text-[10px] uppercase tracking-[1.2px] text-text3 font-bodySemi">
+              <Text className="text-2xs uppercase tracking-[1.2px] text-text3 font-bodySemi">
                 {t("myself.about")}
               </Text>
-              <Text className="text-[15px] text-text2 font-body mt-1 leading-[22px]">
+              <Text className="text-body-lg text-text2 font-body mt-1 leading-[22px]">
                 {viewProfile.about}
               </Text>
             </View>
           ) : null}
           {viewProfile.contactPreference ? (
             <View>
-              <Text className="text-[10px] uppercase tracking-[1.2px] text-text3 font-bodySemi">
+              <Text className="text-2xs uppercase tracking-[1.2px] text-text3 font-bodySemi">
                 {t("myself.preferredContact")}
               </Text>
-              <Text className="text-[15px] text-text2 font-body mt-1">
+              <Text className="text-body-lg text-text2 font-body mt-1">
                 {viewProfile.contactPreference}
               </Text>
             </View>
@@ -155,7 +155,7 @@ export function MyselfProfileScreen() {
           {qrVisible ? (
             <Card style={{ alignItems: "center", paddingVertical: 20 }}>
               <QrCodeView value={qrValue} size={220} />
-              <Text className="text-[12px] text-text3 font-body mt-3 text-center">
+              <Text className="text-xs text-text3 font-body mt-3 text-center">
                 {t("myself.qrHint")}
               </Text>
             </Card>
@@ -170,7 +170,7 @@ export function MyselfProfileScreen() {
       {!loading && editing ? (
         <View>
           <Card style={{ marginBottom: 12 }}>
-            <Text className="text-[11px] uppercase tracking-[1.5px] text-text3 font-bodySemi">
+            <Text className="text-3xs uppercase tracking-[1.5px] text-text3 font-bodySemi">
               {t("myself.name")}
             </Text>
             <TextInput
@@ -180,7 +180,7 @@ export function MyselfProfileScreen() {
               placeholderTextColor={colorScheme === "dark" ? "#7A8CAD" : "#A89E90"}
               className={fieldClass}
             />
-            <Text className="text-[11px] uppercase tracking-[1.5px] text-text3 font-bodySemi mt-4">
+            <Text className="text-3xs uppercase tracking-[1.5px] text-text3 font-bodySemi mt-4">
               {t("myself.preferredContact")}
             </Text>
             <TextInput
@@ -193,7 +193,7 @@ export function MyselfProfileScreen() {
           </Card>
 
           <Card style={{ marginBottom: 12 }}>
-            <Text className="text-[11px] uppercase tracking-[1.5px] text-text3 font-bodySemi">
+            <Text className="text-3xs uppercase tracking-[1.5px] text-text3 font-bodySemi">
               {t("myself.birthday")}
             </Text>
             <TextInput
@@ -204,13 +204,13 @@ export function MyselfProfileScreen() {
               className={fieldClass}
             />
             <View className="flex-row items-center justify-between mt-2">
-              <Text className="text-[12px] text-text2 font-body">{t("myself.yearKnown")}</Text>
+              <Text className="text-xs text-text2 font-body">{t("myself.yearKnown")}</Text>
               <Switch value={birthdayYearKnown} onValueChange={setBirthdayYearKnown} />
             </View>
           </Card>
 
           <Card style={{ marginBottom: 12 }}>
-            <Text className="text-[11px] uppercase tracking-[1.5px] text-text3 font-bodySemi">
+            <Text className="text-3xs uppercase tracking-[1.5px] text-text3 font-bodySemi">
               {t("myself.about")}
             </Text>
             <TextInput
@@ -226,7 +226,7 @@ export function MyselfProfileScreen() {
           </Card>
 
           {saveError ? (
-            <Text className="text-[13px] text-red font-body mb-2">{saveError}</Text>
+            <Text className="text-body text-red font-body mb-2">{saveError}</Text>
           ) : null}
 
           <Button variant="primary" onPress={handleSave} loading={saving} disabled={saving}>

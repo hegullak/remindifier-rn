@@ -48,7 +48,7 @@ export function RedLetterDaysSection({
 
   return (
     <View className="gap-3">
-      <Text className="text-[11px] uppercase tracking-[1.5px] text-text3 font-bodySemi">
+      <Text className="text-3xs uppercase tracking-[1.5px] text-text3 font-bodySemi">
         {t("redLetter.title")}
       </Text>
       {items.map((day, i) => (
@@ -57,16 +57,16 @@ export function RedLetterDaysSection({
           className="bg-bg2 border border-border rounded-lg px-4 py-3"
         >
           <View className="flex-row items-center justify-between mb-3">
-            <Text className="text-[12px] text-text3 font-bodySemi">
+            <Text className="text-xs text-text3 font-bodySemi">
               {redLetterKindLabel(day.kind, locale)}
               {day.kind === "Other" && day.label ? ` · ${day.label}` : ""}
             </Text>
             <Pressable onPress={() => removeDay(i)}>
-              <Text className="text-[12px] text-red font-bodyMedium">{t("redLetter.remove")}</Text>
+              <Text className="text-xs text-red font-bodyMedium">{t("redLetter.remove")}</Text>
             </Pressable>
           </View>
 
-          <Text className="text-[11px] uppercase tracking-[1px] text-text3 font-bodySemi mb-1">
+          <Text className="text-3xs uppercase tracking-[1px] text-text3 font-bodySemi mb-1">
             {t("redLetter.type")}
           </Text>
           <View className="flex-row flex-wrap gap-2 mb-3">
@@ -79,7 +79,7 @@ export function RedLetterDaysSection({
                 }`}
               >
                 <Text
-                  className={`text-[12px] font-bodyMedium ${
+                  className={`text-xs font-bodyMedium ${
                     day.kind === kind ? "text-card" : "text-text2"
                   }`}
                 >
@@ -91,7 +91,7 @@ export function RedLetterDaysSection({
 
           {day.kind === "Other" ? (
             <>
-              <Text className="text-[11px] uppercase tracking-[1px] text-text3 font-bodySemi mb-1">
+              <Text className="text-3xs uppercase tracking-[1px] text-text3 font-bodySemi mb-1">
                 {t("redLetter.label")}
               </Text>
               <TextInput
@@ -99,12 +99,12 @@ export function RedLetterDaysSection({
                 onChangeText={(label) => updateDay(i, { label: label || null })}
                 placeholder={t("redLetter.customLabel")}
                 placeholderTextColor="#7A8CAD"
-                className="bg-card border border-border rounded-md px-3 py-2.5 text-[14px] text-text1 font-body mb-3"
+                className="bg-card border border-border rounded-md px-3 py-2.5 text-sm text-text1 font-body mb-3"
               />
             </>
           ) : null}
 
-          <Text className="text-[11px] uppercase tracking-[1px] text-text3 font-bodySemi mb-1">
+          <Text className="text-3xs uppercase tracking-[1px] text-text3 font-bodySemi mb-1">
             {t("redLetter.dateLabel")}
           </Text>
           <TextInput
@@ -113,7 +113,7 @@ export function RedLetterDaysSection({
             placeholder="2020-06-14"
             placeholderTextColor="#7A8CAD"
             autoCapitalize="none"
-            className="bg-card border border-border rounded-md px-3 py-2.5 text-[14px] text-text1 font-body"
+            className="bg-card border border-border rounded-md px-3 py-2.5 text-sm text-text1 font-body"
           />
 
           <Pressable
@@ -125,13 +125,13 @@ export function RedLetterDaysSection({
                 day.yearKnown ? "bg-accent border-accent" : "border-border bg-card"
               }`}
             />
-            <Text className="text-[13px] text-text2 font-body">{t("redLetter.yearKnown")}</Text>
+            <Text className="text-body text-text2 font-body">{t("redLetter.yearKnown")}</Text>
           </Pressable>
         </View>
       ))}
 
       <Pressable onPress={addDay} className="self-start">
-        <Text className="text-[14px] text-accent font-bodyMedium">{t("redLetter.add")}</Text>
+        <Text className="text-sm text-accent font-bodyMedium">{t("redLetter.add")}</Text>
       </Pressable>
     </View>
   );

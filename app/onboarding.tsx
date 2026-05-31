@@ -97,7 +97,7 @@ function OnboardingContent({
             <Text className="text-[32px] leading-[38px] text-text1 font-heading">
               {t("onboarding.title")}
             </Text>
-            <Text className="text-[15px] text-text2 font-body mt-3 mb-8">
+            <Text className="text-body-lg text-text2 font-body mt-3 mb-8">
               {t("onboarding.subtitle")}
             </Text>
             <NaturalLanguageInputStep
@@ -107,12 +107,12 @@ function OnboardingContent({
               parsing={parsing}
             />
             <Pressable onPress={() => void finishOnboarding()} className="mt-10 py-3 items-center">
-              <Text className="text-[14px] text-text3 font-body">{t("onboarding.skip")}</Text>
+              <Text className="text-sm text-text3 font-body">{t("onboarding.skip")}</Text>
             </Pressable>
           </>
         ) : (
           <>
-            <Text className="text-[12px] text-amber font-bodyMedium mb-3">
+            <Text className="text-xs text-amber font-bodyMedium mb-3">
               {t("people.parsePreviewNotice")}
             </Text>
             {parsedDraft ? <ParsedPersonPreviewCard draft={parsedDraft} /> : null}

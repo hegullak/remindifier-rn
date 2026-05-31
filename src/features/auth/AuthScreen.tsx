@@ -50,7 +50,7 @@ export function AuthScreen() {
                 <OAuthButtons onError={setOauthError} />
                 {oauthError ? (
                   <View className="rounded-xl bg-redLight px-4 py-3 mt-3">
-                    <Text className="text-[15px] leading-[22px] text-red font-body">
+                    <Text className="text-body-lg leading-[22px] text-red font-body">
                       {oauthError}
                     </Text>
                   </View>
@@ -59,7 +59,7 @@ export function AuthScreen() {
 
               <View className="flex-row items-center gap-3 my-8">
                 <View className="flex-1 h-px bg-border" />
-                <Text className="text-[13px] text-text3 font-body">{t("common.or")}</Text>
+                <Text className="text-body text-text3 font-body">{t("common.or")}</Text>
                 <View className="flex-1 h-px bg-border" />
               </View>
             </>
@@ -78,7 +78,7 @@ export function AuthScreen() {
                   className={`flex-1 py-2.5 rounded-xl ${active ? "bg-card" : ""}`}
                 >
                   <Text
-                    className={`text-center text-[15px] font-bodyMedium ${
+                    className={`text-center text-body-lg font-bodyMedium ${
                       active ? "text-text1" : "text-text3"
                     }`}
                   >

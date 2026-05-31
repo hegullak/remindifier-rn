@@ -133,10 +133,10 @@ export function AccountSettingsSection() {
   return (
     <>
       <Card>
-        <Text className="text-[11px] uppercase tracking-[1.5px] text-text3 font-bodySemi">
+        <Text className="text-3xs uppercase tracking-[1.5px] text-text3 font-bodySemi">
           {t("settings.signIn")}
         </Text>
-        <Text className="text-[13px] text-text2 font-body mt-2 leading-[19px]">
+        <Text className="text-body text-text2 font-body mt-2 leading-[19px]">
           {t("settings.signInClerkLeadBefore")}
           <Text
             className="text-accent font-bodyMedium"
@@ -150,19 +150,19 @@ export function AccountSettingsSection() {
 
         <View className="mt-4 flex-row items-start justify-between gap-3">
           <View className="flex-1">
-            <Text className="text-[16px] text-text1 font-bodyMedium">
+            <Text className="text-base text-text1 font-bodyMedium">
               {displayName ?? t("settings.noName")}
             </Text>
-            {email ? <Text className="text-[13px] text-text3 font-body mt-1">{email}</Text> : null}
+            {email ? <Text className="text-body text-text3 font-body mt-1">{email}</Text> : null}
           </View>
           <Pressable onPress={openEditSheet} className="py-1 px-1">
-            <Text className="text-[13px] text-accent font-bodyMedium">{t("common.edit")}</Text>
+            <Text className="text-body text-accent font-bodyMedium">{t("common.edit")}</Text>
           </Pressable>
         </View>
 
         <View className="mt-4 gap-1 border-t border-border pt-3">
           <Pressable onPress={openPasswordSheet} className="py-2">
-            <Text className="text-[15px] text-accent font-bodyMedium">
+            <Text className="text-body-lg text-accent font-bodyMedium">
               {t("settings.changePassword")}
             </Text>
           </Pressable>
@@ -177,7 +177,7 @@ export function AccountSettingsSection() {
         </View>
 
         {successMessage && !editOpen && !passwordOpen ? (
-          <Text className="text-[14px] text-green font-body mt-2">{successMessage}</Text>
+          <Text className="text-sm text-green font-body mt-2">{successMessage}</Text>
         ) : null}
       </Card>
 
@@ -186,7 +186,7 @@ export function AccountSettingsSection() {
         onDismiss={() => setEditOpen(false)}
         title={t("settings.editNameTitle")}
       >
-        <Text className="text-[13px] text-text3 font-body mb-4">{t("settings.editNameHint")}</Text>
+        <Text className="text-body text-text3 font-body mb-4">{t("settings.editNameHint")}</Text>
         <View className="gap-4">
           <View>
             <Text className={authLabelClassName}>{t("settings.firstName")}</Text>
@@ -211,7 +211,7 @@ export function AccountSettingsSection() {
             />
           </View>
           {errorMessage ? (
-            <Text className="text-[14px] text-red font-body">{errorMessage}</Text>
+            <Text className="text-sm text-red font-body">{errorMessage}</Text>
           ) : null}
           <Button
             variant="primary"
@@ -232,7 +232,7 @@ export function AccountSettingsSection() {
         onDismiss={() => setPasswordOpen(false)}
         title={t("settings.changePasswordTitle")}
       >
-        <Text className="text-[13px] text-text3 font-body mb-4">
+        <Text className="text-body text-text3 font-body mb-4">
           {t("settings.changePasswordHint")}
         </Text>
         <View className="gap-4">
@@ -273,7 +273,7 @@ export function AccountSettingsSection() {
             />
           </View>
           {errorMessage ? (
-            <Text className="text-[14px] text-red font-body">{errorMessage}</Text>
+            <Text className="text-sm text-red font-body">{errorMessage}</Text>
           ) : null}
           <Button
             variant="primary"

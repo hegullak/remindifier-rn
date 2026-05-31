@@ -45,7 +45,7 @@ export function Button({
       }`}
       style={({ pressed }) => (pressed && !isDisabled ? { opacity: 0.85 } : undefined)}
     >
-      <Text className={`text-[14px] font-bodySemi ${styles.text}`}>{loading ? "…" : children}</Text>
+      <Text className={`text-sm font-bodySemi ${styles.text}`}>{loading ? "…" : children}</Text>
     </Pressable>
   );
 }

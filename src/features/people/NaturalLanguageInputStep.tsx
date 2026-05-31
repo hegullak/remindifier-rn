@@ -70,7 +70,7 @@ export function NaturalLanguageInputStep({
         multiline
         numberOfLines={6}
         textAlignVertical="top"
-        className="min-h-[160px] bg-bg2 border border-border rounded-xl px-4 py-3 text-[15px] text-text1 font-body"
+        className="min-h-[160px] bg-bg2 border border-border rounded-xl px-4 py-3 text-body-lg text-text1 font-body"
       />
       {apiConfigured && privacyReady && showPrivacy ? (
         <NaturalLanguagePrivacyNotice onDismiss={() => void handleDismissPrivacy()} />
@@ -83,7 +83,7 @@ export function NaturalLanguageInputStep({
         {parsing ? (
           <ActivityIndicator color="#F7F4EF" />
         ) : (
-          <Text className="text-[16px] text-card font-bodySemi">
+          <Text className="text-base text-card font-bodySemi">
             {t("people.naturalInputButton")}
           </Text>
         )}

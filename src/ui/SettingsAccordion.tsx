@@ -22,10 +22,10 @@ export function SettingsAccordion({
         accessibilityState={{ expanded }}
         className="flex-row items-center justify-between py-4 px-4"
       >
-        <Text className="text-[11px] uppercase tracking-[1.5px] text-text3 font-bodySemi flex-1 pr-3">
+        <Text className="text-3xs uppercase tracking-[1.5px] text-text3 font-bodySemi flex-1 pr-3">
           {title}
         </Text>
-        <Text className="text-[14px] text-text3 font-body">{expanded ? "−" : "+"}</Text>
+        <Text className="text-sm text-text3 font-body">{expanded ? "−" : "+"}</Text>
       </Pressable>
       {expanded ? <View className="px-4 pb-4 border-t border-border">{children}</View> : null}
     </Card>

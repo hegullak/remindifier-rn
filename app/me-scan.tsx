@@ -48,7 +48,7 @@ export default function MeScanScreen() {
     return (
       <AppShell>
         <View className="flex-1 items-center justify-center px-6">
-          <Text className="text-[15px] text-text2 font-body text-center">
+          <Text className="text-body-lg text-text2 font-body text-center">
             {t("scan.loadingCamera")}
           </Text>
         </View>
@@ -60,7 +60,7 @@ export default function MeScanScreen() {
     return (
       <AppShell>
         <View className="flex-1 items-center justify-center px-6 gap-4">
-          <Text className="text-[15px] text-text2 font-body text-center">
+          <Text className="text-body-lg text-text2 font-body text-center">
             {t("scan.permissionBody")}
           </Text>
           <Button
@@ -90,16 +90,16 @@ export default function MeScanScreen() {
         />
         <View className="absolute top-0 left-0 right-0 px-4 pt-2">
           <Pressable onPress={() => router.back()} className="self-start py-2">
-            <Text className="text-[14px] text-card font-bodyMedium">{t("common.cancel")}</Text>
+            <Text className="text-sm text-card font-bodyMedium">{t("common.cancel")}</Text>
           </Pressable>
         </View>
         <View className="absolute bottom-0 left-0 right-0 px-6 pb-10 items-center">
-          <Text className="text-[14px] text-card font-body text-center mb-2">
+          <Text className="text-sm text-card font-body text-center mb-2">
             {t("scan.holdQr")}
           </Text>
           {errorMessage ? (
             <View className="bg-card rounded-xl px-4 py-3 w-full">
-              <Text className="text-[14px] text-red font-body text-center">{errorMessage}</Text>
+              <Text className="text-sm text-red font-body text-center">{errorMessage}</Text>
               <Pressable
                 onPress={() => {
                   setErrorMessage(null);
@@ -107,7 +107,7 @@ export default function MeScanScreen() {
                 }}
                 className="mt-2 self-center"
               >
-                <Text className="text-[13px] text-accent font-bodyMedium">
+                <Text className="text-body text-accent font-bodyMedium">
                   {t("scan.tryAgain")}
                 </Text>
               </Pressable>

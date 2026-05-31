@@ -100,16 +100,16 @@ export default function NewPersonScreen() {
           hitSlop={12}
           accessibilityLabel="Back"
         >
-          <Text className="text-[20px] text-accent font-body">←</Text>
+          <Text className="text-xl text-accent font-body">←</Text>
         </Pressable>
       }
     >
       <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}>
         <View className="pt-1 pb-2">
-          <Text className="text-[30px] leading-[36px] text-text1 font-heading">
+          <Text className="text-3xl leading-[36px] text-text1 font-heading">
             {t("people.newPersonTitle")}
           </Text>
-          <Text className="text-[13px] text-text2 font-body mt-1">
+          <Text className="text-body text-text2 font-body mt-1">
             {scannedInitial ? t("people.newPersonFromQr") : t("people.newPersonSubtitle")}
           </Text>
         </View>
@@ -127,7 +127,7 @@ export default function NewPersonScreen() {
                   }`}
                 >
                   <Text
-                    className={`text-center text-[14px] font-bodySemi ${
+                    className={`text-center text-sm font-bodySemi ${
                       active ? "text-card" : "text-text2"
                     }`}
                   >
@@ -151,7 +151,7 @@ export default function NewPersonScreen() {
         ) : null}
 
         {showPreviewForm && intakeMode === "natural" && naturalStep === "preview" ? (
-          <Text className="text-[12px] text-amber font-bodyMedium mb-3">
+          <Text className="text-xs text-amber font-bodyMedium mb-3">
             {t("people.parsePreviewNotice")}
           </Text>
         ) : null}

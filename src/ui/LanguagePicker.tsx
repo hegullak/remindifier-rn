@@ -23,7 +23,7 @@ export function LanguagePicker() {
             accessibilityState={{ selected: active }}
             className={`w-9 h-9 rounded-md items-center justify-center ${active ? "bg-bg2" : "opacity-45"}`}
           >
-            <Text className="text-[20px] leading-[24px]">{flag}</Text>
+            <Text className="text-xl leading-[24px]">{flag}</Text>
           </Pressable>
         );
       })}

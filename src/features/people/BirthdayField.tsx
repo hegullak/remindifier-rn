@@ -41,7 +41,7 @@ export function BirthdayField({
         className={`${fieldClass} justify-center`}
         accessibilityRole="button"
       >
-        <Text className={`text-[14px] font-body ${birthday ? "text-text1" : "text-text3"}`}>
+        <Text className={`text-sm font-body ${birthday ? "text-text1" : "text-text3"}`}>
           {label}
         </Text>
       </Pressable>
@@ -59,7 +59,7 @@ export function BirthdayField({
         />
       ) : null}
       <View className="flex-row items-center justify-between mt-2">
-        <Text className="text-[12px] text-text2 font-body">{t("personForm.yearKnown")}</Text>
+        <Text className="text-xs text-text2 font-body">{t("personForm.yearKnown")}</Text>
         <Switch
           value={birthdayYearKnown}
           onValueChange={(known) => {

@@ -47,13 +47,13 @@ export function EventNudgeSheet({
       onDismiss={onDismiss}
       title={t("eventNudge.title")}
     >
-      <Text className="text-[14px] text-text2 font-body mb-4 leading-[21px]">
+      <Text className="text-sm text-text2 font-body mb-4 leading-[21px]">
         {t("eventNudge.body", { name: personName })}
       </Text>
 
       <View className="bg-bg2 rounded-xl px-4 py-3 mb-5">
         {pendingActions.map((action, i) => (
-          <Text key={i} className="text-[13px] text-text1 font-body leading-[20px]">
+          <Text key={i} className="text-body text-text1 font-body leading-[20px]">
             · {action}
           </Text>
         ))}
@@ -68,13 +68,13 @@ export function EventNudgeSheet({
           {saving ? (
             <ActivityIndicator color="#F7F4EF" />
           ) : (
-            <Text className="text-[15px] text-card font-bodySemi">
+            <Text className="text-body-lg text-card font-bodySemi">
               {t("eventNudge.create")}
             </Text>
           )}
         </Pressable>
         <Pressable onPress={onDismiss} disabled={saving} className="py-3 items-center">
-          <Text className="text-[14px] text-text3 font-body">{t("eventNudge.skip")}</Text>
+          <Text className="text-sm text-text3 font-body">{t("eventNudge.skip")}</Text>
         </Pressable>
       </View>
     </BottomSheet>

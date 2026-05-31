@@ -1,8 +1,8 @@
 import { Platform, type TextStyle } from "react-native";
 
 export const authInputClassName =
-  "min-h-[56px] rounded-2xl border border-bg2 bg-card px-5 text-[18px] leading-[24px] text-text1 font-body";
-export const authLabelClassName = "text-[15px] text-text2 font-bodyMedium mb-2";
+  "min-h-[56px] rounded-2xl border border-bg2 bg-card px-5 text-lg leading-[24px] text-text1 font-body";
+export const authLabelClassName = "text-body-lg text-text2 font-bodyMedium mb-2";
 export const authPlaceholderColor = "#A89E90";
 
 /** OTP / e-postkode — bruk `style`, ikke `leading` fra authInputClassName (klipper tall på iOS). */

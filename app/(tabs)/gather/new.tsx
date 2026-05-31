@@ -192,7 +192,7 @@ export default function NewGatheringScreen() {
             hitSlop={12}
             accessibilityLabel="Back"
           >
-            <Text className="text-[20px] text-accent font-body">←</Text>
+            <Text className="text-xl text-accent font-body">←</Text>
           </Pressable>
         ) : null
       }
@@ -206,7 +206,7 @@ export default function NewGatheringScreen() {
             <Text className="text-[28px] leading-[34px] text-text1 font-heading mt-2">
               {t("gathering.newTitle")}
             </Text>
-            <Text className="text-[14px] text-text2 font-body mt-2 mb-4">
+            <Text className="text-sm text-text2 font-body mt-2 mb-4">
               {t("gathering.newSubtitle")}
             </Text>
             <TextInput
@@ -217,7 +217,7 @@ export default function NewGatheringScreen() {
               multiline
               numberOfLines={8}
               textAlignVertical="top"
-              className="min-h-[180px] bg-bg2 border border-border rounded-xl px-4 py-3 text-[15px] text-text1 font-body"
+              className="min-h-[180px] bg-bg2 border border-border rounded-xl px-4 py-3 text-body-lg text-text1 font-body"
             />
             {privacyReady && showPrivacy ? (
               <View className="mt-3">
@@ -234,7 +234,7 @@ export default function NewGatheringScreen() {
               {parsing ? (
                 <ActivityIndicator color="#F7F4EF" />
               ) : (
-                <Text className="text-[16px] text-card font-bodySemi">{t("gathering.continue")}</Text>
+                <Text className="text-base text-card font-bodySemi">{t("gathering.continue")}</Text>
               )}
             </Pressable>
           </>
@@ -250,9 +250,9 @@ export default function NewGatheringScreen() {
               hitSlop={12}
               accessibilityLabel="Back"
             >
-              <Text className="text-[20px] text-accent font-body">←</Text>
+              <Text className="text-xl text-accent font-body">←</Text>
             </Pressable>
-            <Text className="text-[12px] text-amber font-bodyMedium mb-3">
+            <Text className="text-xs text-amber font-bodyMedium mb-3">
               {t("people.parsePreviewNotice")}
             </Text>
             <TextInput
@@ -265,14 +265,14 @@ export default function NewGatheringScreen() {
             <TalkingPointsPreview draft={draft} locale={locale} t={t} onRemove={removeTalkingPoint} />
             {draft && draft.mentionedPeople.length > 0 ? (
               <View className="mt-4">
-                <Text className="text-[14px] text-text1 font-bodyMedium mb-2">
+                <Text className="text-sm text-text1 font-bodyMedium mb-2">
                   👥 {t("gathering.mentionedPeople")}
                 </Text>
                 {draft.mentionedPeople.map((name) => {
                   const matched = matchedPeople.get(name);
                   if (matched) {
                     return (
-                      <Text key={name} className="text-[13px] text-green font-body mb-2">
+                      <Text key={name} className="text-body text-green font-body mb-2">
                         {name} ✓
                       </Text>
                     );
@@ -280,7 +280,7 @@ export default function NewGatheringScreen() {
                   const choice = mentionChoices[name] ?? "skip";
                   return (
                     <View key={name} className="mb-3">
-                      <Text className="text-[13px] text-text2 font-body mb-2">{name}</Text>
+                      <Text className="text-body text-text2 font-body mb-2">{name}</Text>
                       <View className="flex-row gap-2">
                         <Pressable
                           onPress={() => setMentionChoice(name, "add")}
@@ -289,7 +289,7 @@ export default function NewGatheringScreen() {
                           }`}
                         >
                           <Text
-                            className={`text-[12px] font-bodyMedium ${
+                            className={`text-xs font-bodyMedium ${
                               choice === "add" ? "text-card" : "text-text2"
                             }`}
                           >
@@ -303,7 +303,7 @@ export default function NewGatheringScreen() {
                           }`}
                         >
                           <Text
-                            className={`text-[12px] font-bodyMedium ${
+                            className={`text-xs font-bodyMedium ${
                               choice === "skip" ? "text-accent" : "text-text2"
                             }`}
                           >
@@ -324,7 +324,7 @@ export default function NewGatheringScreen() {
               {saving ? (
                 <ActivityIndicator color="#F7F4EF" />
               ) : (
-                <Text className="text-[16px] text-card font-bodySemi">{t("gathering.createButton")}</Text>
+                <Text className="text-base text-card font-bodySemi">{t("gathering.createButton")}</Text>
               )}
             </Pressable>
           </>
@@ -355,15 +355,15 @@ function TalkingPointsPreview({
         const meta = talkingPointMeta(kind);
         return (
           <View key={kind}>
-            <Text className="text-[11px] uppercase tracking-wide text-text3 font-bodySemi mb-1">
+            <Text className="text-3xs uppercase tracking-wide text-text3 font-bodySemi mb-1">
               {meta.icon} {talkingPointLabel(kind, locale)}
             </Text>
             {items.map((point) => (
               <BriefCard key={point.id} stripeColor={meta.stripeColor}>
                 <View className="flex-row items-start gap-2">
-                  <Text className="text-[15px] text-text1 font-body flex-1">{point.text}</Text>
+                  <Text className="text-body-lg text-text1 font-body flex-1">{point.text}</Text>
                   <Pressable onPress={() => onRemove(point.id)} hitSlop={8}>
-                    <Text className="text-[14px] text-text3 font-body">✕</Text>
+                    <Text className="text-sm text-text3 font-body">✕</Text>
                   </Pressable>
                 </View>
               </BriefCard>

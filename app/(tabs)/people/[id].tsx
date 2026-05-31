@@ -109,7 +109,7 @@ export default function PersonDetailScreen() {
             hitSlop={12}
             accessibilityLabel="Back"
           >
-            <Text className="text-[20px] text-accent font-body">←</Text>
+            <Text className="text-xl text-accent font-body">←</Text>
           </Pressable>
         ) : null
       }
@@ -120,29 +120,29 @@ export default function PersonDetailScreen() {
             hitSlop={12}
             accessibilityLabel="More actions"
           >
-            <Text className="text-[22px] text-text2 font-body">⋯</Text>
+            <Text className="text-nav text-text2 font-body">⋯</Text>
           </Pressable>
         ) : null
       }
     >
       <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}>
         <View className="pt-1 pb-2">
-          <Text className="text-[30px] leading-[36px] text-text1 font-heading">
+          <Text className="text-3xl leading-[36px] text-text1 font-heading">
             {bundle?.person.displayName ?? t("people.personFallback")}
           </Text>
           {bundle?.person.relationType ? (
-            <Text className="text-[11px] uppercase tracking-[1.5px] text-text3 font-bodySemi mt-1">
+            <Text className="text-3xs uppercase tracking-[1.5px] text-text3 font-bodySemi mt-1">
               {translateRelationType(bundle.person.relationType, locale)}
             </Text>
           ) : null}
         </View>
 
         {loading ? (
-          <Text className="text-[13px] text-text3 font-body">{t("people.loadingProfile")}</Text>
+          <Text className="text-body text-text3 font-body">{t("people.loadingProfile")}</Text>
         ) : null}
-        {error ? <Text className="text-[13px] text-red font-body">{error}</Text> : null}
+        {error ? <Text className="text-body text-red font-body">{error}</Text> : null}
         {!loading && !error && !bundle ? (
-          <Text className="text-[13px] text-text3 font-body">{t("people.notFound")}</Text>
+          <Text className="text-body text-text3 font-body">{t("people.notFound")}</Text>
         ) : null}
 
         {bundle ? (
@@ -154,7 +154,7 @@ export default function PersonDetailScreen() {
                   {bundle.person.interests.map((fact, i) => (
                     <Text
                       key={i}
-                      className={`text-[14px] text-text2 font-body leading-[21px] ${i > 0 ? "mt-1" : ""}`}
+                      className={`text-sm text-text2 font-body leading-[21px] ${i > 0 ? "mt-1" : ""}`}
                     >
                       · {fact}
                     </Text>
@@ -177,16 +177,16 @@ export default function PersonDetailScreen() {
                     accessibilityRole="button"
                     accessibilityLabel={t("people.addEvent")}
                   >
-                    <Text className="text-[18px] text-accent font-body leading-[18px]">+</Text>
+                    <Text className="text-lg text-accent font-body leading-[18px]">+</Text>
                   </Pressable>
                 </View>
                 {bundle.gatherings.map((g) => (
                   <Link key={g.id} href={`/gather/${g.id}`} asChild>
                     <Pressable>
                       <Card style={{ marginBottom: 4 }}>
-                        <Text className="text-[14px] text-text1 font-bodyMedium">{g.title}</Text>
+                        <Text className="text-sm text-text1 font-bodyMedium">{g.title}</Text>
                         {g.scheduledAt ? (
-                          <Text className="text-[11px] text-text3 font-body mt-1">
+                          <Text className="text-3xs text-text3 font-body mt-1">
                             {formatDate(g.scheduledAt.toISOString(), locale)}
                           </Text>
                         ) : null}
@@ -208,24 +208,24 @@ export default function PersonDetailScreen() {
                   accessibilityRole="button"
                   accessibilityLabel={t("people.addEvent")}
                 >
-                  <Text className="text-[16px] text-accent font-body">✦</Text>
+                  <Text className="text-base text-accent font-body">✦</Text>
                 </Pressable>
               </View>
             )}
 
             <SectionLabel>{t("people.redLetterDays")}</SectionLabel>
             {bundle.redLetterDays.length === 0 ? (
-              <Text className="text-[13px] text-text3 font-body">
+              <Text className="text-body text-text3 font-body">
                 {t("people.noRedLetterDays")}
               </Text>
             ) : (
               bundle.redLetterDays.map((item) => (
                 <Card key={item.id}>
-                  <Text className="text-[11px] uppercase tracking-[1.2px] text-amber font-bodySemi">
+                  <Text className="text-3xs uppercase tracking-[1.2px] text-amber font-bodySemi">
                     {formatDate(item.eventDate, locale)} · {item.kind.toLowerCase()}
                   </Text>
                   {item.label ? (
-                    <Text className="text-[13px] text-text2 font-body mt-1">{item.label}</Text>
+                    <Text className="text-body text-text2 font-body mt-1">{item.label}</Text>
                   ) : null}
                 </Card>
               ))
@@ -233,20 +233,20 @@ export default function PersonDetailScreen() {
 
             <SectionLabel>{t("people.relationships")}</SectionLabel>
             {bundle.links.length === 0 ? (
-              <Text className="text-[13px] text-text3 font-body">{t("people.noLinks")}</Text>
+              <Text className="text-body text-text3 font-body">{t("people.noLinks")}</Text>
             ) : (
               bundle.links.map((link) => (
                 <Link key={link.id} href={`/people/${link.otherPersonId}`} asChild>
                   <Pressable>
                     <Card>
-                      <Text className="text-[14px] text-text1 font-bodyMedium">
+                      <Text className="text-sm text-text1 font-bodyMedium">
                         {link.otherPersonName}
                       </Text>
-                      <Text className="text-[12px] text-text3 font-body mt-1">
+                      <Text className="text-xs text-text3 font-body mt-1">
                         {translateRelationType(link.label, locale) ?? link.label}
                       </Text>
                       {link.notes ? (
-                        <Text className="text-[12px] text-text2 font-body mt-1">{link.notes}</Text>
+                        <Text className="text-xs text-text2 font-body mt-1">{link.notes}</Text>
                       ) : null}
                     </Card>
                   </Pressable>
@@ -258,7 +258,7 @@ export default function PersonDetailScreen() {
             {bundle.timeline.map((entry) => (
               <View key={entry.id} className="border-l-2 border-border pl-3 py-2 mb-2">
                 <View className="flex-row items-start justify-between gap-2">
-                  <Text className="text-[10px] uppercase tracking-[1.2px] text-text3 font-bodyMedium flex-1">
+                  <Text className="text-2xs uppercase tracking-[1.2px] text-text3 font-bodyMedium flex-1">
                     {formatDate(entry.occurredAt.toISOString(), locale)} ·{" "}
                     {entry.entryType === "follow_up" ? t("people.followUp") : t("people.note")}
                   </Text>
@@ -269,17 +269,17 @@ export default function PersonDetailScreen() {
                     }}
                     hitSlop={8}
                   >
-                    <Text className="text-[14px] text-text3 font-body">✕</Text>
+                    <Text className="text-sm text-text3 font-body">✕</Text>
                   </Pressable>
                 </View>
-                <Text className="text-[14px] text-text2 font-body mt-1">{entry.body}</Text>
+                <Text className="text-sm text-text2 font-body mt-1">{entry.body}</Text>
               </View>
             ))}
             {bundle.timeline.length === 0 ? (
-              <Text className="text-[13px] text-text3 font-body mb-2">{t("people.noNotes")}</Text>
+              <Text className="text-body text-text3 font-body mb-2">{t("people.noNotes")}</Text>
             ) : null}
             <Card style={{ marginBottom: 12 }}>
-              <Text className="text-[11px] uppercase tracking-[1.2px] text-text3 font-bodySemi">
+              <Text className="text-3xs uppercase tracking-[1.2px] text-text3 font-bodySemi">
                 {t("people.addNote")}
               </Text>
               <View className="flex-row gap-2 mt-2">
@@ -293,7 +293,7 @@ export default function PersonDetailScreen() {
                   }`}
                 >
                   <Text
-                    className={`text-[12px] font-bodyMedium ${
+                    className={`text-xs font-bodyMedium ${
                       entryType === "note" ? "text-card" : "text-text2"
                     }`}
                   >
@@ -310,7 +310,7 @@ export default function PersonDetailScreen() {
                   }`}
                 >
                   <Text
-                    className={`text-[12px] font-bodyMedium ${
+                    className={`text-xs font-bodyMedium ${
                       entryType === "follow_up" ? "text-card" : "text-text2"
                     }`}
                   >
@@ -326,12 +326,12 @@ export default function PersonDetailScreen() {
                 placeholderTextColor={colorScheme === "dark" ? "#7A8CAD" : "#A89E90"}
                 multiline
                 numberOfLines={3}
-                className="mt-2 bg-bg2 border border-border rounded-md px-3 py-3 text-[14px] text-text1 font-body"
+                className="mt-2 bg-bg2 border border-border rounded-md px-3 py-3 text-sm text-text1 font-body"
                 style={{ textAlignVertical: "top", minHeight: 90 }}
               />
 
               {entryError ? (
-                <Text className="text-[12px] text-red font-body mt-2">{entryError}</Text>
+                <Text className="text-xs text-red font-body mt-2">{entryError}</Text>
               ) : null}
 
               <View className="mt-3">
@@ -354,7 +354,7 @@ export default function PersonDetailScreen() {
         onDismiss={() => setEntryToDelete(null)}
         title={t("people.removeNoteTitle")}
       >
-        <Text className="text-[14px] text-text2 font-body mb-4">{t("people.removeNoteBody")}</Text>
+        <Text className="text-sm text-text2 font-body mb-4">{t("people.removeNoteBody")}</Text>
         <View className="gap-2">
           <Button
             variant="primary"
@@ -383,9 +383,9 @@ export default function PersonDetailScreen() {
                 className="flex-row items-center gap-4 py-2"
               >
                 <View className="w-11 h-11 rounded-xl bg-amber-light items-center justify-center">
-                  <Text className="text-[20px]">✏️</Text>
+                  <Text className="text-xl">✏️</Text>
                 </View>
-                <Text className="text-[16px] text-text1 font-bodyMedium">{t("people.editPersonA11y")}</Text>
+                <Text className="text-base text-text1 font-bodyMedium">{t("people.editPersonA11y")}</Text>
               </Pressable>
             </Link>
           ) : null}
@@ -394,9 +394,9 @@ export default function PersonDetailScreen() {
             className="flex-row items-center gap-4 py-2"
           >
             <View className="w-11 h-11 rounded-xl bg-red-light items-center justify-center">
-              <Text className="text-[18px]">🗑</Text>
+              <Text className="text-lg">🗑</Text>
             </View>
-            <Text className="text-[16px] text-red font-bodyMedium">{t("people.deletePersonTitle")}</Text>
+            <Text className="text-base text-red font-bodyMedium">{t("people.deletePersonTitle")}</Text>
           </Pressable>
         </View>
       </BottomSheet>
@@ -406,7 +406,7 @@ export default function PersonDetailScreen() {
         onDismiss={() => setConfirmDeletePerson(false)}
         title={t("people.deletePersonTitle")}
       >
-        <Text className="text-[14px] text-text2 font-body mb-4">
+        <Text className="text-sm text-text2 font-body mb-4">
           {t("people.deletePersonBody", {
             name: bundle?.person.displayName ?? t("people.deletePersonFallback"),
           })}

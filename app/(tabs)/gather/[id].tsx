@@ -251,7 +251,7 @@ export default function GatheringDetailScreen() {
           hitSlop={12}
           accessibilityLabel="Back"
         >
-          <Text className="text-[20px] text-accent font-body">←</Text>
+          <Text className="text-xl text-accent font-body">←</Text>
         </Pressable>
       }
       headerRight={
@@ -260,7 +260,7 @@ export default function GatheringDetailScreen() {
           hitSlop={12}
           accessibilityLabel="More actions"
         >
-          <Text className="text-[22px] text-text2 font-body">⋯</Text>
+          <Text className="text-nav text-text2 font-body">⋯</Text>
         </Pressable>
       }
     >
@@ -272,9 +272,9 @@ export default function GatheringDetailScreen() {
         <View className="flex-1 px-4">
 
           {loading ? (
-            <Text className="text-[13px] text-text3 font-body">{t("common.loading")}</Text>
+            <Text className="text-body text-text3 font-body">{t("common.loading")}</Text>
           ) : !title && content.talkingPoints.length === 0 ? (
-            <Text className="text-[13px] text-text3 font-body">{t("gathering.notFound")}</Text>
+            <Text className="text-body text-text3 font-body">{t("gathering.notFound")}</Text>
           ) : (
             <>
               <View className="flex-row items-start gap-2 mb-2">
@@ -309,14 +309,14 @@ export default function GatheringDetailScreen() {
                     asChild
                   >
                     <Pressable className="px-3 py-1.5 rounded-full bg-bg2 border border-border">
-                      <Text className="text-[12px] text-text2 font-body">{p.displayName}</Text>
+                      <Text className="text-xs text-text2 font-body">{p.displayName}</Text>
                     </Pressable>
                   </Link>
                 ))}
               </View>
 
               {dateLabel ? (
-                <Text className="text-[11px] text-text3 font-body mb-3">{dateLabel}</Text>
+                <Text className="text-3xs text-text3 font-body mb-3">{dateLabel}</Text>
               ) : null}
 
               <ScrollView
@@ -326,8 +326,8 @@ export default function GatheringDetailScreen() {
               >
                 {content.talkingPoints.length === 0 ? (
                   <View className="mb-4">
-                    <Text className="text-[14px] text-text2 font-body">{t("gathering.noTalkingPoints")}</Text>
-                    <Text className="text-[13px] text-text3 font-body mt-1">
+                    <Text className="text-sm text-text2 font-body">{t("gathering.noTalkingPoints")}</Text>
+                    <Text className="text-body text-text3 font-body mt-1">
                       {t("gathering.noTalkingPointsSub")}
                     </Text>
                   </View>
@@ -338,7 +338,7 @@ export default function GatheringDetailScreen() {
                     const meta = talkingPointMeta(kind);
                     return (
                       <View key={kind} className="mb-3">
-                        <Text className="text-[11px] uppercase tracking-wide text-text3 font-bodySemi mb-1">
+                        <Text className="text-3xs uppercase tracking-wide text-text3 font-bodySemi mb-1">
                           {meta.icon} {talkingPointLabel(kind, locale)}
                         </Text>
                         {items.map((point) => (
@@ -346,7 +346,7 @@ export default function GatheringDetailScreen() {
                             <View className="flex-row items-start gap-2">
                               <Pressable onPress={() => toggleDone(point.id)} className="flex-1">
                                 <Text
-                                  className={`text-[15px] text-text1 font-body ${
+                                  className={`text-body-lg text-text1 font-body ${
                                     point.done ? "opacity-50 line-through" : ""
                                   }`}
                                 >
@@ -354,7 +354,7 @@ export default function GatheringDetailScreen() {
                                 </Text>
                               </Pressable>
                               <Pressable onPress={() => removePoint(point.id)} hitSlop={8}>
-                                <Text className="text-[14px] text-text3 font-body">✕</Text>
+                                <Text className="text-sm text-text3 font-body">✕</Text>
                               </Pressable>
                             </View>
                           </BriefCard>
@@ -382,7 +382,7 @@ export default function GatheringDetailScreen() {
                       returnKeyType="done"
                       onSubmitEditing={() => void addPoint()}
                       style={{ color: inputTextColor, flex: 1 }}
-                      className="bg-bg2 border border-border rounded-lg px-3 py-2.5 text-[15px] text-text1 font-body"
+                      className="bg-bg2 border border-border rounded-lg px-3 py-2.5 text-body-lg text-text1 font-body"
                       autoFocus
                     />
                   ) : (
@@ -428,9 +428,9 @@ export default function GatheringDetailScreen() {
                                 active ? "bg-accent" : "bg-transparent"
                               }`}
                             >
-                              <Text className="text-[13px] leading-[16px]">{meta.icon}</Text>
+                              <Text className="text-body leading-[16px]">{meta.icon}</Text>
                               <Text
-                                className={`text-[12px] font-bodyMedium leading-[16px] ${
+                                className={`text-xs font-bodyMedium leading-[16px] ${
                                   active ? "text-card" : "text-text2"
                                 }`}
                               >
@@ -447,7 +447,7 @@ export default function GatheringDetailScreen() {
                       accessibilityLabel={t("gathering.addPlaceholder")}
                       className="w-10 h-10 rounded-lg bg-accent items-center justify-center active:opacity-80"
                     >
-                      <Text className="text-[20px] text-card font-body leading-[22px]">+</Text>
+                      <Text className="text-xl text-card font-body leading-[22px]">+</Text>
                     </Pressable>
                   </View>
                 </View>
@@ -464,33 +464,33 @@ export default function GatheringDetailScreen() {
             className="flex-row items-center gap-4 py-2"
           >
             <View className="w-11 h-11 rounded-xl bg-amber-light items-center justify-center">
-              <Text className="text-[20px]">✏️</Text>
+              <Text className="text-xl">✏️</Text>
             </View>
-            <Text className="text-[16px] text-text1 font-bodyMedium">{t("gathering.editTitle")}</Text>
+            <Text className="text-base text-text1 font-bodyMedium">{t("gathering.editTitle")}</Text>
           </Pressable>
           <Pressable
             onPress={() => { triggerLight(); setShowActions(false); setTimeout(() => { if (mountedRef.current) setShowPersonPicker(true); }, 300); }}
             className="flex-row items-center gap-4 py-2"
           >
             <View className="w-11 h-11 rounded-xl bg-green-light items-center justify-center">
-              <Text className="text-[20px] text-green font-bodyMedium leading-[22px]">+</Text>
+              <Text className="text-xl text-green font-bodyMedium leading-[22px]">+</Text>
             </View>
-            <Text className="text-[16px] text-text1 font-bodyMedium">{t("gathering.addPerson")}</Text>
+            <Text className="text-base text-text1 font-bodyMedium">{t("gathering.addPerson")}</Text>
           </Pressable>
           <Pressable
             onPress={() => { triggerLight(); setShowActions(false); setTimeout(() => { if (mountedRef.current) setShowDelete(true); }, 300); }}
             className="flex-row items-center gap-4 py-2"
           >
             <View className="w-11 h-11 rounded-xl bg-red-light items-center justify-center">
-              <Text className="text-[18px]">🗑</Text>
+              <Text className="text-lg">🗑</Text>
             </View>
-            <Text className="text-[16px] text-red font-bodyMedium">{t("gathering.deleteEvent")}</Text>
+            <Text className="text-base text-red font-bodyMedium">{t("gathering.deleteEvent")}</Text>
           </Pressable>
         </View>
       </BottomSheet>
 
       <BottomSheet visible={showDelete} onDismiss={() => setShowDelete(false)} title={t("gathering.deleteEvent")}>
-        <Text className="text-[14px] text-text2 font-body mb-4">{t("gathering.deleteEventBody")}</Text>
+        <Text className="text-sm text-text2 font-body mb-4">{t("gathering.deleteEventBody")}</Text>
         <View className="gap-2">
           <Button variant="primary" onPress={() => void handleDelete()} loading={deleting} disabled={deleting}>
             {t("common.delete")}
@@ -515,7 +515,7 @@ export default function GatheringDetailScreen() {
                 onPress={() => void handleAddParticipant(p.id)}
                 className="py-2 border-b border-border"
               >
-                <Text className="text-[15px] text-text1 font-body">{p.displayName}</Text>
+                <Text className="text-body-lg text-text1 font-body">{p.displayName}</Text>
               </Pressable>
             ))}
         </View>

@@ -116,18 +116,18 @@ export default function SettingsScreen() {
       showProfileLink={false}
       headerLeft={
         <Pressable onPress={() => router.back()} hitSlop={12} accessibilityLabel="Back">
-          <Text className="text-[20px] text-accent font-body">←</Text>
+          <Text className="text-xl text-accent font-body">←</Text>
         </Pressable>
       }
     >
       <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40 }}>
-        <Text className="text-[30px] leading-[36px] text-text1 font-heading mb-4 mt-1">
+        <Text className="text-3xl leading-[36px] text-text1 font-heading mb-4 mt-1">
           {t("settings.title")}
         </Text>
 
         <Card style={{ marginBottom: 8 }}>
           <View className="flex-row items-center justify-between">
-            <Text className="text-[15px] text-text1 font-bodyMedium">
+            <Text className="text-body-lg text-text1 font-bodyMedium">
               {isDark ? "Mørk modus" : "Lys modus"}
             </Text>
             <Switch
@@ -147,7 +147,7 @@ export default function SettingsScreen() {
           {PRIVACY_KEYS.map((key, index) => (
             <Text
               key={key}
-              className={`text-[14px] text-text2 font-body leading-[21px] ${index > 0 ? "mt-2" : ""}`}
+              className={`text-sm text-text2 font-body leading-[21px] ${index > 0 ? "mt-2" : ""}`}
             >
               {t(key)}
             </Text>
@@ -156,7 +156,7 @@ export default function SettingsScreen() {
 
         <SettingsAccordion title={t("data.title")}>
           {lastError ? (
-            <Text className="text-[12px] text-text3 font-body mb-3">
+            <Text className="text-xs text-text3 font-body mb-3">
               {t("data.lastError", {
                 date: new Date(lastError).toLocaleString(dateLocale),
               })}
@@ -179,7 +179,7 @@ export default function SettingsScreen() {
 
         {__DEV__ ? (
           <Card style={{ marginTop: 8 }}>
-            <Text className="text-[11px] uppercase tracking-[1.5px] text-text3 font-bodySemi mb-3">
+            <Text className="text-3xs uppercase tracking-[1.5px] text-text3 font-bodySemi mb-3">
               DEV {DEV_BYPASS_AUTH ? "· bypass active" : ""}
             </Text>
             <View className="gap-2">
@@ -226,13 +226,13 @@ export default function SettingsScreen() {
         ) : null}
 
         <Card style={{ marginTop: 8 }}>
-          <Text className="text-[11px] uppercase tracking-[1.5px] text-text3 font-bodySemi">
+          <Text className="text-3xs uppercase tracking-[1.5px] text-text3 font-bodySemi">
             {t("about.title")}
           </Text>
-          <Text className="text-[14px] text-text2 font-body mt-2">
+          <Text className="text-sm text-text2 font-body mt-2">
             {t("about.version", { version: appVersion })}
           </Text>
-          <Text className="text-[12px] text-text3 font-body mt-3 leading-[18px]">
+          <Text className="text-xs text-text3 font-body mt-3 leading-[18px]">
             {t("about.disclaimer")}
           </Text>
         </Card>
@@ -243,7 +243,7 @@ export default function SettingsScreen() {
         onDismiss={() => setShowDeleteSheet(false)}
         title={t("data.deleteSheetTitle")}
       >
-        <Text className="text-[14px] text-text2 font-body mb-4 leading-[21px]">
+        <Text className="text-sm text-text2 font-body mb-4 leading-[21px]">
           {t("data.deleteSheetBody")}
         </Text>
         <View className="gap-2">
@@ -255,7 +255,7 @@ export default function SettingsScreen() {
             {deletingAll ? (
               <ActivityIndicator color="#ffffff" />
             ) : (
-              <Text className="text-[14px] text-white font-bodySemi">
+              <Text className="text-sm text-white font-bodySemi">
                 {t("data.deleteConfirm")}
               </Text>
             )}

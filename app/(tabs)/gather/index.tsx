@@ -73,17 +73,17 @@ export default function GatherListScreen() {
   return (
     <AppShell>
       <View className="flex-1 px-4 relative">
-        <Text className="text-[30px] leading-[36px] text-text1 font-heading pt-1">
+        <Text className="text-3xl leading-[36px] text-text1 font-heading pt-1">
           {t("gathering.title")}
         </Text>
-        <Text className="text-[14px] text-text2 font-body mt-1 mb-4">{t("gathering.subtitle")}</Text>
+        <Text className="text-sm text-text2 font-body mt-1 mb-4">{t("gathering.subtitle")}</Text>
 
         {loading ? (
           <ActivityIndicator color="#C4784A" />
         ) : items.length === 0 ? (
           <View className="mt-8">
-            <Text className="text-[14px] text-text2 font-body">{t("gathering.noEvents")}</Text>
-            <Text className="text-[13px] text-text3 font-body mt-2">{t("gathering.createFirst")}</Text>
+            <Text className="text-sm text-text2 font-body">{t("gathering.noEvents")}</Text>
+            <Text className="text-body text-text3 font-body mt-2">{t("gathering.createFirst")}</Text>
           </View>
         ) : (
           <ScrollView contentContainerStyle={{ paddingBottom: 130 }}>
@@ -96,19 +96,19 @@ export default function GatherListScreen() {
                     <View className="flex-row items-start gap-3">
                       <Link href={`/gather/${item.id}`} asChild className="flex-1">
                         <Pressable className="flex-1">
-                          <Text className="text-[15px] text-text1 font-bodyMedium">
+                          <Text className="text-body-lg text-text1 font-bodyMedium">
                             {localizeGatheringTitle(item.id, item.title, locale)}
                           </Text>
                           {item.participants.length > 0 ? (
-                            <Text className="text-[12px] text-text3 font-body mt-1">
+                            <Text className="text-xs text-text3 font-body mt-1">
                               {item.participants.join(", ")}
                             </Text>
                           ) : null}
-                          <Text className="text-[11px] text-text3 font-body mt-1">
+                          <Text className="text-3xs text-text3 font-body mt-1">
                             {t("gathering.talkingPointCount", { count })}
                           </Text>
                           {dateLabel ? (
-                            <Text className="text-[11px] text-text3 font-body mt-0.5">{dateLabel}</Text>
+                            <Text className="text-3xs text-text3 font-body mt-0.5">{dateLabel}</Text>
                           ) : null}
                         </Pressable>
                       </Link>
@@ -120,7 +120,7 @@ export default function GatherListScreen() {
                         }}
                         hitSlop={8}
                       >
-                        <Text className="text-[18px] text-red font-body">🗑</Text>
+                        <Text className="text-lg text-red font-body">🗑</Text>
                       </Pressable>
                     </View>
                   </Card>
@@ -147,7 +147,7 @@ export default function GatherListScreen() {
             elevation: 10,
           }}
         >
-          <Text className="text-[30px] text-card font-body leading-[30px]">+</Text>
+          <Text className="text-3xl text-card font-body leading-[30px]">+</Text>
         </Pressable>
       </View>
 
@@ -156,7 +156,7 @@ export default function GatherListScreen() {
         onDismiss={() => setDeleteId(null)}
         title={t("gathering.deleteEvent")}
       >
-        <Text className="text-[14px] text-text2 font-body mb-4">{t("gathering.deleteEventBody")}</Text>
+        <Text className="text-sm text-text2 font-body mb-4">{t("gathering.deleteEventBody")}</Text>
         <View className="gap-2">
           <Button variant="primary" onPress={() => void handleDelete()} loading={deleting} disabled={deleting}>
             {t("common.delete")}

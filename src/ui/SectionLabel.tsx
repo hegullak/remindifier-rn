@@ -10,7 +10,7 @@ export function SectionLabel({ children, style, drag }: SectionLabelProps) {
   return (
     <View className="flex-row items-center justify-between mt-5 mb-2">
       <Text
-        className="text-[11px] uppercase tracking-[1.92px] text-text3 font-bodySemi"
+        className="text-3xs uppercase tracking-[1.92px] text-text3 font-bodySemi"
         style={style}
       >
         {children}
@@ -22,7 +22,7 @@ export function SectionLabel({ children, style, drag }: SectionLabelProps) {
           hitSlop={12}
           accessibilityLabel="Hold to reorder"
         >
-          <Text className="text-[16px] text-text3 font-body leading-[16px]">≡</Text>
+          <Text className="text-base text-text3 font-body leading-[16px]">≡</Text>
         </Pressable>
       ) : null}
     </View>

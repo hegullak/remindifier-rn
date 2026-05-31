@@ -32,7 +32,7 @@ interface PersonFormProps {
 }
 
 const fieldClass =
-  "mt-2 bg-bg2 border border-border rounded-md px-3 py-3 text-[14px] text-text1 font-body";
+  "mt-2 bg-bg2 border border-border rounded-md px-3 py-3 text-sm text-text1 font-body";
 
 export const PersonForm = forwardRef<PersonFormHandle, PersonFormProps>(function PersonForm(
   {
@@ -114,7 +114,7 @@ export const PersonForm = forwardRef<PersonFormHandle, PersonFormProps>(function
 
   const nameFields = (
     <>
-      <Text className="text-[11px] uppercase tracking-[1.5px] text-text3 font-bodySemi">
+      <Text className="text-3xs uppercase tracking-[1.5px] text-text3 font-bodySemi">
         {t("personForm.about")}
       </Text>
       <TextInput
@@ -136,7 +136,7 @@ export const PersonForm = forwardRef<PersonFormHandle, PersonFormProps>(function
 
   const birthdayFields = (
     <>
-      <Text className="text-[11px] uppercase tracking-[1.5px] text-text3 font-bodySemi">
+      <Text className="text-3xs uppercase tracking-[1.5px] text-text3 font-bodySemi">
         {t("personForm.birthday")}
       </Text>
       <BirthdayField
@@ -152,7 +152,7 @@ export const PersonForm = forwardRef<PersonFormHandle, PersonFormProps>(function
   const extraFields = (
     <>
       <RedLetterDaysSection items={redLetterDays} onChange={setRedLetterDays} />
-      <Text className="text-[11px] uppercase tracking-[1.5px] text-text3 font-bodySemi mt-4">
+      <Text className="text-3xs uppercase tracking-[1.5px] text-text3 font-bodySemi mt-4">
         {t("personForm.funFacts")}
       </Text>
       <TextInput
@@ -166,7 +166,7 @@ export const PersonForm = forwardRef<PersonFormHandle, PersonFormProps>(function
         style={{ textAlignVertical: "top", minHeight: 110 }}
       />
       <View className="flex-row items-center justify-between mt-3">
-        <Text className="text-[12px] text-text2 font-body">{t("personForm.handleWithCare")}</Text>
+        <Text className="text-xs text-text2 font-body">{t("personForm.handleWithCare")}</Text>
         <Switch value={isSensitive} onValueChange={setIsSensitive} />
       </View>
     </>
@@ -179,7 +179,7 @@ export const PersonForm = forwardRef<PersonFormHandle, PersonFormProps>(function
         disabled={saving}
         className="mt-4 bg-accent rounded-lg py-3 px-4 items-center"
       >
-        <Text className="text-[14px] text-card font-bodySemi">
+        <Text className="text-sm text-card font-bodySemi">
           {saving ? t("personForm.saving") : submitLabel}
         </Text>
       </Pressable>
@@ -189,7 +189,7 @@ export const PersonForm = forwardRef<PersonFormHandle, PersonFormProps>(function
           disabled={saving}
           className="mt-2 border border-red/40 rounded-lg py-3 px-4 items-center"
         >
-          <Text className="text-[13px] text-red font-bodyMedium">
+          <Text className="text-body text-red font-bodyMedium">
             {t("personForm.deletePerson")}
           </Text>
         </Pressable>
@@ -198,7 +198,7 @@ export const PersonForm = forwardRef<PersonFormHandle, PersonFormProps>(function
   );
 
   const errorBlock = error ? (
-    <Text className="text-[12px] text-red font-body mt-3">{error}</Text>
+    <Text className="text-xs text-red font-body mt-3">{error}</Text>
   ) : null;
 
   if (layout === "cards") {

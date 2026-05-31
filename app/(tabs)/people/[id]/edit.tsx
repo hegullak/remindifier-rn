@@ -35,24 +35,24 @@ export default function EditPersonScreen() {
             hitSlop={12}
             accessibilityLabel="Back"
           >
-            <Text className="text-[20px] text-accent font-body">←</Text>
+            <Text className="text-xl text-accent font-body">←</Text>
           </Pressable>
         </Link>
       }
     >
       <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}>
         <View className="pt-1 pb-2">
-          <Text className="text-[30px] leading-[36px] text-text1 font-heading mt-2">
+          <Text className="text-3xl leading-[36px] text-text1 font-heading mt-2">
             {t("people.editPersonTitle")}
           </Text>
         </View>
 
         {loading ? (
-          <Text className="text-[13px] text-text3 font-body">{t("common.loading")}</Text>
+          <Text className="text-body text-text3 font-body">{t("common.loading")}</Text>
         ) : null}
-        {error ? <Text className="text-[13px] text-red font-body">{error}</Text> : null}
+        {error ? <Text className="text-body text-red font-body">{error}</Text> : null}
         {!loading && !error && !bundle ? (
-          <Text className="text-[13px] text-text3 font-body">{t("people.notFound")}</Text>
+          <Text className="text-body text-text3 font-body">{t("people.notFound")}</Text>
         ) : null}
 
         {bundle ? (
@@ -101,7 +101,7 @@ export default function EditPersonScreen() {
                 disabled={saving}
                 className="bg-accent rounded-lg py-3 px-4 items-center opacity-100 disabled:opacity-50"
               >
-                <Text className="text-[14px] text-card font-bodySemi">
+                <Text className="text-sm text-card font-bodySemi">
                   {saving ? t("personForm.saving") : t("people.saveChanges")}
                 </Text>
               </Pressable>
@@ -110,7 +110,7 @@ export default function EditPersonScreen() {
                 disabled={saving}
                 className="py-3 px-4 items-center opacity-100 disabled:opacity-50"
               >
-                <Text className="text-[13px] text-red font-bodyMedium">
+                <Text className="text-body text-red font-bodyMedium">
                   {t("personForm.deletePerson")}
                 </Text>
               </Pressable>
