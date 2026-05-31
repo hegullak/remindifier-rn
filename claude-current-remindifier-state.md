@@ -13,7 +13,7 @@ Agent protocol: `.cursor/rules/session-handoff.mdc` · Skill: `.cursor/skills/pr
 
 - **Repo:** `https://github.com/hegullak/remindifier-rn`
 - **Active branch:** `sandbox`
-- **Latest commit:** `39a6f31` — `fix(intake): multi follow-up parser and visible dictation text`
+- **Latest commit:** `3d50bbc` — `fix(intake): multi follow-up parser and visible dictation text`
 - **Previous:** `5e56498` / `42935b6` — Expo Go working, voice intake clarified
 - **CI:** lint + typecheck + test:coverage (expected green)
 
@@ -94,7 +94,7 @@ Custom tokens: `text-2xs`, `text-3xs`, `text-body`, `text-body-lg`, `text-nav`. 
 ## Recent commits (newest first)
 
 ```
-39a6f31 fix(intake): multi follow-up parser and visible dictation text
+3d50bbc fix(intake): multi follow-up parser and visible dictation text
 5e56498 docs: sync session state commit hash
 42935b6 docs: session handoff — Expo Go working, voice intake clarified
 0c40ed1 fix(db): SecureStore read/write use same keychain options
