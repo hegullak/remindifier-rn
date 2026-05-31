@@ -13,7 +13,7 @@ Agent protocol: `.cursor/rules/session-handoff.mdc` · Skill: `.cursor/skills/pr
 
 - **Repo:** `https://github.com/hegullak/remindifier-rn`
 - **Active branch:** `sandbox`
-- **Latest commit:** `ecbcd5b` — `docs: sync session state commit hash`
+- **Latest commit:** `29fab6c` — `docs: sync session state commit hash`
 - **Previous:** `3d50bbc` — intake parser multi follow-ups + dictation text fix
 - **CI:** lint + typecheck + test:coverage (expected green)
 
@@ -94,6 +94,7 @@ Custom tokens: `text-2xs`, `text-3xs`, `text-body`, `text-body-lg`, `text-nav`. 
 ## Recent commits (newest first)
 
 ```
+29fab6c docs: sync session state commit hash
 ecbcd5b docs: sync session state commit hash
 3d50bbc fix(intake): multi follow-up parser and visible dictation text
 5e56498 docs: sync session state commit hash
