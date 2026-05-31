@@ -305,7 +305,7 @@ export default function BriefScreen() {
         </Pressable>
       </View>
       <View className="pt-3 pb-5">
-        <Text className="text-[38px] leading-[46px] text-text1 font-heading">
+        <Text className="text-[48px] leading-[56px] text-text1 font-heading">
           {greetingLead}{" "}
           <Text className="text-accent">{greetingName}</Text>
         </Text>
