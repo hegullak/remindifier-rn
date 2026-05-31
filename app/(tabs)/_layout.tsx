@@ -23,8 +23,8 @@ function FloatingTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
 
   return (
     <BlurView
-      intensity={55}
-      tint={isDark ? "dark" : "light"}
+      intensity={80}
+      tint={isDark ? "systemUltraThinMaterialDark" : "systemUltraThinMaterialLight"}
       style={{
         position: "absolute",
         bottom: 20,
@@ -46,7 +46,7 @@ function FloatingTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
         style={{
           position: "absolute",
           top: 0, left: 0, right: 0, bottom: 0,
-          backgroundColor: isDark ? "rgba(34,40,56,0.45)" : "rgba(247,244,239,0.45)",
+          backgroundColor: isDark ? "rgba(34,40,56,0.15)" : "rgba(247,244,239,0.15)",
         }}
       />
       {state.routes.map((route, index) => {
