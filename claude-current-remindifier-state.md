@@ -13,7 +13,7 @@ Agent protocol: `.cursor/rules/session-handoff.mdc` · Skill: `.cursor/skills/pr
 
 - **Repo:** `https://github.com/hegullak/remindifier-rn`
 - **Active branch:** `sandbox`
-- **Latest commit:** `7d03c8c` — `refactor(styles): replace arbitrary font-size classes with named Tailwind tokens`
+- **Latest commit:** `198b7a8` — `docs: session handoff — semantic intake MVP and typography tokens`
 - **CI:** lint + typecheck + test:coverage (expected green)
 
 ### Git workflow (user rule)
@@ -133,6 +133,22 @@ Custom tokens: `text-2xs`, `text-3xs`, `text-body`, `text-body-lg`, `text-nav`. 
 2. **Typography refactor** (`7d03c8c`) — custom tokens in `tailwind.config.js`; 295 replacements across 33 files
 3. **Intake token alignment** — intake screen + AppShell use `text-xl`, `text-body-lg`, `text-3xs`, etc.
 4. **Docs** — issue #38 mapped; `git pull --rebase` (already up to date)
+
+### Claude Code session (same day)
+
+5. **Brief redesign** — weather topline (centered, tappable→sheet), greeting `text-5xl` pt-6 pb-8, body `"\n"` separator
+6. **Code review** (`337dc2e`) — security + best practices + architecture:
+   - SQLCipher key guard (throws on empty key)
+   - QR payload: 4096-byte limit + field truncation
+   - N+1 → 4 batched queries in `listPeopleSummaries`
+   - `setTimeout` mountedRef guard in gather/[id] + people/[id]
+   - `briefHelpers.ts` — extracted `formatTime`, `isWorkEvent`, `buildWeekendSummary`
+   - `briefGreetingLine` → `{ lead, name }` structured return
+   - `BriefWeatherDetail.kind` — type-safe lookup
+   - Removed `@anthropic-ai/sdk` (unused)
+7. **Tailwind typescale** (`7d03c8c`) — 5 custom tokens, 295 replacements across 33 files
+
+**Noted for later (not yet done):** OpenAI API key client-side → needs backend proxy
 
 ---
 
