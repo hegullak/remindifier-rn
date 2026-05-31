@@ -1,6 +1,6 @@
 # remindifier-rn — Current AI Session State
 
-*Last updated: 2026-05-31 (session handoff — Expo Go confirmed working, voice intake clarified)*
+*Last updated: 2026-05-29 (session handoff — intake parser + dictation text visibility)*
 
 **This file is the session snapshot.** Architecture lives in [`PROJECT_MEMORY.md`](./PROJECT_MEMORY.md).  
 Agent protocol: `.cursor/rules/session-handoff.mdc` · Skill: `.cursor/skills/project-memory/SKILL.md`
@@ -13,8 +13,8 @@ Agent protocol: `.cursor/rules/session-handoff.mdc` · Skill: `.cursor/skills/pr
 
 - **Repo:** `https://github.com/hegullak/remindifier-rn`
 - **Active branch:** `sandbox`
-- **Latest commit:** `42935b6` — `docs: session handoff — Expo Go working, voice intake clarified`
-- **Previous:** `1b95335` / `a10e9be` — dark screen startup hardening
+- **Latest commit:** `39a6f31` — `fix(intake): multi follow-up parser and visible dictation text`
+- **Previous:** `5e56498` / `42935b6` — Expo Go working, voice intake clarified
 - **CI:** lint + typecheck + test:coverage (expected green)
 
 ### Git workflow (user rule)
@@ -53,7 +53,7 @@ None after this handoff commit.
 | AI (user-initiated) | GPT-4o-mini (person/event parsers); intake MVP = heuristics only |
 | Haptics | expo-haptics `~15.0.8` (SDK 54 — **not** v56) |
 | Blur | `expo-blur` in dev client; **Expo Go uses solid View fallback** for tab bar |
-| Testing | Jest (~250 tests, 23 suites) |
+| Testing | Jest (~254 tests, semantic intake suite expanded) |
 
 **Dev server:** `npm run start:lan:log` · dev client: `npx expo start --dev-client --lan --clear`
 
@@ -77,8 +77,8 @@ Other: `sign-in`, `onboarding`, `settings`, `me-scan`
 
 - **+ menu → «Si eller skriv»** → `/intake`
 - Type / paste / **iOS keyboard dictation** (no custom STT, **no in-app record button**)
-- `parseSemanticIntake` → preview card → **Confirm** / **Edit** / **Send to inbox**
-- Confirm: creates gathering (+ talking points) or follow-up entry; inbox in AsyncStorage
+- `parseSemanticIntake` → preview card (event, time, person, **bullet follow-ups**) → **Confirm** / **Edit** / **Send to inbox**
+- Confirm: creates gathering (+ talking points from follow-ups) or follow-up entry; inbox in AsyncStorage
 - Files: `src/lib/intake/*`, `src/features/intake/SemanticIntakePreviewCard.tsx`, `intakeInboxRepo.ts`
 
 ### Brief layout
@@ -94,10 +94,10 @@ Custom tokens: `text-2xs`, `text-3xs`, `text-body`, `text-body-lg`, `text-nav`. 
 ## Recent commits (newest first)
 
 ```
+39a6f31 fix(intake): multi follow-up parser and visible dictation text
+5e56498 docs: sync session state commit hash
 42935b6 docs: session handoff — Expo Go working, voice intake clarified
-6f96b0e docs: sync session state commit hash
 0c40ed1 fix(db): SecureStore read/write use same keychain options
-4dfc00d docs: session handoff — sync commit hash, Expo Go startup status
 e3f8f52 fix(startup): React hooks order + visible FatalScreen for Expo Go
 a10e9be fix(startup): Expo Go dark screen — SafeAreaProvider, startup logging, layout fallbacks
 ```
@@ -115,9 +115,10 @@ a10e9be fix(startup): Expo Go dark screen — SafeAreaProvider, startup logging,
 | — | Brief blikkfang | Parked |
 | — | Inbox UI (view/process inbox items) | Not started |
 | — | Tab bar blur | Dev client only; Expo Go uses solid fallback |
-| — | ~~Expo Go startup~~ | **Resolved** (`0c40ed1`) — user confirmed app loads in Expo Go |
+| — | ~~Expo Go startup~~ | **Resolved** — user confirmed app loads in Expo Go |
+| — | Intake parser edge cases | **Improved** — multi follow-ups; still heuristic (e.g. conflicting weekdays Jonas onsdag/torsdag not resolved) |
 
-**Next candidates:** #38 in-app mic button / STT, #50 Tonight mode, inbox list UI, #53/#54 polish
+**Next candidates:** #38 in-app mic button / STT, #50 Tonight mode, inbox list UI, intake datetime conflict handling
 
 ---
 
@@ -131,31 +132,35 @@ a10e9be fix(startup): Expo Go dark screen — SafeAreaProvider, startup logging,
 
 ---
 
-## What Was Done (this session — 2026-05-31)
+## What Was Done (this session — 2026-05-29)
 
-### Expo Go startup — **confirmed working**
+### Semantic intake — user feedback + fixes
 
-User confirmed **«Yes! Da er vi der»** after `0c40ed1` SecureStore fix. Full debug chain this session:
+User tested natural-language prompts (Norwegian) and reported:
 
-| Symptom | Fix commit |
+1. **Text invisible during dictation** on intake screen
+2. **Single follow-up blob** instead of multiple bullets
+3. **Missed follow-ups** («flytte i vår», bryllup/gratulere, etc.)
+4. **Whole paragraph in event title** on some parses
+
+**Fixes shipped:**
+
+| Area | Change |
 |---|---|
-| White screen | `8e88788` — expo-haptics SDK 54, non-blocking calendar seed |
-| Dark screen | `a10e9be` — SafeAreaProvider, Clerk loading, bootstrap logging |
-| Black screen | `e3f8f52` — React hooks order + visible FatalScreen |
-| «Failed to persist database key» | `0c40ed1` — SecureStore get/set same `keychainService` options |
+| `app/intake.tsx` | `TextInput` uses explicit `StyleSheet` + `useAppTheme` colors (not NativeWind `className` on input) |
+| `semanticIntakeParser.ts` | Strip follow-ups inline (don't drop whole clause); multiple bullets via `splitFollowUpPhrase`; patterns for `nevnte noe om`, `nevnte at`, `vil også ta opp at`; prefer specific event keyword (`lunsj`) over generic `møte`; shorter titles (`MAX_EVENT_TITLE_LEN` 55); `og` lowercase in names |
+| `SemanticIntakePreviewCard.tsx` | Follow-ups as bullet list in preview; multiline edit (one per line); theme-aware input colors |
+| `applySemanticIntakeEdits` | Split `followUpText` on newlines → multiple follow-ups |
+| i18n | `intake.followUpPlaceholder` (EN/NO) |
+| Tests | User's three Norwegian examples + edit split test (11 tests in suite) |
 
-Also: `expo-router ~6.0.24`; startup log sequence documented.
+**Verified:** `npm test -- semanticIntakeParser`, `npm run typecheck` green.
 
-### Voice / recording — user question (no code change)
+**Known limits (not fixed):** conflicting datetimes in one sentence (Jonas onsdag vs torsdag); hyttetur discussion not auto-extracted as follow-up unless phrased as reminder.
 
-User asked **«Hvor er recordingen?»** — clarified:
+### Prior session context (still valid)
 
-- **Entry:** header **+** → **«Si eller skriv»** → `app/intake.tsx`
-- **Voice today:** iOS **keyboard dictation** (mic on keyboard), not in-app record button
-- **Not built:** hold-to-record, audio files, custom STT (`expo-av` not in project)
-- Hint in UI: `intake.dictationHint`
-
-**Noted for later:** OpenAI API key → backend proxy; `haptics.ts` console.log → logger; optional #38 mic button in intake
+Expo Go startup resolved (`0c40ed1` SecureStore). Voice = iOS keyboard dictation via **+ → Si eller skriv** — no in-app recorder.
 
 ---
 

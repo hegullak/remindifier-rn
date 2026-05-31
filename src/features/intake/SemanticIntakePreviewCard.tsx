@@ -1,5 +1,6 @@
 import { Text, TextInput, View } from "react-native";
 import { useTranslation } from "@/i18n";
+import { useAppTheme } from "@/theme/ThemeProvider";
 import type { SemanticIntakeParseResult } from "@/lib/intake/semanticIntakeParser.types";
 import { BriefCard } from "@/ui/BriefCard";
 
@@ -23,12 +24,18 @@ function PreviewRow({
   editing,
   onChangeText,
   placeholder,
+  inputBg,
+  inputColor,
+  inputBorder,
 }: {
   label: string;
   value: string;
   editing: boolean;
   onChangeText?: (text: string) => void;
   placeholder?: string;
+  inputBg: string;
+  inputColor: string;
+  inputBorder: string;
 }) {
   if (!value && !editing) return null;
 
@@ -43,10 +50,22 @@ function PreviewRow({
           onChangeText={onChangeText}
           placeholder={placeholder}
           placeholderTextColor="#7A8CAD"
-          className="bg-bg2 border border-border rounded-lg px-3 py-2 text-body-lg text-text1 font-body"
+          multiline
+          textAlignVertical="top"
+          style={{
+            backgroundColor: inputBg,
+            borderWidth: 1,
+            borderColor: inputBorder,
+            borderRadius: 8,
+            paddingHorizontal: 12,
+            paddingVertical: 8,
+            fontSize: 15,
+            color: inputColor,
+            minHeight: 44,
+          }}
         />
       ) : (
-        <Text className="text-body-lg text-text1 font-body">{value || "—"}</Text>
+        <Text style={{ fontSize: 15, color: inputColor }}>{value || "—"}</Text>
       )}
     </View>
   );
@@ -54,8 +73,14 @@ function PreviewRow({
 
 export function SemanticIntakePreviewCard({ parsed, editing, values, onChange }: Props) {
   const { t } = useTranslation();
+  const { isDark } = useAppTheme();
+  const followUpLines = values.followUpText.split("\n").map((l) => l.trim()).filter(Boolean);
 
   const ambiguityLabels = parsed.ambiguities.map((key) => t(`intake.ambiguity.${key}`));
+
+  const inputBg = isDark ? "#222838" : "#EFECE3";
+  const inputColor = isDark ? "#EEF0F5" : "#1C1915";
+  const inputBorder = isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.07)";
 
   return (
     <BriefCard stripeColor="sage">
@@ -67,6 +92,9 @@ export function SemanticIntakePreviewCard({ parsed, editing, values, onChange }:
         editing={editing}
         onChangeText={(eventTitle) => onChange({ ...values, eventTitle })}
         placeholder={t("intake.field.event")}
+        inputBg={inputBg}
+        inputColor={inputColor}
+        inputBorder={inputBorder}
       />
       <PreviewRow
         label={t("intake.field.datetime")}
@@ -74,6 +102,9 @@ export function SemanticIntakePreviewCard({ parsed, editing, values, onChange }:
         editing={editing}
         onChangeText={(scheduledLabel) => onChange({ ...values, scheduledLabel })}
         placeholder={t("intake.field.datetime")}
+        inputBg={inputBg}
+        inputColor={inputColor}
+        inputBorder={inputBorder}
       />
       <PreviewRow
         label={t("intake.field.person")}
@@ -81,14 +112,45 @@ export function SemanticIntakePreviewCard({ parsed, editing, values, onChange }:
         editing={editing}
         onChangeText={(personName) => onChange({ ...values, personName })}
         placeholder={t("intake.field.person")}
+        inputBg={inputBg}
+        inputColor={inputColor}
+        inputBorder={inputBorder}
       />
-      <PreviewRow
-        label={t("intake.field.followUp")}
-        value={values.followUpText}
-        editing={editing}
-        onChangeText={(followUpText) => onChange({ ...values, followUpText })}
-        placeholder={t("intake.field.followUp")}
-      />
+
+      {followUpLines.length > 0 || editing ? (
+        <View className="mb-3">
+          <Text className="text-3xs uppercase tracking-wide text-text3 font-bodySemi mb-1">
+            {t("intake.field.followUp")}
+          </Text>
+          {editing ? (
+            <TextInput
+              value={values.followUpText}
+              onChangeText={(followUpText) => onChange({ ...values, followUpText })}
+              placeholder={t("intake.followUpPlaceholder")}
+              placeholderTextColor="#7A8CAD"
+              multiline
+              textAlignVertical="top"
+              style={{
+                backgroundColor: inputBg,
+                borderWidth: 1,
+                borderColor: inputBorder,
+                borderRadius: 8,
+                paddingHorizontal: 12,
+                paddingVertical: 8,
+                fontSize: 15,
+                color: inputColor,
+                minHeight: 72,
+              }}
+            />
+          ) : (
+            followUpLines.map((line) => (
+              <Text key={line} style={{ fontSize: 15, color: inputColor, marginBottom: 4 }}>
+                • {line}
+              </Text>
+            ))
+          )}
+        </View>
+      ) : null}
 
       {!parsed.event && !parsed.person && parsed.freeFormNote ? (
         <View className="mb-3">

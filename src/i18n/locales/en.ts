@@ -470,6 +470,7 @@ export const en = {
     backToInput: "Back to text",
     confirmFailed: "Couldn’t save this yet — try editing or send to inbox.",
     inboxFailed: "Couldn’t add to inbox. Try again.",
+    followUpPlaceholder: "One reminder per line",
     field: {
       event: "Event",
       datetime: "Time",

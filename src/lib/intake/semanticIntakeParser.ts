@@ -59,20 +59,28 @@ const WORD_HOUR: Record<string, number> = {
 };
 
 const EVENT_KEYWORDS =
-  /\b(dinner|lunch|breakfast|brunch|coffee|drinks|party|meeting|visit|middag|lunsj|frokost|kaffe|besøk|fest|møte)\b/i;
+  /\b(dinner|lunch|breakfast|brunch|coffee|drinks|party|meeting|visit|middag|lunsj|frokost|kaffe|besøk|fest|møte|mote)\b/i;
 
-const FOLLOW_UP_PATTERNS: RegExp[] = [
-  /\bremember\s+to\s+(.+?)(?:[,.]|$)/i,
-  /\bdon'?t\s+forget\s+to\s+(.+?)(?:[,.]|$)/i,
-  /\bask\s+(?:about|him|her|them)\s+(.+?)(?:[,.]|$)/i,
-  /\bhusk\s+å\s+(.+?)(?:[,.]|$)/i,
-  /\bikke\s+glem\s+å\s+(.+?)(?:[,.]|$)/i,
-  /\bspør\s+(?:om\s+)?(.+?)(?:[,.]|$)/i,
+const FOLLOW_UP_CLAUSE_PATTERNS: RegExp[] = [
+  /\bhusk\s+å\s+(.+)/i,
+  /\bikke\s+glem\s+å\s+(.+)/i,
+  /\bremember\s+to\s+(.+)/i,
+  /\bdon'?t\s+forget\s+to\s+(.+)/i,
+  /\b(?:jeg\s+)?vil\s+også\s+ta\s+opp\s+at\s+(.+)/i,
+  /\b(?:hun|han|de|sie|henne)\s+nevnte(?:\s+noe)?\s+om\s+(.+)/i,
+  /\bnevnte\s+noe\s+om\s+(.+)/i,
+  /\b(?:[A-ZÆØÅ][a-zæøå]+|[Hh]un|[Hh]an|[Dd]e)\s+nevnte\s+at\s+(.+)/i,
+  /\bnevnte\s+at\s+(.+)/i,
+  /\bask\s+(?:about|him|her|them)\s+(.+)/i,
+  /\b(?:remember|spør)\s+(?:to\s+)?(?:about|om)\s+(.+)/i,
 ];
 
-const PERSON_WITH_PATTERN = /\b(?:with|med|hos)\s+([A-ZÆØÅ][a-zæøå]+(?:\s+[A-ZÆØÅ][a-zæøå]+)?)/;
+const PERSON_WITH_PATTERN =
+  /\b(?:with|med|hos|møte|mote)\s+([A-ZÆØÅ][a-zæøå]+(?:\s+og\s+[A-ZÆØÅ][a-zæøå]+)?)/;
 
 const EVENING_CONTEXT = /\b(dinner|middag|evening|kveld|drinks|party|fest)\b/i;
+
+const MAX_EVENT_TITLE_LEN = 55;
 
 function normalizeWhitespace(value: string): string {
   return value.replace(/\s+/g, " ").trim();
@@ -83,21 +91,117 @@ function capitalizeWord(value: string): string {
   return value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
 }
 
-function extractFollowUps(text: string): { followUps: string[]; remainder: string } {
-  const followUps: string[] = [];
-  let remainder = text;
+function capitalizePersonName(raw: string): string {
+  return raw
+    .split(/\s+/)
+    .map((word) => (word.toLowerCase() === "og" ? "og" : capitalizeWord(word)))
+    .join(" ");
+}
 
-  for (const pattern of FOLLOW_UP_PATTERNS) {
-    const match = remainder.match(pattern);
-    if (!match?.[1]) continue;
-    const phrase = normalizeWhitespace(match[1]);
-    if (phrase.length >= 3 && !followUps.includes(phrase)) {
-      followUps.push(phrase);
-    }
-    remainder = remainder.replace(match[0], " ").trim();
+function primaryEventKeyword(text: string): string | null {
+  const matches = [...text.matchAll(new RegExp(EVENT_KEYWORDS.source, "gi"))];
+  const specific = matches.filter((m) => !/^(møte|mote|meeting)$/i.test(m[0]));
+  if (specific.length > 0) return specific[0][0];
+  return matches[0]?.[0] ?? null;
+}
+
+function trimFollowUpTail(phrase: string): string {
+  return normalizeWhitespace(
+    phrase.replace(/\s*[.—–-]\s+.*$/u, "").replace(/[,.]\s*$/, ""),
+  );
+}
+
+function splitFollowUpPhrase(phrase: string): string[] {
+  const p = trimFollowUpTail(phrase);
+  if (p.length < 3) return [];
+
+  if (/\s+og\s+om\s+/i.test(p)) {
+    const parts = p.split(/\s+og\s+om\s+/i);
+    return parts
+      .map((part, index) => {
+        const trimmed = trimFollowUpTail(part);
+        if (index === 0) return trimmed;
+        if (/^(spør|spørre)\s/i.test(trimmed)) return trimmed;
+        return `om ${trimmed}`;
+      })
+      .filter((s) => s.length >= 3);
   }
 
-  return { followUps, remainder: normalizeWhitespace(remainder.replace(/,\s*,/g, ",")) };
+  if (/\s+og\s+(?=om\s|at\s|spør|spørre|gratul)/i.test(p)) {
+    return p
+      .split(/\s+og\s+/i)
+      .map(trimFollowUpTail)
+      .filter((s) => s.length >= 3);
+  }
+
+  return [p];
+}
+
+function stripFollowUpPhrases(clause: string): { followUps: string[]; stripped: string } {
+  const followUps: string[] = [];
+  let stripped = clause;
+
+  for (const pattern of FOLLOW_UP_CLAUSE_PATTERNS) {
+    const match = stripped.match(pattern);
+    if (!match?.[1]) continue;
+    for (const item of splitFollowUpPhrase(match[1])) {
+      if (!followUps.includes(item)) followUps.push(item);
+    }
+    stripped = stripped.replace(pattern, " ");
+  }
+
+  stripped = normalizeWhitespace(
+    stripped
+      .replace(/\s*,\s*,/g, ",")
+      .replace(/^[,.]\s*/, "")
+      .replace(/\s*[,.]\s*$/, ""),
+  );
+
+  return { followUps, stripped };
+}
+
+function clauseHasSchedulingSignal(clause: string): boolean {
+  return (
+    EVENT_KEYWORDS.test(clause) ||
+    new RegExp(`\\b(?:${WEEKDAY_PATTERN})\\b`, "i").test(clause) ||
+    /\b(?:kl\.?|at|på)\s*(?:\d|one|two|three|four|five|six|en|to|tre|fire|fem|seks)/i.test(clause) ||
+    PERSON_WITH_PATTERN.test(clause) ||
+    /\b(?:planlegger|skal)\s+(?:å\s+)?(?:møte|mote|ta)\b/i.test(clause)
+  );
+}
+
+function extractFollowUps(text: string): { followUps: string[]; remainder: string } {
+  const followUps: string[] = [];
+  const clauses = text.split(/(?<=[.!?])\s+|\s*[—–]\s+/u);
+  const remainderParts: string[] = [];
+
+  for (const clause of clauses) {
+    const trimmed = normalizeWhitespace(clause);
+    if (!trimmed) continue;
+
+    const { followUps: extracted, stripped } = stripFollowUpPhrases(trimmed);
+    for (const item of extracted) {
+      if (!followUps.includes(item)) followUps.push(item);
+    }
+
+    const schedulingSource = stripped || trimmed;
+    if (
+      stripped &&
+      clauseHasSchedulingSignal(stripped) &&
+      stripped.length >= 8
+    ) {
+      remainderParts.push(stripped);
+    } else if (!stripped && extracted.length > 0) {
+      continue;
+    } else if (clauseHasSchedulingSignal(trimmed)) {
+      remainderParts.push(schedulingSource);
+    }
+  }
+
+  return {
+    followUps,
+    remainder: normalizeWhitespace(remainderParts.join(" ")),
+  };
 }
 
 function extractPerson(text: string): { name: string | null; confidence: IntakeConfidence } {
@@ -107,7 +211,7 @@ function extractPerson(text: string): { name: string | null; confidence: IntakeC
   if (parts.length === 2 && WEEKDAYS[parts[1].toLowerCase()] != null) {
     return { name: capitalizeWord(parts[0]), confidence: "high" };
   }
-  const name = normalizeWhitespace(parts.map(capitalizeWord).join(" "));
+  const name = normalizeWhitespace(capitalizePersonName(match[1].trim()));
   return { name, confidence: "high" };
 }
 
@@ -123,7 +227,7 @@ function extractEventTitle(
 
   const eventMatch = trimmed.match(
     new RegExp(
-      `\\b((?:dinner|lunch|breakfast|brunch|coffee|drinks|party|meeting|visit|middag|lunsj|frokost|kaffe|besøk|fest|møte)\\s+(?:with|med|hos)\\s+[A-ZÆØÅ][a-zæøå]+)(?=\\s+(?:${WEEKDAY_PATTERN})\\b|[,.]|\\s+(?:at|kl\\.?)|$)`,
+      `\\b((?:dinner|lunch|breakfast|brunch|coffee|drinks|party|meeting|visit|middag|lunsj|frokost|kaffe|besøk|fest|møte|mote)\\s+(?:with|med|hos)\\s+[A-ZÆØÅ][a-zæøå]+(?:\\s+og\\s+[A-ZÆØÅ][a-zæøå]+)?)(?=\\s+(?:${WEEKDAY_PATTERN})\\b|[,.]|\\s+(?:at|kl\\.?|på)|$)`,
       "i",
     ),
   );
@@ -135,21 +239,40 @@ function extractEventTitle(
     return { title, confidence: "high" };
   }
 
-  if (personName && EVENT_KEYWORDS.test(trimmed)) {
-    const keyword = trimmed.match(EVENT_KEYWORDS)?.[0] ?? "Meeting";
+  const meetMatch = trimmed.match(
+    /\b(?:møte|mote|meet)\s+([A-ZÆØÅ][a-zæøå]+(?:\s+og\s+[A-ZÆØÅ][a-zæøå]+)?)/i,
+  );
+  const keyword = primaryEventKeyword(trimmed);
+  if (keyword && (personName || meetMatch?.[1])) {
+    const who = personName ?? capitalizePersonName(meetMatch?.[1] ?? "");
+    const kw = capitalizeWord(keyword);
+    const title =
+      kw.toLowerCase() === "møte" || kw.toLowerCase() === "mote"
+        ? `Møte med ${who}`
+        : `${kw} med ${who}`;
+    return { title, confidence: "high" };
+  }
+
+  if (personName && primaryEventKeyword(trimmed)) {
+    const kw = primaryEventKeyword(trimmed) ?? "Meeting";
     return {
-      title: `${capitalizeWord(keyword)} with ${personName}`,
+      title: `${capitalizeWord(kw)} med ${personName}`,
       confidence: "medium",
     };
   }
 
   const firstClause = trimmed.split(/[,;]/)[0]?.trim();
-  if (firstClause && EVENT_KEYWORDS.test(firstClause)) {
+  if (
+    firstClause &&
+    EVENT_KEYWORDS.test(firstClause) &&
+    firstClause.length <= MAX_EVENT_TITLE_LEN &&
+    !firstClause.includes(".")
+  ) {
     return { title: capitalizeWord(firstClause), confidence: "medium" };
   }
 
   if (personName) {
-    return { title: `Time with ${personName}`, confidence: "low" };
+    return { title: `Møte med ${personName}`, confidence: "low" };
   }
 
   return { title: null, confidence: "low" };
@@ -206,7 +329,7 @@ function extractDateTime(
 
   const clockMatch =
     lower.match(
-      /\b(?:at|kl\.?|ca\.?)\s*(\d{1,2}|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|en|to|tre|fire|fem|seks|syv|sju|åtte|ni|ti|elleve|tolv)(?::(\d{2}))?\s*(am|pm)?\b/i,
+      /\b(?:at|kl\.?|ca\.?|på)\s*(\d{1,2}|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|en|to|tre|fire|fem|seks|syv|sju|åtte|ni|ti|elleve|tolv)(?::(\d{2}))?\s*(am|pm)?\b/i,
     ) ?? lower.match(/\b(\d{1,2}):(\d{2})\b/);
 
   let hour: number | null = null;
@@ -233,8 +356,7 @@ function extractDateTime(
 
   if (weekday != null) {
     const current = target.getDay();
-    let delta = (weekday - current + 7) % 7;
-    if (delta === 0) delta = 0;
+    const delta = (weekday - current + 7) % 7;
     target.setDate(target.getDate() + delta);
   }
 
@@ -340,7 +462,7 @@ export function parseSemanticIntake(
   if (scheduledAt?.confidence === "medium") {
     ambiguities.push("datetime_partial");
   }
-  if (followUpTexts.length === 0 && /\b(remember|husk|ask|spør)\b/i.test(rawText)) {
+  if (followUpTexts.length === 0 && /\b(remember|husk|ask|spør|nevnte)\b/i.test(rawText)) {
     ambiguities.push("follow_up_unclear");
   }
 
@@ -403,9 +525,12 @@ export function applySemanticIntakeEdits(
       : base.scheduledAt,
     followUps:
       edits.followUpText != null
-        ? edits.followUpText.trim()
-          ? [{ text: edits.followUpText.trim(), confidence: "high" as const }]
-          : []
+        ? edits.followUpText
+            .trim()
+            .split(/\n+/)
+            .map((line) => line.trim())
+            .filter(Boolean)
+            .map((text) => ({ text, confidence: "high" as const }))
         : base.followUps,
   };
 

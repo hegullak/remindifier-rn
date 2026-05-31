@@ -4,9 +4,9 @@ import {
   Keyboard,
   Pressable,
   ScrollView,
+  StyleSheet,
   Text,
   TextInput,
-  useColorScheme,
   View,
 } from "react-native";
 import { addToIntakeInbox } from "@/db/repos/intakeInboxRepo";
@@ -20,6 +20,7 @@ import { triggerLight, triggerMedium } from "@/lib/haptics";
 import { confirmSemanticIntake } from "@/lib/intake/confirmSemanticIntake";
 import { applySemanticIntakeEdits, parseSemanticIntake } from "@/lib/intake/semanticIntakeParser";
 import type { SemanticIntakeParseResult } from "@/lib/intake/semanticIntakeParser.types";
+import { useAppTheme } from "@/theme/ThemeProvider";
 import { AppShell } from "@/ui/AppShell";
 import { Button } from "@/ui/Button";
 
@@ -28,9 +29,7 @@ type Step = "input" | "preview";
 export default function SemanticIntakeScreen() {
   const { userId } = useAppAuth();
   const { t, locale } = useTranslation();
-  const colorScheme = useColorScheme();
-  const placeholderColor = colorScheme === "dark" ? "#7A8CAD" : "#A89E90";
-  const inputTextColor = colorScheme === "dark" ? "#E8E4DC" : "#1C1915";
+  const { isDark } = useAppTheme();
 
   const [step, setStep] = useState<Step>("input");
   const [inputText, setInputText] = useState("");
@@ -157,12 +156,18 @@ export default function SemanticIntakeScreen() {
               value={inputText}
               onChangeText={setInputText}
               placeholder={t("intake.placeholder")}
-              placeholderTextColor={placeholderColor}
+              placeholderTextColor={isDark ? "#7A8CAD" : "#A89E90"}
               multiline
               numberOfLines={6}
               textAlignVertical="top"
-              style={{ color: inputTextColor }}
-              className="min-h-[160px] bg-bg2 border border-border rounded-xl px-4 py-3 text-body-lg text-text1 font-body"
+              style={[
+                intakeInputStyles.input,
+                {
+                  color: isDark ? "#EEF0F5" : "#1C1915",
+                  backgroundColor: isDark ? "#222838" : "#EFECE3",
+                  borderColor: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.07)",
+                },
+              ]}
             />
             <Text className="text-xs text-text3 font-body mt-2">
               {t("intake.dictationHint")}
@@ -226,3 +231,15 @@ export default function SemanticIntakeScreen() {
     </AppShell>
   );
 }
+
+const intakeInputStyles = StyleSheet.create({
+  input: {
+    minHeight: 160,
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    fontSize: 15,
+    lineHeight: 22,
+  },
+});

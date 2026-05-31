@@ -473,6 +473,7 @@ export const no = {
     backToInput: "Tilbake til tekst",
     confirmFailed: "Klarte ikke lagre ennå — prøv å redigere eller send til innboks.",
     inboxFailed: "Klarte ikke legge i innboks. Prøv igjen.",
+    followUpPlaceholder: "Ett punkt per linje",
     field: {
       event: "Event",
       datetime: "Tid",

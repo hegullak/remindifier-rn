@@ -1,7 +1,7 @@
 # remindifier-rn — project memory
 
 Living context for AI agents. **Update this file** when architecture, UX, or conventions change.
-Last updated: 2026-05-31.
+Last updated: 2026-05-29.
 
 ## Session handoff (read every time)
 
@@ -85,6 +85,8 @@ A contextual memory and heads-up assistant for the people in your life — not a
 - **No in-app audio recorder** — voice = iOS keyboard dictation only until #38 STT/record is built
 - **No auto-save** on parse; confirm creates gathering or follow-up; inbox → AsyncStorage (`intakeInboxRepo`)
 - Parser: `src/lib/intake/semanticIntakeParser.ts` (testable, no custom STT)
+- **Multiple follow-ups:** parser can emit several bullets (e.g. «husk å … og om …», «nevnte at …», «vil også ta opp at …»); preview shows a bullet list; edit mode = one reminder per line (`intake.followUpPlaceholder`); `applySemanticIntakeEdits` splits `followUpText` on newlines
+- **Intake TextInput:** use explicit `style` colors via `useAppTheme` — NativeWind `className` on `TextInput` can hide dictation text on iOS
 
 ## Auth (Clerk)
 
