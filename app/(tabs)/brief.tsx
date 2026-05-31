@@ -304,8 +304,8 @@ export default function BriefScreen() {
           <Text className="text-[22px] text-accent font-body">→</Text>
         </Pressable>
       </View>
-      <View style={{ paddingTop: 24, paddingBottom: 32 }}>
-        <Text className="text-text1 font-heading" style={{ fontSize: 40, lineHeight: 48 }}>
+      <View className="pt-6 pb-8">
+        <Text className="text-5xl leading-tight text-text1 font-heading">
           {greetingLead}{" "}
           <Text className="text-accent">{greetingName}</Text>
         </Text>
