@@ -168,18 +168,22 @@ export default function BriefScreen() {
               </BriefCard>
             </View>
           );
-        case "calendar":
-          if (brief.calendarEvents.length === 0) return null;
+        case "calendar": {
+          const privateCalendarEvents = brief.calendarEvents.filter((e) => {
+            const name = (e.calendarName ?? "").toLowerCase();
+            return !name.includes("jobb") && !name.includes("work") && !name.includes("job");
+          });
+          if (privateCalendarEvents.length === 0) return null;
           return (
             <View>
               <SectionLabel>{t(briefSectionLabelKey(sectionId))}</SectionLabel>
               <BriefCard stripeColor="sage">
-                {brief.calendarEvents.map((event, i) => {
+                {privateCalendarEvents.map((event, i) => {
                   const title = event.gatheringId
                     ? localizeGatheringTitle(event.gatheringId, event.title, locale)
                     : event.title;
                   const row = (
-                    <View className={i < brief.calendarEvents.length - 1 ? "mb-3" : ""}>
+                    <View className={i < privateCalendarEvents.length - 1 ? "mb-3" : ""}>
                       <Text className="text-[11px] uppercase tracking-[1.2px] text-sage font-bodySemi">
                         {formatCalendarEventTiming(event, weekOffset, locale, t)}
                       </Text>
@@ -207,6 +211,7 @@ export default function BriefScreen() {
               </BriefCard>
             </View>
           );
+        }
         case "headsup":
           if (weekOffset !== 0) return null;
           return (
