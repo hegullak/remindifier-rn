@@ -82,6 +82,7 @@ A contextual memory and heads-up assistant for the people in your life — not a
 
 - Entry: global **+** menu → «Speak or type» / «Si eller skriv»
 - Flow: type/paste/iOS keyboard dictation → `parseSemanticIntake` (heuristics) → preview card → confirm / edit / inbox
+- **No in-app audio recorder** — voice = iOS keyboard dictation only until #38 STT/record is built
 - **No auto-save** on parse; confirm creates gathering or follow-up; inbox → AsyncStorage (`intakeInboxRepo`)
 - Parser: `src/lib/intake/semanticIntakeParser.ts` (testable, no custom STT)
 
