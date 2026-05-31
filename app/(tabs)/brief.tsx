@@ -1,8 +1,6 @@
 import { Link } from "expo-router";
 import { useCallback, useState } from "react";
-import { Pressable, Text, View } from "react-native";
-import DraggableFlatList, { ScaleDecorator } from "react-native-draggable-flatlist";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { Pressable, ScrollView, Text, View } from "react-native";
 import { useAppAuth, useAppUser } from "@/features/auth/useAppAuth";
 import { useBriefData } from "@/features/brief/useBriefData";
 import { useTranslation } from "@/i18n";
@@ -57,12 +55,12 @@ export default function BriefScreen() {
   const upcomingRedLetters = redLettersThisWeek.filter((d) => !d.isToday);
 
   const renderSection = useCallback(
-    (sectionId: BriefSectionId, drag?: () => void) => {
+    (sectionId: BriefSectionId) => {
       switch (sectionId) {
         case "weather":
           return (
             <View>
-              <SectionLabel drag={drag}>{t(briefSectionLabelKey(sectionId))}</SectionLabel>
+              <SectionLabel>{t(briefSectionLabelKey(sectionId))}</SectionLabel>
               <Pressable onPress={() => setWeatherExpanded((v) => !v)}>
                 <BriefCard stripeColor="blue">
                   <View className="flex-row items-start justify-between gap-3">
@@ -123,7 +121,7 @@ export default function BriefScreen() {
           if (weekOffset !== 0) return null;
           return (
             <View>
-              <SectionLabel drag={drag}>{t(briefSectionLabelKey(sectionId))}</SectionLabel>
+              <SectionLabel>{t(briefSectionLabelKey(sectionId))}</SectionLabel>
               <BriefCard stripeColor="blue">
                 {brief.schedule.length === 0 ? (
                   <Text className="text-[13px] text-text3 font-body">
@@ -168,7 +166,7 @@ export default function BriefScreen() {
           if (brief.calendarEvents.length === 0) return null;
           return (
             <View>
-              <SectionLabel drag={drag}>{t(briefSectionLabelKey(sectionId))}</SectionLabel>
+              <SectionLabel>{t(briefSectionLabelKey(sectionId))}</SectionLabel>
               <BriefCard stripeColor="sage">
                 {brief.calendarEvents.map((event, i) => {
                   const title = event.gatheringId
@@ -207,7 +205,7 @@ export default function BriefScreen() {
           if (weekOffset !== 0) return null;
           return (
             <View>
-              <SectionLabel drag={drag}>{t(briefSectionLabelKey(sectionId))}</SectionLabel>
+              <SectionLabel>{t(briefSectionLabelKey(sectionId))}</SectionLabel>
               <BriefCard stripeColor="dusk">
                 {headsupItems.map((item, i) => (
                   <View key={item.day} className={i < headsupItems.length - 1 ? "mb-3" : ""}>
@@ -224,7 +222,7 @@ export default function BriefScreen() {
           if (weekOffset !== 0) return null;
           return (
             <View>
-              <SectionLabel drag={drag}>{t(briefSectionLabelKey(sectionId))}</SectionLabel>
+              <SectionLabel>{t(briefSectionLabelKey(sectionId))}</SectionLabel>
               <BriefCard stripeColor="green">
                 {trainingLines.map((line, i) => (
                   <View
@@ -241,7 +239,7 @@ export default function BriefScreen() {
         case "red_letter":
           return (
             <View>
-              <SectionLabel drag={drag}>{t(briefSectionLabelKey(sectionId))}</SectionLabel>
+              <SectionLabel>{t(briefSectionLabelKey(sectionId))}</SectionLabel>
               <BriefCard stripeColor="amber">
                 {redLettersThisWeek.length === 0 ? (
                   <Text className="text-[13px] text-text3 font-body">
@@ -329,33 +327,21 @@ export default function BriefScreen() {
           <Text className="text-accent">{greetingName}</Text>
         </Text>
       </View>
-      <Text className="text-[11px] text-text3 font-body mb-3">{t("brief.reorderHint")}</Text>
     </View>
   );
 
   return (
     <AppShell>
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        <DraggableFlatList
-          data={brief.sectionOrder}
-          keyExtractor={(item) => item}
-          extraData={brief}
-          onDragEnd={({ data }) => {
-            void setSectionOrder(data);
-          }}
-          activationDistance={10}
-          containerStyle={{ flex: 1 }}
-          contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 30 }}
-          ListHeaderComponent={listHeader}
-          renderItem={({ item, drag, isActive }) => (
-            <ScaleDecorator activeScale={1.02}>
-              <View className={`mb-1 ${isActive ? "opacity-90" : ""}`}>
-                {renderSection(item, drag)}
-              </View>
-            </ScaleDecorator>
-          )}
-        />
-      </GestureHandlerRootView>
+      <ScrollView
+        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 120 }}
+      >
+        {listHeader}
+        {brief.sectionOrder.map((sectionId) => (
+          <View key={sectionId} className="mb-1">
+            {renderSection(sectionId)}
+          </View>
+        ))}
+      </ScrollView>
 
       <BottomSheet
         visible={anniversaryDetail !== null}

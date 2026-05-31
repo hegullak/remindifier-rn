@@ -456,38 +456,32 @@ export default function GatheringDetailScreen() {
       </KeyboardAvoidingView>
 
       <BottomSheet visible={showActions} onDismiss={() => setShowActions(false)} title={displayTitle || t("gathering.newTitle")}>
-        <View className="gap-1">
+        <View className="gap-3 pt-1">
           <Pressable
-            onPress={() => {
-              triggerLight();
-              setShowActions(false);
-              setTimeout(() => setEditingTitle(true), 300);
-            }}
-            className="flex-row items-center gap-4 py-4 border-b border-border"
+            onPress={() => { triggerLight(); setShowActions(false); setTimeout(() => setEditingTitle(true), 300); }}
+            className="flex-row items-center gap-4 py-2"
           >
-            <Text className="text-[20px]">✏️</Text>
+            <View className="w-11 h-11 rounded-xl bg-amber-light items-center justify-center">
+              <Text className="text-[20px]">✏️</Text>
+            </View>
             <Text className="text-[16px] text-text1 font-bodyMedium">{t("gathering.editTitle")}</Text>
           </Pressable>
           <Pressable
-            onPress={() => {
-              triggerLight();
-              setShowActions(false);
-              setTimeout(() => setShowPersonPicker(true), 300);
-            }}
-            className="flex-row items-center gap-4 py-4 border-b border-border"
+            onPress={() => { triggerLight(); setShowActions(false); setTimeout(() => setShowPersonPicker(true), 300); }}
+            className="flex-row items-center gap-4 py-2"
           >
-            <Text className="text-[20px] text-green font-body">+</Text>
+            <View className="w-11 h-11 rounded-xl bg-green-light items-center justify-center">
+              <Text className="text-[20px] text-green font-bodyMedium leading-[22px]">+</Text>
+            </View>
             <Text className="text-[16px] text-text1 font-bodyMedium">{t("gathering.addPerson")}</Text>
           </Pressable>
           <Pressable
-            onPress={() => {
-              triggerLight();
-              setShowActions(false);
-              setTimeout(() => setShowDelete(true), 300);
-            }}
-            className="flex-row items-center gap-4 py-4"
+            onPress={() => { triggerLight(); setShowActions(false); setTimeout(() => setShowDelete(true), 300); }}
+            className="flex-row items-center gap-4 py-2"
           >
-            <Text className="text-[20px] text-red font-body">🗑</Text>
+            <View className="w-11 h-11 rounded-xl bg-red-light items-center justify-center">
+              <Text className="text-[18px]">🗑</Text>
+            </View>
             <Text className="text-[16px] text-red font-bodyMedium">{t("gathering.deleteEvent")}</Text>
           </Pressable>
         </View>

@@ -373,27 +373,27 @@ export default function PersonDetailScreen() {
         onDismiss={() => setShowActions(false)}
         title={bundle?.person.displayName ?? ""}
       >
-        <View className="gap-1">
+        <View className="gap-3 pt-1">
           {id ? (
             <Link href={`/people/${id}/edit`} asChild>
               <Pressable
                 onPress={() => { triggerLight(); setShowActions(false); }}
-                className="flex-row items-center gap-4 py-4 border-b border-border"
+                className="flex-row items-center gap-4 py-2"
               >
-                <Text className="text-[20px]">✏️</Text>
+                <View className="w-11 h-11 rounded-xl bg-amber-light items-center justify-center">
+                  <Text className="text-[20px]">✏️</Text>
+                </View>
                 <Text className="text-[16px] text-text1 font-bodyMedium">{t("people.editPersonA11y")}</Text>
               </Pressable>
             </Link>
           ) : null}
           <Pressable
-            onPress={() => {
-              triggerLight();
-              setShowActions(false);
-              setTimeout(() => setConfirmDeletePerson(true), 300);
-            }}
-            className="flex-row items-center gap-4 py-4"
+            onPress={() => { triggerLight(); setShowActions(false); setTimeout(() => setConfirmDeletePerson(true), 300); }}
+            className="flex-row items-center gap-4 py-2"
           >
-            <Text className="text-[20px] text-red font-body">🗑</Text>
+            <View className="w-11 h-11 rounded-xl bg-red-light items-center justify-center">
+              <Text className="text-[18px]">🗑</Text>
+            </View>
             <Text className="text-[16px] text-red font-bodyMedium">{t("people.deletePersonTitle")}</Text>
           </Pressable>
         </View>

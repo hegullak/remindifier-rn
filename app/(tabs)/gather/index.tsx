@@ -138,16 +138,16 @@ export default function GatherListScreen() {
           }}
           accessibilityRole="button"
           accessibilityLabel={t("gathering.createButton")}
-          className="absolute right-5 bottom-8 w-14 h-14 rounded-full bg-accent items-center justify-center"
+          className="absolute right-5 bottom-[100px] w-16 h-16 rounded-full bg-accent items-center justify-center active:opacity-80"
           style={{
             shadowColor: "#000",
-            shadowOffset: { width: 0, height: 4 },
-            shadowOpacity: 0.12,
-            shadowRadius: 16,
-            elevation: 6,
+            shadowOffset: { width: 0, height: 6 },
+            shadowOpacity: 0.25,
+            shadowRadius: 20,
+            elevation: 10,
           }}
         >
-          <Text className="text-[24px] text-card font-body leading-[24px]">+</Text>
+          <Text className="text-[30px] text-card font-body leading-[30px]">+</Text>
         </Pressable>
       </View>
 
