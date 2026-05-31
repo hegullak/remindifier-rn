@@ -37,9 +37,11 @@ export default function BriefScreen() {
   } = useBriefData(userId);
   const morningBrief = buildMorningBrief(brief.todayEvents ?? [], brief.weekEvents ?? [], locale);
   const windDown = buildEveningWindDown(brief.tomorrowEvents ?? [], brief.weekEvents ?? [], locale);
-  const [weatherExpanded, setWeatherExpanded] = useState(false);
+  const [showWeatherSheet, setShowWeatherSheet] = useState(false);
   const [showMorningBrief, setShowMorningBrief] = useState(false);
   const [showEveningWindDown, setShowEveningWindDown] = useState(false);
+  const rainDetail = brief.weather.details.find((d) => d.icon === "🌧️");
+  const rainText = rainDetail && rainDetail.value !== "0 mm" ? rainDetail.value : null;
   const [anniversaryDetail, setAnniversaryDetail] = useState<{
     personName: string;
     years: number;
@@ -64,65 +66,7 @@ export default function BriefScreen() {
     (sectionId: BriefSectionId) => {
       switch (sectionId) {
         case "weather":
-          return (
-            <View>
-              <SectionLabel>{t(briefSectionLabelKey(sectionId))}</SectionLabel>
-              <Pressable onPress={() => setWeatherExpanded((v) => !v)}>
-                <BriefCard stripeColor="blue">
-                  <View className="flex-row items-start justify-between gap-3">
-                    <View className="flex-1">
-                      <Text className="text-[11px] text-text3 font-body mb-1">
-                        📍 {brief.weather.locationLabel}
-                      </Text>
-                      <View className="flex-row items-end gap-2">
-                        <Text className="text-[36px] leading-[40px] text-text1 font-heading">
-                          {brief.weather.temp}
-                        </Text>
-                        <Text className="text-[28px] pb-1">{brief.weather.icon}</Text>
-                      </View>
-                      <Text className="text-[13px] text-text2 font-body mt-1">
-                        {brief.weather.description}
-                      </Text>
-                    </View>
-                  </View>
-                  {weatherExpanded ? (
-                    <View className="mt-3 pt-3 border-t border-border">
-                      {brief.weather.goodForRun ? (
-                        <View className="flex-row items-center gap-2 mb-3">
-                          <Text className="text-[16px]">🏃</Text>
-                          <Text className="text-[12px] text-green font-bodyMedium flex-1">
-                            {t("brief.goodForRun")}
-                          </Text>
-                        </View>
-                      ) : null}
-                      <View className="flex-row flex-wrap gap-x-4 gap-y-3">
-                        {brief.weather.details.map((d) => (
-                          <View key={`${d.icon}-${d.label}`} className="w-[46%] min-w-[140px]">
-                            <View className="flex-row items-center gap-1.5 mb-0.5">
-                              <Text className="text-[15px]">{d.icon}</Text>
-                              <Text className="text-[11px] text-text3 font-bodySemi uppercase tracking-wide">
-                                {d.label}
-                              </Text>
-                            </View>
-                            <Text className="text-[14px] text-text1 font-bodyMedium pl-5">
-                              {d.value}
-                            </Text>
-                          </View>
-                        ))}
-                      </View>
-                      <Text className="text-[12px] text-accent font-bodyMedium mt-3">
-                        {t("brief.hideDetails")}
-                      </Text>
-                    </View>
-                  ) : (
-                    <Text className="text-[12px] text-accent font-bodyMedium mt-2">
-                      {t("brief.tapForDetails")}
-                    </Text>
-                  )}
-                </BriefCard>
-              </Pressable>
-            </View>
-          );
+          return null;
         case "schedule":
           if (weekOffset !== 0) return null;
           return (
@@ -289,7 +233,6 @@ export default function BriefScreen() {
       todayRedLetters,
       trainingLines,
       upcomingRedLetters,
-      weatherExpanded,
       weekOffset,
       locale,
       t,
@@ -310,6 +253,20 @@ export default function BriefScreen() {
 
   const listHeader = (
     <View className="pb-2">
+      <Pressable
+        onPress={() => setShowWeatherSheet(true)}
+        className="flex-row items-center mb-3 self-start active:opacity-70"
+        accessibilityRole="button"
+        hitSlop={8}
+      >
+        <Text className="text-[16px] mr-1">{brief.weather.icon}</Text>
+        <Text className="text-[15px] text-text1 font-bodyMedium">{brief.weather.temp}</Text>
+        {rainText ? (
+          <Text className="text-[13px] text-text3 font-body"> · {rainText}</Text>
+        ) : null}
+        <Text className="text-[14px] text-text3 font-body ml-1.5">›</Text>
+      </Pressable>
+
       <View className="flex-row items-center justify-center gap-4 mb-2">
         <Pressable
           onPress={() => shiftWeek(-1)}
@@ -346,8 +303,7 @@ export default function BriefScreen() {
       </View>
       <View className="pt-1 pb-3">
         <Text className="text-[30px] leading-[36px] text-text1 font-heading mt-1">
-          {greetingLead}
-          {"\n"}
+          {greetingLead}{" "}
           <Text className="text-accent">{greetingName}</Text>
         </Text>
       </View>
@@ -431,6 +387,43 @@ export default function BriefScreen() {
             {sentence}{i < arr.length - 1 && !sentence.endsWith(".") ? "." : ""}
           </Text>
         ))}
+      </BottomSheet>
+
+      <BottomSheet
+        visible={showWeatherSheet}
+        onDismiss={() => setShowWeatherSheet(false)}
+        title={`${brief.weather.icon} ${brief.weather.locationLabel}`}
+        large
+      >
+        <View className="flex-row items-end gap-3 mb-4">
+          <Text className="text-[48px] leading-[52px] text-text1 font-heading">
+            {brief.weather.temp}
+          </Text>
+          <Text className="text-[15px] text-text2 font-body mb-2 flex-1">
+            {brief.weather.description}
+          </Text>
+        </View>
+        {brief.weather.goodForRun ? (
+          <View className="flex-row items-center gap-2 mb-4">
+            <Text className="text-[16px]">🏃</Text>
+            <Text className="text-[13px] text-green font-bodyMedium flex-1">
+              {t("brief.goodForRun")}
+            </Text>
+          </View>
+        ) : null}
+        <View className="flex-row flex-wrap gap-x-4 gap-y-4">
+          {brief.weather.details.map((d) => (
+            <View key={`${d.icon}-${d.label}`} className="w-[46%] min-w-[140px]">
+              <View className="flex-row items-center gap-1.5 mb-0.5">
+                <Text className="text-[15px]">{d.icon}</Text>
+                <Text className="text-[11px] text-text3 font-bodySemi uppercase tracking-wide">
+                  {d.label}
+                </Text>
+              </View>
+              <Text className="text-[15px] text-text1 font-bodyMedium pl-5">{d.value}</Text>
+            </View>
+          ))}
+        </View>
       </BottomSheet>
 
       <BottomSheet
