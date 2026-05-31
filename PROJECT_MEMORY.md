@@ -99,6 +99,7 @@ A contextual memory and heads-up assistant for the people in your life — not a
 - Per-user encrypted DB via `useUserDrizzleDb` / `getDrizzleDbForUser`
 - Repos: `peopleRepo`, `briefRepo`, `myProfileRepo`, `settingsRepo`, `userRepo`
 - Seed: `src/db/seed.ts` (demo people, schedule `s1`, etc.)
+- **Bootstrap** (`useBootstrapApp`): seeds local data + preferences; **calendar seed runs in background** (never block UI on `requestCalendarPermissionsAsync`)
 - Red-letter kinds in DB: `Birthday`, `Anniversary`, `Smoke-free`, `Snus-free`, `Other`
 
 ## Myself / QR
@@ -142,6 +143,9 @@ A contextual memory and heads-up assistant for the people in your life — not a
 2. Forgetting `locale` in `upcomingRedLetterDays` / `fetchBriefWeather` / `formatBriefDateLine`
 3. Translating DB-stored user content (names, notes) — only system/chrome strings
 4. Expo SDK/API changes — verify v56 docs, not old blog posts
+5. **`expo-haptics`** must match SDK 54 (`~15.0.8`) — v56 package breaks Expo Go
+6. **Bootstrap** must not `await seedDevCalendar()` — calendar permission can hang UI in Expo Go
+7. **RN StyleSheet** — do not use CSS `var(--token)` for `backgroundColor`; use hex or theme hook
 
 ## File map (quick)
 

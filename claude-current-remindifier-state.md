@@ -1,6 +1,6 @@
 # remindifier-rn — Current AI Session State
 
-*Last updated: 2026-05-31 — auto-loaded via Cursor rules + `.cursor/hooks/session-start.js`*
+*Last updated: 2026-05-31 (session handoff — Expo Go white screen fix)*
 
 **This file is the session snapshot.** Architecture lives in [`PROJECT_MEMORY.md`](./PROJECT_MEMORY.md).  
 Agent protocol: `.cursor/rules/session-handoff.mdc` · Skill: `.cursor/skills/project-memory/SKILL.md`
@@ -13,7 +13,8 @@ Agent protocol: `.cursor/rules/session-handoff.mdc` · Skill: `.cursor/skills/pr
 
 - **Repo:** `https://github.com/hegullak/remindifier-rn`
 - **Active branch:** `sandbox`
-- **Latest commit:** `198b7a8` — `docs: session handoff — semantic intake MVP and typography tokens`
+- **Latest commit:** `17cd054` — `fix(startup): Expo Go white screen — haptics version, non-blocking calendar seed`
+- **Previous:** `df3248c` — `chore: session handoff 2026-05-31 — code review + brief redesign`
 - **CI:** lint + typecheck + test:coverage (expected green)
 
 ### Git workflow (user rule)
@@ -24,7 +25,7 @@ Agent protocol: `.cursor/rules/session-handoff.mdc` · Skill: `.cursor/skills/pr
 
 ### Uncommitted local changes
 
-None after this handoff commit (intake token alignment included).
+None after this handoff commit.
 
 ---
 
@@ -50,7 +51,7 @@ None after this handoff commit (intake token alignment included).
 | ORM | Drizzle |
 | Styling | NativeWind v4 — named typography tokens + presets |
 | AI (user-initiated) | GPT-4o-mini (person/event parsers); intake MVP = heuristics only |
-| Haptics | expo-haptics |
+| Haptics | expo-haptics `~15.0.8` (SDK 54 — **not** v56) |
 | Blur | `expo-blur` — needs dev client rebuild |
 | Testing | Jest (~250 tests, 23 suites) |
 
@@ -93,11 +94,12 @@ Custom tokens: `text-2xs`, `text-3xs`, `text-body`, `text-body-lg`, `text-nav`. 
 ## Recent commits (newest first)
 
 ```
+17cd054 fix(startup): Expo Go white screen — haptics version, non-blocking calendar seed
+df3248c chore: session handoff 2026-05-31 — code review + brief redesign
+198b7a8 docs: session handoff — semantic intake MVP and typography tokens
 7d03c8c refactor(styles): replace arbitrary font-size classes with named Tailwind tokens
 6472256 feat(intake): semantic voice/text capture with preview before save
 337dc2e refactor: code review fixes — security, correctness, performance, duplication
-42fbf1e docs: session handoff — voice input #38 and transcription roadmap
-6bb8e2c docs: session handoff 2026-05-31 — brief status and next candidates
 ```
 
 ---
@@ -129,26 +131,31 @@ Custom tokens: `text-2xs`, `text-3xs`, `text-body`, `text-body-lg`, `text-nav`. 
 
 ## What Was Done (this session — 2026-05-31)
 
-1. **Semantic intake MVP** (`6472256`) — `/intake`, heuristic parser, preview card, confirm/edit/inbox, + menu entry, 7 tests
-2. **Typography refactor** (`7d03c8c`) — custom tokens in `tailwind.config.js`; 295 replacements across 33 files
-3. **Intake token alignment** — intake screen + AppShell use `text-xl`, `text-body-lg`, `text-3xs`, etc.
-4. **Docs** — issue #38 mapped; `git pull --rebase` (already up to date)
+### Expo Go white screen fix
 
-### Claude Code session (same day)
+User reported **white screen** in Expo Go. Log analysis:
 
-5. **Brief redesign** — weather topline (centered, tappable→sheet), greeting `text-5xl` pt-6 pb-8, body `"\n"` separator
-6. **Code review** (`337dc2e`) — security + best practices + architecture:
-   - SQLCipher key guard (throws on empty key)
-   - QR payload: 4096-byte limit + field truncation
-   - N+1 → 4 batched queries in `listPeopleSummaries`
-   - `setTimeout` mountedRef guard in gather/[id] + people/[id]
-   - `briefHelpers.ts` — extracted `formatTime`, `isWorkEvent`, `buildWeekendSummary`
-   - `briefGreetingLine` → `{ lead, name }` structured return
-   - `BriefWeatherDetail.kind` — type-safe lookup
-   - Removed `@anthropic-ai/sdk` (unused)
-7. **Tailwind typescale** (`7d03c8c`) — 5 custom tokens, 295 replacements across 33 files
+- Metro bundled OK (~2051 modules); `app_launched` logged; **no JS errors**
+- Latest failing runs: `app_launched` but **no** `seed_calendar_refreshed` (bootstrap hung)
+- Expo warned: `expo-haptics@56.0.3` installed but SDK 54 expects `~15.0.8`
 
-**Noted for later (not yet done):** OpenAI API key client-side → needs backend proxy
+**Fixes applied:**
+
+1. **`expo-haptics` → `~15.0.8`** — wrong SDK 56 package removed
+2. **`useBootstrapApp`** — `seedDevCalendar()` no longer blocks UI (runs in background); calendar permission dialog could hang bootstrap indefinitely in Expo Go
+3. **`ThemeProvider`** — shows `LoadingScreen` while theme loads from SecureStore (was empty `View` → white flash)
+4. **`app/_layout.tsx`** — root stack `contentStyle.backgroundColor` set to `#1A1E26` (CSS `var(--bg)` invalid in RN StyleSheet)
+
+**Files:** `package.json`, `package-lock.json`, `src/bootstrap/useBootstrapApp.ts`, `src/theme/ThemeProvider.tsx`, `app/_layout.tsx`
+
+### Prior session (same day, already committed)
+
+1. **Semantic intake MVP** (`6472256`) — `/intake`, heuristic parser, preview card, confirm/edit/inbox
+2. **Typography refactor** (`7d03c8c`) — custom tokens; 295 replacements across 33 files
+3. **Brief redesign** — weather topline, greeting `text-5xl`, body `"\n"` separator
+4. **Code review** (`337dc2e`) — SQLCipher guard, QR limits, N+1 batching, briefHelpers extraction
+
+**Noted for later:** OpenAI API key client-side → needs backend proxy; tab bar blur needs dev client rebuild
 
 ---
 

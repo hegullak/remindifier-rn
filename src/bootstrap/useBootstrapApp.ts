@@ -19,9 +19,10 @@ export function useBootstrapApp(userId: string | null | undefined, migrationsRea
     async function boot() {
       await seedLocalData(activeUserId);
       await patchDevMilestoneSeed(activeUserId);
-      await seedDevCalendar();
       await ensureDefaultBriefPreferences(activeUserId);
       if (!cancelled) setReady(true);
+      // Calendar permission can block indefinitely in Expo Go — never gate UI on it.
+      void seedDevCalendar();
     }
 
     boot().catch((error) => {

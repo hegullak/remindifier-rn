@@ -72,7 +72,7 @@ function RootStack() {
     <Stack
       screenOptions={{
         headerShown: false,
-        contentStyle: { backgroundColor: "var(--bg)" },
+        contentStyle: { backgroundColor: "#1A1E26" },
       }}
     />
   );

@@ -1,6 +1,8 @@
 import * as SecureStore from "expo-secure-store";
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { View } from "react-native";
+import { useTranslation } from "@/i18n";
+import { LoadingScreen } from "@/ui/StartupScreens";
 
 export type AppTheme = "sand" | "slate";
 
@@ -16,6 +18,7 @@ type ThemeContextValue = {
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
+  const { t } = useTranslation();
   const [theme, setThemeState] = useState<AppTheme>("slate");
   const [ready, setReady] = useState(false);
 
@@ -41,7 +44,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }, [setTheme, theme]);
 
   if (!ready) {
-    return <View style={{ flex: 1 }} className="bg-bg" />;
+    return <LoadingScreen message={t("common.loading")} />;
   }
 
   return (
