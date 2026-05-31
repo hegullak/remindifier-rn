@@ -13,7 +13,7 @@ Agent protocol: `.cursor/rules/session-handoff.mdc` · Skill: `.cursor/skills/pr
 
 - **Repo:** `https://github.com/hegullak/remindifier-rn`
 - **Active branch:** `sandbox`
-- **Latest commit:** `6bb8e2c` — `docs: session handoff 2026-05-31 — brief status and next candidates`
+- **Latest commit:** `66cc13d` — `docs: session handoff — GitHub issue review and next candidates`
 - **CI:** lint + typecheck + test:coverage (expected green)
 
 ### Git workflow (user rule)
@@ -154,6 +154,8 @@ ff97611 feat(brief): compact weather topline + single-line greeting + weather bo
 
 | # | Title | GitHub | Implementation |
 |---|---|---|---|
+| 38 | Voice input — speak naturally, AI transcribes + structures | OPEN | **Phase 2** — not in repo yet; extends text parsers on gather/new + people |
+| 16 | Share conversation (text/screenshot/voice) → AI extract | OPEN | Not started (share sheet) |
 | 50 | Tonight mode — day-of view before meeting | OPEN | Not started — pairs with #58 event prep |
 | 52 | Apple Reminders + deep link to event prep | OPEN | Not started (iOS EventKit) |
 | 53 | Me profile + QR | **CLOSED** | Mostly done (`myself.tsx`) |
@@ -166,7 +168,14 @@ ff97611 feat(brief): compact weather topline + single-line greeting + weather bo
 | — | CloudKit sync | — | Not started |
 | — | Training labels (Push/Pull/Legs) i18n | — | Not done |
 
-**Next candidates to discuss:** #50 (Tonight mode), #53 polish, #54 polish
+**Next candidates to discuss:** #50 (Tonight mode), #38 (voice → events/people), #53/#54 polish
+
+### Voice / transcription (#38 — phase 2)
+
+- **Vision (web #26):** tale naturlig → AI transkriberer og strukturerer til notater/events/samtalepunkter
+- **Today:** kun fritekst → `eventParser.ts` / `naturalLanguageParser.api.ts` (GPT-4o-mini)
+- **Not implemented:** ingen expo-speech, Whisper, eller mikrofon-UI
+- **Natural fit:** mikrofon på `gather/new` og person-inntak — same parser pipeline after transcription
 
 ---
 
@@ -196,9 +205,17 @@ ff97611 feat(brief): compact weather topline + single-line greeting + weather bo
 4. **Issue mapping:** #50 = day-of tonight view; #58 event prep largely built; #53/#54 CLOSED on GitHub but may need polish; #52 = Apple Reminders deep link (not started)
 5. **No code changes** this continuation — docs/handoff only
 
+### Voice / transcription gap (this continuation)
+
+6. **Henning asked** about voice input for events — was missing from state file
+7. **Mapped #38** (RN) ← web `remindifier` #26: AI transcription + parsing, phase 2, high complexity
+8. **Mapped #16** — share conversation (incl. voice) → extract notes (separate flow)
+9. **No code** — documentation gap closed in this handoff
+
 ### Parked
 
 - Brief **blikkfang** — no kicker found yet
+- **Voice input (#38)** — planned phase 2, not started
 
 ---
 
