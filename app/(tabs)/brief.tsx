@@ -40,9 +40,9 @@ export default function BriefScreen() {
   const [showWeatherSheet, setShowWeatherSheet] = useState(false);
   const [showMorningBrief, setShowMorningBrief] = useState(false);
   const [showEveningWindDown, setShowEveningWindDown] = useState(false);
-  const rainDetail = brief.weather.details.find((d) => d.icon === "🌧️");
+  const rainDetail = brief.weather.details.find((d) => d.kind === "rain");
   const rainText = rainDetail?.value ?? "0 mm";
-  const windDetail = brief.weather.details.find((d) => d.icon === "💨");
+  const windDetail = brief.weather.details.find((d) => d.kind === "wind");
   const windText = windDetail?.value ?? null;
   const [anniversaryDetail, setAnniversaryDetail] = useState<{
     personName: string;
@@ -52,8 +52,7 @@ export default function BriefScreen() {
   } | null>(null);
 
   const firstName = user?.firstName?.trim() || (locale === "no" ? "du" : "there");
-  const greeting = briefGreetingLine(firstName, locale);
-  const [greetingLead, greetingName] = greeting.split("\n");
+  const { lead: greetingLead, name: greetingName } = briefGreetingLine(firstName, locale);
 
   const redLettersThisWeek = brief.redLetterDays.filter((item) => {
     const next = new Date();

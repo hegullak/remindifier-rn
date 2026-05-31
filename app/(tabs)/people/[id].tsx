@@ -1,5 +1,5 @@
 import { Link, router, useFocusEffect, useLocalSearchParams } from "expo-router";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Keyboard, Pressable, ScrollView, Text, TextInput, useColorScheme, View } from "react-native";
 import { triggerLight, triggerMedium, triggerSelection } from "@/lib/haptics";
 import { createPersonEntry, deletePerson, deletePersonEntry } from "@/db/repos/peopleRepo";
@@ -28,6 +28,8 @@ export default function PersonDetailScreen() {
   const { id, returnTo } = useLocalSearchParams<{ id: string; returnTo?: string }>();
   const { bundle, loading, error, reload } = usePersonProfileData(userId, id);
   const colorScheme = useColorScheme();
+  const mountedRef = useRef(true);
+  useEffect(() => () => { mountedRef.current = false; }, []);
   const [entryType, setEntryType] = useState<"note" | "follow_up">("note");
   const [entryBody, setEntryBody] = useState("");
   const [entrySaving, setEntrySaving] = useState(false);
@@ -388,7 +390,7 @@ export default function PersonDetailScreen() {
             </Link>
           ) : null}
           <Pressable
-            onPress={() => { triggerLight(); setShowActions(false); setTimeout(() => setConfirmDeletePerson(true), 300); }}
+            onPress={() => { triggerLight(); setShowActions(false); setTimeout(() => { if (mountedRef.current) setConfirmDeletePerson(true); }, 300); }}
             className="flex-row items-center gap-4 py-2"
           >
             <View className="w-11 h-11 rounded-xl bg-red-light items-center justify-center">

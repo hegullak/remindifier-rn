@@ -12,7 +12,7 @@ function sanitizeUserId(userId: string) {
   return userId.replace(/[^a-zA-Z0-9_-]/g, "_");
 }
 
-async function getOrCreateDbKey(userId: string) {
+async function getOrCreateDbKey(userId: string): Promise<string> {
   const secureStoreKey = `${DB_KEY_PREFIX}${userId}`;
   const existing = await SecureStore.getItemAsync(secureStoreKey);
   if (existing) return existing;
@@ -21,7 +21,9 @@ async function getOrCreateDbKey(userId: string) {
   await SecureStore.setItemAsync(secureStoreKey, created, {
     keychainService: "remindifier-local-db-key",
   });
-  return created;
+  const verified = await SecureStore.getItemAsync(secureStoreKey);
+  if (!verified) throw new Error("remindifier: failed to persist database key to secure storage");
+  return verified;
 }
 
 function escapeSqlLiteral(input: string) {
@@ -35,6 +37,7 @@ export async function getDrizzleDbForUser(userId: string) {
 
   const sqliteDb = await SQLite.openDatabaseAsync(`remindifier-${safeUser}.db`);
   const key = await getOrCreateDbKey(safeUser);
+  if (!key) throw new Error("remindifier: database key is empty — refusing to open without encryption");
   await sqliteDb.execAsync(`PRAGMA key='${escapeSqlLiteral(key)}';`);
 
   const db = drizzle(sqliteDb, { schema });

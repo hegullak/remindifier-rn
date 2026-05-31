@@ -64,107 +64,114 @@ export async function listPeopleSummaries(userId: string): Promise<PersonSummary
     .where(eq(persons.userId, userId))
     .orderBy(asc(persons.archived), asc(persons.displayName));
 
+  if (baseRows.length === 0) return [];
+
+  const personIds = baseRows.map((r) => r.id);
   const now = new Date();
   now.setHours(0, 0, 0, 0);
 
-  const enriched = await Promise.all(
-    baseRows.map(async (row) => {
-      // Next red-letter day within 14 days
-      const redLetters = await db
-        .select({
-          kind: personRedLetterDays.kind,
-          label: personRedLetterDays.label,
-          eventDate: personRedLetterDays.eventDate,
-        })
-        .from(personRedLetterDays)
-        .where(
-          and(
-            eq(personRedLetterDays.userId, userId),
-            eq(personRedLetterDays.personId, row.id),
-          ),
-        )
-        .orderBy(asc(personRedLetterDays.eventDate));
+  // Batch fetch all related data in 3 parallel queries
+  const [allRedLetters, allParticipants, allFollowUps] = await Promise.all([
+    db
+      .select({
+        personId: personRedLetterDays.personId,
+        kind: personRedLetterDays.kind,
+        label: personRedLetterDays.label,
+        eventDate: personRedLetterDays.eventDate,
+      })
+      .from(personRedLetterDays)
+      .where(and(eq(personRedLetterDays.userId, userId), inArray(personRedLetterDays.personId, personIds)))
+      .orderBy(asc(personRedLetterDays.eventDate)),
 
-      let nextRedLetterDayLabel: string | null = null;
-      let nextRedLetterDaysUntil: number | null = null;
-      for (const r of redLetters) {
-        const eventDate = new Date(r.eventDate);
-        const daysUntil = Math.floor((eventDate.getTime() - now.getTime()) / 86400000);
-        if (daysUntil >= 0 && daysUntil <= 14) {
-          nextRedLetterDayLabel = r.label || r.kind;
-          nextRedLetterDaysUntil = daysUntil;
-          break;
-        }
-      }
+    db
+      .select({ personId: gatheringParticipants.personId, gatheringId: gatheringParticipants.gatheringId })
+      .from(gatheringParticipants)
+      .where(and(eq(gatheringParticipants.userId, userId), inArray(gatheringParticipants.personId, personIds))),
 
-      // Next gathering within 14 days
-      const participantRows = await db
-        .select({ gatheringId: gatheringParticipants.gatheringId })
-        .from(gatheringParticipants)
-        .where(
-          and(
-            eq(gatheringParticipants.userId, userId),
-            eq(gatheringParticipants.personId, row.id),
-          ),
-        );
-      let nextGatheringTitle: string | null = null;
-      let nextGatheringDaysUntil: number | null = null;
-      if (participantRows.length > 0) {
-        const gatheringRows = await db
-          .select({
-            title: gatherings.title,
-            scheduledAt: gatherings.scheduledAt,
-          })
+    db
+      .select({ personId: personEntries.personId, body: personEntries.body })
+      .from(personEntries)
+      .where(
+        and(
+          eq(personEntries.userId, userId),
+          inArray(personEntries.personId, personIds),
+          eq(personEntries.entryType, "follow_up"),
+        ),
+      )
+      .orderBy(desc(personEntries.occurredAt)),
+  ]);
+
+  // Fetch gatherings for all participants in one query
+  const gatheringIds = [...new Set(allParticipants.map((p) => p.gatheringId))];
+  const allGatherings =
+    gatheringIds.length > 0
+      ? await db
+          .select({ id: gatherings.id, title: gatherings.title, scheduledAt: gatherings.scheduledAt })
           .from(gatherings)
-          .where(
-            and(
-              eq(gatherings.userId, userId),
-              inArray(
-                gatherings.id,
-                participantRows.map((p) => p.gatheringId),
-              ),
-            ),
-          )
-          .orderBy(asc(gatherings.scheduledAt));
-        for (const g of gatheringRows) {
-          if (!g.scheduledAt) continue;
-          const daysUntil = Math.floor(
-            (g.scheduledAt.getTime() - now.getTime()) / 86400000,
-          );
-          if (daysUntil >= 0 && daysUntil <= 14) {
-            nextGatheringTitle = g.title;
-            nextGatheringDaysUntil = daysUntil;
-            break;
-          }
-        }
+          .where(and(eq(gatherings.userId, userId), inArray(gatherings.id, gatheringIds)))
+          .orderBy(asc(gatherings.scheduledAt))
+      : [];
+
+  // Group into Maps for O(1) lookup per person
+  const redLettersByPerson = new Map<string, typeof allRedLetters>();
+  for (const r of allRedLetters) {
+    const list = redLettersByPerson.get(r.personId) ?? [];
+    list.push(r);
+    redLettersByPerson.set(r.personId, list);
+  }
+
+  const participantsByPerson = new Map<string, string[]>();
+  for (const p of allParticipants) {
+    const list = participantsByPerson.get(p.personId) ?? [];
+    list.push(p.gatheringId);
+    participantsByPerson.set(p.personId, list);
+  }
+
+  const gatheringById = new Map(allGatherings.map((g) => [g.id, g]));
+
+  const followUpByPerson = new Map<string, string>();
+  for (const e of allFollowUps) {
+    if (e.personId && e.body && !followUpByPerson.has(e.personId)) {
+      followUpByPerson.set(e.personId, e.body);
+    }
+  }
+
+  return baseRows.map((row) => {
+    // Next red-letter day within 14 days
+    let nextRedLetterDayLabel: string | null = null;
+    let nextRedLetterDaysUntil: number | null = null;
+    for (const r of redLettersByPerson.get(row.id) ?? []) {
+      const daysUntil = Math.floor((new Date(r.eventDate).getTime() - now.getTime()) / 86400000);
+      if (daysUntil >= 0 && daysUntil <= 14) {
+        nextRedLetterDayLabel = r.label || r.kind;
+        nextRedLetterDaysUntil = daysUntil;
+        break;
       }
+    }
 
-      // First follow-up note
-      const [followUp] = await db
-        .select({ body: personEntries.body })
-        .from(personEntries)
-        .where(
-          and(
-            eq(personEntries.userId, userId),
-            eq(personEntries.personId, row.id),
-            eq(personEntries.entryType, "follow_up"),
-          ),
-        )
-        .orderBy(desc(personEntries.occurredAt))
-        .limit(1);
+    // Next gathering within 14 days
+    let nextGatheringTitle: string | null = null;
+    let nextGatheringDaysUntil: number | null = null;
+    for (const gid of participantsByPerson.get(row.id) ?? []) {
+      const g = gatheringById.get(gid);
+      if (!g?.scheduledAt) continue;
+      const daysUntil = Math.floor((g.scheduledAt.getTime() - now.getTime()) / 86400000);
+      if (daysUntil >= 0 && daysUntil <= 14) {
+        nextGatheringTitle = g.title;
+        nextGatheringDaysUntil = daysUntil;
+        break;
+      }
+    }
 
-      return {
-        ...row,
-        nextRedLetterDayLabel,
-        nextRedLetterDaysUntil,
-        nextGatheringTitle,
-        nextGatheringDaysUntil,
-        firstFollowUpBody: followUp?.body ?? null,
-      };
-    }),
-  );
-
-  return enriched;
+    return {
+      ...row,
+      nextRedLetterDayLabel,
+      nextRedLetterDaysUntil,
+      nextGatheringTitle,
+      nextGatheringDaysUntil,
+      firstFollowUpBody: followUpByPerson.get(row.id) ?? null,
+    };
+  });
 }
 
 export async function getPersonById(userId: string, personId: string) {

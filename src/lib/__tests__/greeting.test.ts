@@ -16,35 +16,43 @@ describe("dayPeriod", () => {
 });
 
 describe("briefGreetingLine", () => {
-  it("includes the first name", () => {
-    expect(briefGreetingLine("Helga", "en", dateAt(8))).toContain("Helga");
+  it("includes the first name in name part", () => {
+    expect(briefGreetingLine("Helga", "en", dateAt(8)).name).toContain("Helga");
   });
 
   it("trims whitespace from name", () => {
-    expect(briefGreetingLine("  Henning  ", "en", dateAt(8))).toContain("Henning");
+    expect(briefGreetingLine("  Henning  ", "en", dateAt(8)).name).toContain("Henning");
   });
 
   it('falls back to "there" for empty name in English', () => {
-    expect(briefGreetingLine("", "en", dateAt(8))).toContain("there");
+    expect(briefGreetingLine("", "en", dateAt(8)).name).toContain("there");
   });
 
   it('falls back to "du" for empty name in Norwegian', () => {
-    expect(briefGreetingLine("", "no", dateAt(8))).toContain("du");
+    expect(briefGreetingLine("", "no", dateAt(8)).name).toContain("du");
   });
 
   it("includes Good morning in the morning", () => {
-    expect(briefGreetingLine("Ida", "en", dateAt(9))).toContain("Good morning");
+    expect(briefGreetingLine("Ida", "en", dateAt(9)).lead).toContain("Good morning");
   });
 
   it("includes Good afternoon in the afternoon", () => {
-    expect(briefGreetingLine("Ida", "en", dateAt(14))).toContain("Good afternoon");
+    expect(briefGreetingLine("Ida", "en", dateAt(14)).lead).toContain("Good afternoon");
   });
 
   it("includes Good evening in the evening", () => {
-    expect(briefGreetingLine("Ida", "en", dateAt(20))).toContain("Good evening");
+    expect(briefGreetingLine("Ida", "en", dateAt(20)).lead).toContain("Good evening");
   });
 
   it("includes God morgen in Norwegian morning", () => {
-    expect(briefGreetingLine("Ida", "no", dateAt(9))).toContain("God morgen");
+    expect(briefGreetingLine("Ida", "no", dateAt(9)).lead).toContain("God morgen");
+  });
+
+  it("lead ends with comma", () => {
+    expect(briefGreetingLine("Ida", "en", dateAt(9)).lead).toMatch(/,$/);
+  });
+
+  it("name ends with period", () => {
+    expect(briefGreetingLine("Ida", "en", dateAt(9)).name).toMatch(/\.$/);
   });
 });

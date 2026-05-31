@@ -2,7 +2,10 @@ import { translate } from "@/i18n/translate";
 import type { Locale } from "@/i18n/types";
 import { resolvePlaceName, resolveWeatherCoordinates } from "@/lib/brief/weatherLocation";
 
+export type WeatherDetailKind = "wind" | "rain" | "feelsLike" | "humidity" | "cloudCover" | "location" | "updated";
+
 export interface BriefWeatherDetail {
+  kind: WeatherDetailKind;
   icon: string;
   label: string;
   value: string;
@@ -67,15 +70,11 @@ function fallbackWeather(locale: Locale): BriefWeatherData {
     icon: "⛅",
     locationLabel: place,
     details: [
-      { icon: "💨", label: translate(locale, "weather.wind"), value: "3 m/s SW" },
-      { icon: "🌧️", label: translate(locale, "weather.rain"), value: "0 mm" },
-      { icon: "🌡️", label: translate(locale, "weather.feelsLike"), value: "9°" },
-      { icon: "💧", label: translate(locale, "weather.humidity"), value: "72%" },
-      {
-        icon: "🕐",
-        label: translate(locale, "weather.updated"),
-        value: translate(locale, "weather.fallback"),
-      },
+      { kind: "wind" as const, icon: "💨", label: translate(locale, "weather.wind"), value: "3 m/s SW" },
+      { kind: "rain" as const, icon: "🌧️", label: translate(locale, "weather.rain"), value: "0 mm" },
+      { kind: "feelsLike" as const, icon: "🌡️", label: translate(locale, "weather.feelsLike"), value: "9°" },
+      { kind: "humidity" as const, icon: "💧", label: translate(locale, "weather.humidity"), value: "72%" },
+      { kind: "updated" as const, icon: "🕐", label: translate(locale, "weather.updated"), value: translate(locale, "weather.fallback") },
     ],
   };
 }
@@ -127,29 +126,13 @@ export async function fetchBriefWeather(locale: Locale): Promise<BriefWeatherDat
       icon: wmoIcon(code),
       locationLabel: place,
       details: [
-        { icon: "💨", label: translate(locale, "weather.wind"), value: `${Math.round(wind)} km/h` },
-        { icon: "🌧️", label: translate(locale, "weather.rain"), value: `${rain} mm` },
-        {
-          icon: "🌡️",
-          label: translate(locale, "weather.feelsLike"),
-          value: `${Math.round(apparent)}°`,
-        },
-        {
-          icon: "💧",
-          label: translate(locale, "weather.humidity"),
-          value: `${Math.round(humidity)}%`,
-        },
-        {
-          icon: "☁️",
-          label: translate(locale, "weather.cloudCover"),
-          value: `${Math.round(cloud)}%`,
-        },
-        {
-          icon: coords.source === "device" ? "📍" : "🗺️",
-          label: translate(locale, "weather.location"),
-          value: place,
-        },
-        { icon: "🕐", label: translate(locale, "weather.updated"), value: updated },
+        { kind: "wind" as const, icon: "💨", label: translate(locale, "weather.wind"), value: `${Math.round(wind)} km/h` },
+        { kind: "rain" as const, icon: "🌧️", label: translate(locale, "weather.rain"), value: `${rain} mm` },
+        { kind: "feelsLike" as const, icon: "🌡️", label: translate(locale, "weather.feelsLike"), value: `${Math.round(apparent)}°` },
+        { kind: "humidity" as const, icon: "💧", label: translate(locale, "weather.humidity"), value: `${Math.round(humidity)}%` },
+        { kind: "cloudCover" as const, icon: "☁️", label: translate(locale, "weather.cloudCover"), value: `${Math.round(cloud)}%` },
+        { kind: "location" as const, icon: coords.source === "device" ? "📍" : "🗺️", label: translate(locale, "weather.location"), value: place },
+        { kind: "updated" as const, icon: "🕐", label: translate(locale, "weather.updated"), value: updated },
       ],
     };
   } catch {

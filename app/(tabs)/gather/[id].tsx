@@ -1,6 +1,6 @@
 import { Link, router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import * as Crypto from "expo-crypto";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Keyboard,
   KeyboardAvoidingView,
@@ -56,6 +56,8 @@ export default function GatheringDetailScreen() {
   const { t, locale } = useTranslation();
   const colorScheme = useColorScheme();
   const { id } = useLocalSearchParams<{ id: string }>();
+  const mountedRef = useRef(true);
+  useEffect(() => () => { mountedRef.current = false; }, []);
 
   const [title, setTitle] = useState("");
   const [editingTitle, setEditingTitle] = useState(false);
@@ -458,7 +460,7 @@ export default function GatheringDetailScreen() {
       <BottomSheet visible={showActions} onDismiss={() => setShowActions(false)} title={displayTitle || t("gathering.newTitle")}>
         <View className="gap-3 pt-1">
           <Pressable
-            onPress={() => { triggerLight(); setShowActions(false); setTimeout(() => setEditingTitle(true), 300); }}
+            onPress={() => { triggerLight(); setShowActions(false); setTimeout(() => { if (mountedRef.current) setEditingTitle(true); }, 300); }}
             className="flex-row items-center gap-4 py-2"
           >
             <View className="w-11 h-11 rounded-xl bg-amber-light items-center justify-center">
@@ -467,7 +469,7 @@ export default function GatheringDetailScreen() {
             <Text className="text-[16px] text-text1 font-bodyMedium">{t("gathering.editTitle")}</Text>
           </Pressable>
           <Pressable
-            onPress={() => { triggerLight(); setShowActions(false); setTimeout(() => setShowPersonPicker(true), 300); }}
+            onPress={() => { triggerLight(); setShowActions(false); setTimeout(() => { if (mountedRef.current) setShowPersonPicker(true); }, 300); }}
             className="flex-row items-center gap-4 py-2"
           >
             <View className="w-11 h-11 rounded-xl bg-green-light items-center justify-center">
@@ -476,7 +478,7 @@ export default function GatheringDetailScreen() {
             <Text className="text-[16px] text-text1 font-bodyMedium">{t("gathering.addPerson")}</Text>
           </Pressable>
           <Pressable
-            onPress={() => { triggerLight(); setShowActions(false); setTimeout(() => setShowDelete(true), 300); }}
+            onPress={() => { triggerLight(); setShowActions(false); setTimeout(() => { if (mountedRef.current) setShowDelete(true); }, 300); }}
             className="flex-row items-center gap-4 py-2"
           >
             <View className="w-11 h-11 rounded-xl bg-red-light items-center justify-center">
