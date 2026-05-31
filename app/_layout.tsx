@@ -1,5 +1,5 @@
 import "react-native-gesture-handler";
-import { ClerkLoaded, ClerkProvider } from "@clerk/clerk-expo";
+import { ClerkProvider, useAuth } from "@clerk/clerk-expo";
 import {
   DMSans_400Regular,
   DMSans_500Medium,
@@ -10,6 +10,7 @@ import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 import { tokenCache } from "@/features/auth/clerk/tokenCache";
 import { installGlobalErrorLogger } from "@/lib/globalErrorHandler";
 import { logger } from "@/lib/logger";
@@ -30,21 +31,22 @@ export default function RootLayout() {
   }
 
   return (
-    <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
-      <LanguageProvider>
-        <ThemeProvider>
-          <ClerkLoaded>
+    <SafeAreaProvider>
+      <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
+        <LanguageProvider>
+          <ThemeProvider>
             <RootStack />
-          </ClerkLoaded>
-        </ThemeProvider>
-      </LanguageProvider>
-    </ClerkProvider>
+          </ThemeProvider>
+        </LanguageProvider>
+      </ClerkProvider>
+    </SafeAreaProvider>
   );
 }
 
 function RootStack() {
   const { t } = useTranslation();
-  const [fontsLoaded] = useFonts({
+  const { isLoaded: clerkLoaded } = useAuth();
+  const [fontsLoaded, fontError] = useFonts({
     Lora_400Regular,
     DMSans_400Regular,
     DMSans_500Medium,
@@ -57,14 +59,24 @@ function RootStack() {
   }, []);
 
   useEffect(() => {
-    if (fontsLoaded) {
+    if (fontError) {
+      logger.error("fonts_failed", { error: fontError.message });
+    }
+  }, [fontError]);
+
+  useEffect(() => {
+    if (fontsLoaded || fontError) {
       SplashScreen.hideAsync().catch(() => {
         // no-op
       });
     }
-  }, [fontsLoaded]);
+  }, [fontsLoaded, fontError]);
 
-  if (!fontsLoaded) {
+  if (!clerkLoaded) {
+    return <LoadingScreen message={t("common.loading")} />;
+  }
+
+  if (!fontsLoaded && !fontError) {
     return <LoadingScreen message={t("startup.loadingFonts")} />;
   }
 

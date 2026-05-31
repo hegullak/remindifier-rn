@@ -1,12 +1,15 @@
 import * as SecureStore from "expo-secure-store";
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { View } from "react-native";
-import { useTranslation } from "@/i18n";
-import { LoadingScreen } from "@/ui/StartupScreens";
 
 export type AppTheme = "sand" | "slate";
 
 const STORAGE_KEY = "remindifier-theme";
+
+const THEME_BG: Record<AppTheme, string> = {
+  slate: "#1A1E26",
+  sand: "#EDE9E2",
+};
 
 type ThemeContextValue = {
   theme: AppTheme;
@@ -18,9 +21,7 @@ type ThemeContextValue = {
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const { t } = useTranslation();
   const [theme, setThemeState] = useState<AppTheme>("slate");
-  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     SecureStore.getItemAsync(STORAGE_KEY)
@@ -29,7 +30,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
           setThemeState(stored);
         }
       })
-      .finally(() => setReady(true));
+      .catch(() => {
+        // keep default slate
+      });
   }, []);
 
   const setTheme = useCallback((next: AppTheme) => {
@@ -43,13 +46,12 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     setTheme(theme === "slate" ? "sand" : "slate");
   }, [setTheme, theme]);
 
-  if (!ready) {
-    return <LoadingScreen message={t("common.loading")} />;
-  }
-
   return (
     <ThemeContext.Provider value={{ theme, setTheme, toggleTheme, isDark: theme === "slate" }}>
-      <View style={{ flex: 1 }} className={`bg-bg ${theme === "slate" ? "dark" : ""}`}>
+      <View
+        style={{ flex: 1, backgroundColor: THEME_BG[theme] }}
+        className={`flex-1 bg-bg ${theme === "slate" ? "dark" : ""}`}
+      >
         {children}
       </View>
     </ThemeContext.Provider>

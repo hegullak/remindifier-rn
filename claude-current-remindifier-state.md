@@ -1,6 +1,6 @@
 # remindifier-rn — Current AI Session State
 
-*Last updated: 2026-05-31 (session handoff — Expo Go white screen fix)*
+*Last updated: 2026-05-31 (session handoff — Expo Go dark screen / startup hardening)*
 
 **This file is the session snapshot.** Architecture lives in [`PROJECT_MEMORY.md`](./PROJECT_MEMORY.md).  
 Agent protocol: `.cursor/rules/session-handoff.mdc` · Skill: `.cursor/skills/project-memory/SKILL.md`
@@ -13,8 +13,8 @@ Agent protocol: `.cursor/rules/session-handoff.mdc` · Skill: `.cursor/skills/pr
 
 - **Repo:** `https://github.com/hegullak/remindifier-rn`
 - **Active branch:** `sandbox`
-- **Latest commit:** `8e88788` — `fix(startup): Expo Go white screen — haptics version, non-blocking calendar seed`
-- **Previous:** `df3248c` — `chore: session handoff 2026-05-31 — code review + brief redesign`
+- **Latest commit:** `999fee5` — `fix(startup): Expo Go dark screen — SafeAreaProvider, startup logging, layout fallbacks`
+- **Previous:** `74fa98a` — `docs: sync session state commit hash` · `8e88788` — haptics + non-blocking calendar seed
 - **CI:** lint + typecheck + test:coverage (expected green)
 
 ### Git workflow (user rule)
@@ -52,7 +52,7 @@ None after this handoff commit.
 | Styling | NativeWind v4 — named typography tokens + presets |
 | AI (user-initiated) | GPT-4o-mini (person/event parsers); intake MVP = heuristics only |
 | Haptics | expo-haptics `~15.0.8` (SDK 54 — **not** v56) |
-| Blur | `expo-blur` — needs dev client rebuild |
+| Blur | `expo-blur` in dev client; **Expo Go uses solid View fallback** for tab bar |
 | Testing | Jest (~250 tests, 23 suites) |
 
 **Dev server:** `npm run start:lan:log` · dev client: `npx expo start --dev-client --lan --clear`
@@ -94,12 +94,12 @@ Custom tokens: `text-2xs`, `text-3xs`, `text-body`, `text-body-lg`, `text-nav`. 
 ## Recent commits (newest first)
 
 ```
+999fee5 fix(startup): Expo Go dark screen — SafeAreaProvider, startup logging, layout fallbacks
+74fa98a docs: sync session state commit hash
 8e88788 fix(startup): Expo Go white screen — haptics version, non-blocking calendar seed
 df3248c chore: session handoff 2026-05-31 — code review + brief redesign
 198b7a8 docs: session handoff — semantic intake MVP and typography tokens
 7d03c8c refactor(styles): replace arbitrary font-size classes with named Tailwind tokens
-6472256 feat(intake): semantic voice/text capture with preview before save
-337dc2e refactor: code review fixes — security, correctness, performance, duplication
 ```
 
 ---
@@ -114,7 +114,8 @@ df3248c chore: session handoff 2026-05-31 — code review + brief redesign
 | 58 | Event prep | Mostly done (gather tab) |
 | — | Brief blikkfang | Parked |
 | — | Inbox UI (view/process inbox items) | Not started |
-| — | Tab bar blur | Needs dev client rebuild |
+| — | Tab bar blur | Dev client only; Expo Go uses solid fallback |
+| — | **Expo Go startup** | User still testing after dark-screen fix — check log for `migrations_ready` → `bootstrap_ready` → `tabs_render` |
 
 **Next candidates:** #50 Tonight mode, inbox list UI, #53/#54 polish
 
@@ -131,31 +132,27 @@ df3248c chore: session handoff 2026-05-31 — code review + brief redesign
 
 ## What Was Done (this session — 2026-05-31)
 
-### Expo Go white screen fix
+### Expo Go startup (white → dark screen follow-up)
 
-User reported **white screen** in Expo Go. Log analysis:
+**Symptom:** After haptics/calendar fix, app loaded but showed **dark screen with no content** (only `#1A1E26`).
 
-- Metro bundled OK (~2051 modules); `app_launched` logged; **no JS errors**
-- Latest failing runs: `app_launched` but **no** `seed_calendar_refreshed` (bootstrap hung)
-- Expo warned: `expo-haptics@56.0.3` installed but SDK 54 expects `~15.0.8`
+**Diagnosis:** `app_launched` logged but no `bootstrap_ready` / `migrations_ready`. Likely causes: `ClerkLoaded` rendering null during load, ThemeProvider blocking children, bootstrap step hang, or NativeWind layout collapse (`flex-1` not applied).
 
-**Fixes applied:**
+**Fixes applied (uncommitted until this handoff):**
 
-1. **`expo-haptics` → `~15.0.8`** — wrong SDK 56 package removed
-2. **`useBootstrapApp`** — `seedDevCalendar()` no longer blocks UI (runs in background); calendar permission dialog could hang bootstrap indefinitely in Expo Go
-3. **`ThemeProvider`** — shows `LoadingScreen` while theme loads from SecureStore (was empty `View` → white flash)
-4. **`app/_layout.tsx`** — root stack `contentStyle.backgroundColor` set to `#1A1E26` (CSS `var(--bg)` invalid in RN StyleSheet)
+1. **`app/_layout.tsx`** — `SafeAreaProvider`; replaced `ClerkLoaded` with explicit `useAuth().isLoaded` + `LoadingScreen`; font error logging; splash hides on font error too
+2. **`ThemeProvider`** — no longer blocks on SecureStore; default slate theme immediately; `style.backgroundColor` fallback alongside `className`
+3. **`useBootstrapApp`** — per-step try/catch + logging (`bootstrap_seed_local_done`, `bootstrap_ready`); always proceeds on partial failure
+4. **`app/(tabs)/_layout.tsx`** — startup logging (`migrations_ready`, `tabs_bootstrap_ready`, `tabs_render`); 15s migration timeout → `FatalScreen`; **BlurView → View in Expo Go** (`Constants.appOwnership === "expo"`)
+5. **`AppShell` + `onboarding.tsx`** — `style={{ flex: 1, backgroundColor }}` fallbacks so layout works if NativeWind classes drop
 
-**Files:** `package.json`, `package-lock.json`, `src/bootstrap/useBootstrapApp.ts`, `src/theme/ThemeProvider.tsx`, `app/_layout.tsx`
+### Prior commits (same day)
 
-### Prior session (same day, already committed)
+- **`8e88788`** — `expo-haptics ~15.0.8`; non-blocking `seedDevCalendar()`; ThemeProvider LoadingScreen; stack bg `#1A1E26`
+- **`6472256` / `7d03c8c`** — semantic intake MVP; typography tokens
+- **`337dc2e` / brief redesign** — code review + brief UX
 
-1. **Semantic intake MVP** (`6472256`) — `/intake`, heuristic parser, preview card, confirm/edit/inbox
-2. **Typography refactor** (`7d03c8c`) — custom tokens; 295 replacements across 33 files
-3. **Brief redesign** — weather topline, greeting `text-5xl`, body `"\n"` separator
-4. **Code review** (`337dc2e`) — SQLCipher guard, QR limits, N+1 batching, briefHelpers extraction
-
-**Noted for later:** OpenAI API key client-side → needs backend proxy; tab bar blur needs dev client rebuild
+**Noted for later:** OpenAI API key client-side → backend proxy; verify Expo Go shows brief after reload; `src/lib/haptics.ts` still has `console.log` debug lines → should use `logger`
 
 ---
 

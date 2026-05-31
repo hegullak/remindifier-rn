@@ -69,7 +69,7 @@ A contextual memory and heads-up assistant for the people in your life — not a
 - **Body text:** use `"\n"` as sentence separator in brief bodies; renderer splits on `"\n"` — never `". "` (breaks «kl. 09:00»)
 - Static demo content: `getHeadsupItems(locale)`, `getFallbackTraining(locale)` in `briefContent.ts`
 - Section order: per-user in DB, draggable list in `brief.tsx`
-- **Tab bar:** `FloatingTabBar` with `expo-blur` — blur inactive until new dev client build
+- **Tab bar:** `FloatingTabBar` with `expo-blur` in dev client; **Expo Go** (`Constants.appOwnership === "expo"`) uses solid `View` fallback
 
 ### NativeWind (brief + app-wide)
 
@@ -87,7 +87,8 @@ A contextual memory and heads-up assistant for the people in your life — not a
 
 ## Auth (Clerk)
 
-- `ClerkProvider` in `app/_layout.tsx` + `LanguageProvider` + `ThemeProvider`
+- Root: `SafeAreaProvider` → `ClerkProvider` → `LanguageProvider` → `ThemeProvider` → `RootStack` in `app/_layout.tsx`
+- **Do not use `ClerkLoaded`** (renders null while loading → blank dark screen); use `useAuth().isLoaded` + `LoadingScreen` instead
 - Screens: `AuthScreen`, `SignInScreen`, `SignUpScreen`, `OAuthButtons`
 - Session helpers: `src/features/auth/clerk/session.ts` — `signInStatusMessage(status, locale)`
 - Sign-in copy: `signInFormHelpers.ts` + `signInForm.*` keys
@@ -99,7 +100,8 @@ A contextual memory and heads-up assistant for the people in your life — not a
 - Per-user encrypted DB via `useUserDrizzleDb` / `getDrizzleDbForUser`
 - Repos: `peopleRepo`, `briefRepo`, `myProfileRepo`, `settingsRepo`, `userRepo`
 - Seed: `src/db/seed.ts` (demo people, schedule `s1`, etc.)
-- **Bootstrap** (`useBootstrapApp`): seeds local data + preferences; **calendar seed runs in background** (never block UI on `requestCalendarPermissionsAsync`)
+- **Bootstrap** (`useBootstrapApp`): seeds local data + preferences (per-step try/catch, logs `bootstrap_ready`); **calendar seed runs in background** (never block UI on `requestCalendarPermissionsAsync`)
+- Tabs layout logs `migrations_ready` / `tabs_bootstrap_ready`; 15s migration timeout → `FatalScreen`
 - Red-letter kinds in DB: `Birthday`, `Anniversary`, `Smoke-free`, `Snus-free`, `Other`
 
 ## Myself / QR
@@ -124,7 +126,7 @@ A contextual memory and heads-up assistant for the people in your life — not a
 - **Lint/format**: Biome (`npm run lint:fix`)
 - **Types**: `npm run typecheck`
 - **Tests**: Jest (`npm test`) — lib tests under `src/lib/__tests__/`
-- **Styling**: NativeWind preset classes (not arbitrary `text-[Xpx]`); inline style only as last resort; fonts Lora (headings) + DM Sans (body)
+- **Styling**: NativeWind preset classes (not arbitrary `text-[Xpx]`); pair critical layout (`flex: 1`, bg) with inline `style` fallback on shell screens; fonts Lora (headings) + DM Sans (body)
 - **Commits**: end each agent session with a commit if there are code changes; never commit `.env`, `expo-output.log`, `coverage/`, `node_modules/`
 - **Session git**: start with `git pull --rebase origin sandbox`; end with commit + `git push origin sandbox`
 - **Scope**: minimal diffs; match existing patterns; no over-engineering
@@ -146,6 +148,8 @@ A contextual memory and heads-up assistant for the people in your life — not a
 5. **`expo-haptics`** must match SDK 54 (`~15.0.8`) — v56 package breaks Expo Go
 6. **Bootstrap** must not `await seedDevCalendar()` — calendar permission can hang UI in Expo Go
 7. **RN StyleSheet** — do not use CSS `var(--token)` for `backgroundColor`; use hex or theme hook
+8. **`ClerkLoaded`** renders nothing while Clerk loads — use explicit `LoadingScreen` + `useAuth().isLoaded`
+9. **`ThemeProvider`** must not block children on SecureStore; apply stored theme async with default slate + style fallback
 
 ## File map (quick)
 

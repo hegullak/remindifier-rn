@@ -17,10 +17,36 @@ export function useBootstrapApp(userId: string | null | undefined, migrationsRea
     let cancelled = false;
 
     async function boot() {
-      await seedLocalData(activeUserId);
-      await patchDevMilestoneSeed(activeUserId);
-      await ensureDefaultBriefPreferences(activeUserId);
-      if (!cancelled) setReady(true);
+      try {
+        await seedLocalData(activeUserId);
+        logger.info("bootstrap_seed_local_done");
+      } catch (error) {
+        logger.error("bootstrap_seed_local_failed", {
+          error: error instanceof Error ? error.name : "unknown",
+        });
+      }
+
+      try {
+        await patchDevMilestoneSeed(activeUserId);
+      } catch (error) {
+        logger.error("bootstrap_milestone_patch_failed", {
+          error: error instanceof Error ? error.name : "unknown",
+        });
+      }
+
+      try {
+        await ensureDefaultBriefPreferences(activeUserId);
+      } catch (error) {
+        logger.error("bootstrap_preferences_failed", {
+          error: error instanceof Error ? error.name : "unknown",
+        });
+      }
+
+      if (!cancelled) {
+        logger.info("bootstrap_ready");
+        setReady(true);
+      }
+
       // Calendar permission can block indefinitely in Expo Go — never gate UI on it.
       void seedDevCalendar();
     }

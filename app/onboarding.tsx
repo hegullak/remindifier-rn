@@ -85,7 +85,12 @@ function OnboardingContent({
   return (
     <View
       className="flex-1 bg-bg"
-      style={{ paddingTop: insets.top + 24, paddingBottom: insets.bottom + 24 }}
+      style={{
+        flex: 1,
+        backgroundColor: "#1A1E26",
+        paddingTop: insets.top + 24,
+        paddingBottom: insets.bottom + 24,
+      }}
     >
       <ScrollView
         contentContainerStyle={{ paddingHorizontal: 20, flexGrow: 1 }}

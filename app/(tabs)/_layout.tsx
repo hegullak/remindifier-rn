@@ -2,10 +2,11 @@ import { getClerkInstance } from "@clerk/clerk-expo";
 import type { ExpoSQLiteDatabase } from "drizzle-orm/expo-sqlite";
 import { useMigrations } from "drizzle-orm/expo-sqlite/migrator";
 import { BlurView } from "expo-blur";
+import Constants from "expo-constants";
 import { Redirect, Tabs } from "expo-router";
 import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { useEffect, useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, Text, View, type ViewProps } from "react-native";
 import { triggerSelection } from "@/lib/haptics";
 import { useBootstrapApp } from "@/bootstrap/useBootstrapApp";
 import migrations from "@/db/drizzle/migrations";
@@ -15,16 +16,37 @@ import { useUserDrizzleDb } from "@/db/useUserDrizzleDb";
 import { DEV_BYPASS_AUTH, DEV_USER_ID } from "@/features/auth/devBypass";
 import { useAppAuth } from "@/features/auth/useAppAuth";
 import { useTranslation } from "@/i18n";
+import { logger } from "@/lib/logger";
 import { useAppTheme } from "@/theme/ThemeProvider";
 import { FatalScreen, LoadingScreen } from "@/ui/StartupScreens";
+
+const isExpoGo = Constants.appOwnership === "expo";
+
+function TabBarContainer({
+  children,
+  style,
+  isDark,
+}: ViewProps & { children: React.ReactNode; isDark: boolean }) {
+  if (isExpoGo) {
+    return <View style={style}>{children}</View>;
+  }
+  return (
+    <BlurView
+      intensity={80}
+      tint={isDark ? "systemUltraThinMaterialDark" : "systemUltraThinMaterialLight"}
+      style={style}
+    >
+      {children}
+    </BlurView>
+  );
+}
 
 function FloatingTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const { isDark } = useAppTheme();
 
   return (
-    <BlurView
-      intensity={80}
-      tint={isDark ? "systemUltraThinMaterialDark" : "systemUltraThinMaterialLight"}
+    <TabBarContainer
+      isDark={isDark}
       style={{
         position: "absolute",
         bottom: 20,
@@ -35,6 +57,7 @@ function FloatingTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
         overflow: "hidden",
         flexDirection: "row",
         alignItems: "center",
+        backgroundColor: isExpoGo ? (isDark ? "rgba(34,40,56,0.92)" : "rgba(247,244,239,0.95)") : undefined,
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 6 },
         shadowOpacity: isDark ? 0.45 : 0.15,
@@ -97,7 +120,7 @@ function FloatingTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
           </Pressable>
         );
       })}
-    </BlurView>
+    </TabBarContainer>
   );
 }
 
@@ -114,6 +137,32 @@ function TabsWithBootstrap({
   const { ready } = useBootstrapApp(userId, migrationState.success);
   const [onboardingChecked, setOnboardingChecked] = useState(false);
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
+  const [migrationTimedOut, setMigrationTimedOut] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (!migrationState.success && !migrationState.error) {
+        logger.error("migrations_timeout");
+        setMigrationTimedOut(true);
+      }
+    }, 15000);
+    return () => clearTimeout(timer);
+  }, [migrationState.success, migrationState.error]);
+
+  useEffect(() => {
+    if (migrationState.success) {
+      logger.info("migrations_ready");
+    }
+    if (migrationState.error) {
+      logger.error("migrations_failed", { error: migrationState.error.message });
+    }
+  }, [migrationState.success, migrationState.error]);
+
+  useEffect(() => {
+    if (ready) {
+      logger.info("tabs_bootstrap_ready");
+    }
+  }, [ready]);
 
   useEffect(() => {
     if (!ready) {
@@ -139,13 +188,26 @@ function TabsWithBootstrap({
     };
   }, [ready, userId]);
 
-  if (migrationState.error) {
-    return <FatalScreen message={migrationState.error.message} />;
+  if (migrationState.error || migrationTimedOut) {
+    return (
+      <FatalScreen
+        message={
+          migrationState.error?.message ??
+          "Database migrations timed out. Try closing Expo Go fully and reopening."
+        }
+      />
+    );
   }
 
   if (!ready || !onboardingChecked) {
     return <LoadingScreen message={t("startup.preparingData")} />;
   }
+
+  useEffect(() => {
+    if (ready && onboardingChecked && !needsOnboarding) {
+      logger.info("tabs_render");
+    }
+  }, [ready, onboardingChecked, needsOnboarding]);
 
   if (needsOnboarding) {
     return <Redirect href="/onboarding" />;

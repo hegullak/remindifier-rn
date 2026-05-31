@@ -99,7 +99,7 @@ export function AppShell({
   showLanguagePicker?: boolean;
 }) {
   return (
-    <SafeAreaView className="flex-1 bg-bg" edges={["top"]}>
+    <SafeAreaView className="flex-1 bg-bg" style={{ flex: 1, backgroundColor: "#1A1E26" }} edges={["top"]}>
       <View className="flex-row items-center px-4 pt-1 pb-1 min-h-[44px]">
         <View className="flex-1">{headerLeft ?? null}</View>
         <View className="flex-row items-center gap-3">
