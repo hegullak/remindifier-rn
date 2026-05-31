@@ -13,7 +13,7 @@ Agent protocol: `.cursor/rules/session-handoff.mdc` · Skill: `.cursor/skills/pr
 
 - **Repo:** `https://github.com/hegullak/remindifier-rn`
 - **Active branch:** `sandbox`
-- **Latest commit:** *(this handoff)* — `fix(db): SecureStore read/write use same keychain options`
+- **Latest commit:** `0c40ed1` — `fix(db): SecureStore read/write use same keychain options`
 - **Previous:** `1b95335` / `a10e9be` — dark screen startup hardening
 - **CI:** lint + typecheck + test:coverage (expected green)
 
@@ -94,7 +94,7 @@ Custom tokens: `text-2xs`, `text-3xs`, `text-body`, `text-body-lg`, `text-nav`. 
 ## Recent commits (newest first)
 
 ```
-(this handoff) fix(db): SecureStore read/write use same keychain options
+0c40ed1 fix(db): SecureStore read/write use same keychain options
 4dfc00d docs: session handoff — sync commit hash, Expo Go startup status
 e3f8f52 fix(startup): React hooks order + visible FatalScreen for Expo Go
 a10e9be fix(startup): Expo Go dark screen — SafeAreaProvider, startup logging, layout fallbacks
