@@ -202,8 +202,6 @@ export default function GatheringDetailScreen() {
   async function addPoint() {
     const text = newPointText.trim();
     if (!text) return;
-
-    Keyboard.dismiss();
     triggerMedium();
     LayoutAnimation.configureNext({
       duration: 300,
@@ -221,7 +219,6 @@ export default function GatheringDetailScreen() {
     };
     setNewPointText("");
     await persistContent({ talkingPoints: [...content.talkingPoints, point] });
-    setTimeout(() => pointInputRef.current?.focus(), 100);
   }
 
   async function handleAddParticipant(personId: string) {
@@ -405,7 +402,7 @@ export default function GatheringDetailScreen() {
                     className="flex-row items-center gap-2 py-4 active:opacity-60"
                   >
                     <Text className="text-xl text-accent font-body">+</Text>
-                    <Text className="text-body text-text3 font-body">{t("gathering.addTalkingPoint")}</Text>
+                    <Text className="text-body text-text3 font-body">{t("gathering.newPoint")}</Text>
                   </Pressable>
                 ) : null}
               </ScrollView>
@@ -452,19 +449,21 @@ export default function GatheringDetailScreen() {
                       placeholderTextColor={placeholderColor}
                       returnKeyType="done"
                       onSubmitEditing={() => void addPoint()}
+                      className="flex-1 bg-card border border-border rounded-lg px-3 text-text1 font-body"
                       style={{
-                        flex: 1,
                         color: inputTextColor,
-                        backgroundColor: inputBgColor,
-                        borderColor: inputBorderColor,
-                        borderWidth: 1,
-                        borderRadius: 8,
-                        paddingHorizontal: 12,
                         paddingVertical: 10,
                         fontSize: 15,
                         minHeight: 44,
                       }}
                     />
+                    <Pressable
+                      onPress={() => void addPoint()}
+                      hitSlop={8}
+                      className="w-10 h-10 rounded-full bg-accent items-center justify-center active:opacity-70"
+                    >
+                      <Text className="text-base text-card font-bodySemi">✓</Text>
+                    </Pressable>
                     <Pressable
                       onPress={() => {
                         triggerLight();

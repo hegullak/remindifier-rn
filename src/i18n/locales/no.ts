@@ -200,6 +200,7 @@ export const no = {
     noTalkingPoints: "Ingen samtalepunkter ennå.",
     noTalkingPointsSub: "Velg type nedenfor og skriv det første punktet.",
     addPlaceholder: "Legg til samtalepunkt…",
+    newPoint: "Nytt punkt",
     addMenuSection: "Legg til",
     eventMenuSection: "Dette eventet",
     pickKindHint: "Trykk + oppe til høyre og velg type for å legge til samtalepunkt.",

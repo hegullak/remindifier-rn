@@ -198,6 +198,7 @@ export const en = {
     noTalkingPoints: "No talking points yet.",
     noTalkingPointsSub: "Pick a type below and add your first point.",
     addPlaceholder: "Add talking point…",
+    newPoint: "New point",
     addMenuSection: "Add",
     eventMenuSection: "This event",
     pickKindHint: "Tap + above and choose a type to add a talking point.",
