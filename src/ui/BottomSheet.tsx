@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
 import { Dimensions, Modal, Pressable, ScrollView, type StyleProp, Text, View, type ViewStyle } from "react-native";
+import { useAppTheme } from "@/theme/ThemeProvider";
 
 export interface BottomSheetProps {
   visible: boolean;
@@ -64,15 +65,21 @@ function SheetChrome({
  * Use large={true} for brief summary sheets that need more vertical space.
  */
 export function BottomSheet({ visible, onDismiss, children, title, large }: BottomSheetProps) {
+  const { isDark } = useAppTheme();
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onDismiss}>
-      <Pressable className="flex-1 bg-black/40 justify-end" onPress={onDismiss}>
-        <Pressable onPress={(e) => e.stopPropagation()}>
-          <SheetChrome title={title} onDismiss={onDismiss} large={large}>
-            {children}
-          </SheetChrome>
+      {/* Re-apply theme class: Modal renders in a separate portal outside the
+          ThemeProvider tree, so NativeWind color vars (text-text1, bg-card…)
+          would otherwise fall back to light theme. */}
+      <View className={isDark ? "dark flex-1" : "flex-1"}>
+        <Pressable className="flex-1 bg-black/40 justify-end" onPress={onDismiss}>
+          <Pressable onPress={(e) => e.stopPropagation()}>
+            <SheetChrome title={title} onDismiss={onDismiss} large={large}>
+              {children}
+            </SheetChrome>
+          </Pressable>
         </Pressable>
-      </Pressable>
+      </View>
     </Modal>
   );
 }

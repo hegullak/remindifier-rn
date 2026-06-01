@@ -1,6 +1,6 @@
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Pressable, Text, useColorScheme, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import { useTranslation } from "@/i18n";
 import { triggerLight } from "@/lib/haptics";
 import { BottomSheet } from "@/ui/BottomSheet";
@@ -41,8 +41,6 @@ export function GlobalAddButton(props: Props) {
   const router = useRouter();
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
-  const isDark = useColorScheme() === "dark";
-  const labelColor = isDark ? "#EEF0F5" : "#1C1915";
   const prependSections = toSections(props);
 
   const globalActions: AddMenuAction[] = [
@@ -87,8 +85,7 @@ export function GlobalAddButton(props: Props) {
           <Text className="text-nav">{action.icon}</Text>
         </View>
         <Text
-          className="text-base font-bodyMedium"
-          style={{ color: action.destructive ? undefined : labelColor }}
+          className={`text-base font-bodyMedium ${action.destructive ? "text-red" : "text-text1"}`}
         >
           {action.label}
         </Text>
