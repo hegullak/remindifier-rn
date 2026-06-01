@@ -398,7 +398,8 @@ export default function GatheringDetailScreen() {
                     return (
                       <Swipeable
                         key={point.id}
-                        friction={2}
+                        friction={1.5}
+                        overshootRight={false}
                         rightThreshold={40}
                         renderRightActions={() => (
                           <View className="flex-row">

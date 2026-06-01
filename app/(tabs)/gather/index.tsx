@@ -112,12 +112,13 @@ export default function GatherListScreen() {
               const count = getGatheringTalkingPointCount(item.description);
               const dateLabel = formatDate(item.scheduledAt, locale);
               return (
+                <View key={item.id} style={{ borderRadius: 20, overflow: "hidden", marginBottom: 8 }}>
                 <Swipeable
-                  key={item.id}
-                  friction={2}
+                  friction={1.5}
+                  overshootRight={false}
                   rightThreshold={40}
                   renderRightActions={() => (
-                    <View className="flex-row mb-2">
+                    <View className="flex-row">
                       <Pressable
                         onPress={() => { triggerSelection(); router.push(`/gather/${item.id}`); }}
                         className="bg-amber items-center justify-center px-5"
@@ -126,15 +127,15 @@ export default function GatherListScreen() {
                       </Pressable>
                       <Pressable
                         onPress={() => { triggerLight(); setDeleteId(item.id); }}
-                        className="bg-red items-center justify-center px-5 rounded-r-lg"
+                        className="bg-red items-center justify-center px-5"
                       >
                         <Text className="text-xl" style={{ color: "#fff" }}>🗑</Text>
                       </Pressable>
                     </View>
                   )}
                 >
-                  <View style={{ marginBottom: 8 }}>
-                    <Card>
+                  <View>
+                    <Card style={{ marginBottom: 0 }}>
                       <Link href={`/gather/${item.id}`} asChild>
                         <Pressable>
                           <Text className="text-body-lg text-text1 font-bodyMedium">
@@ -156,6 +157,7 @@ export default function GatherListScreen() {
                     </Card>
                   </View>
                 </Swipeable>
+                </View>
               );
             })}
           </ScrollView>
