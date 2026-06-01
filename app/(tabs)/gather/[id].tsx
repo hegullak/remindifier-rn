@@ -406,13 +406,13 @@ export default function GatheringDetailScreen() {
                               onPress={() => { triggerSelection(); startEdit(point.id); }}
                               className="bg-amber items-center justify-center px-5"
                             >
-                              <Text className="text-xl">✎</Text>
+                              <Text className="text-xl" style={{ color: "#fff" }}>✎</Text>
                             </Pressable>
                             <Pressable
                               onPress={() => { triggerMedium(); removePoint(point.id); }}
                               className="bg-red items-center justify-center px-5 rounded-r-lg"
                             >
-                              <Text className="text-xl">🗑</Text>
+                              <Text className="text-xl" style={{ color: "#fff" }}>🗑</Text>
                             </Pressable>
                           </View>
                         )}

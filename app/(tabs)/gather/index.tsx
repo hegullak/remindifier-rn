@@ -1,4 +1,4 @@
-import { Link, useFocusEffect, useLocalSearchParams } from "expo-router";
+import { Link, router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, Keyboard, Pressable, ScrollView, Text, View } from "react-native";
 import { Swipeable } from "react-native-gesture-handler";
@@ -117,12 +117,20 @@ export default function GatherListScreen() {
                   friction={2}
                   rightThreshold={40}
                   renderRightActions={() => (
-                    <Pressable
-                      onPress={() => { triggerLight(); setDeleteId(item.id); }}
-                      className="bg-red items-center justify-center px-6 rounded-r-lg mb-2"
-                    >
-                      <Text className="text-xl">🗑</Text>
-                    </Pressable>
+                    <View className="flex-row mb-2">
+                      <Pressable
+                        onPress={() => { triggerSelection(); router.push(`/gather/${item.id}`); }}
+                        className="bg-amber items-center justify-center px-5"
+                      >
+                        <Text className="text-xl" style={{ color: "#fff" }}>✎</Text>
+                      </Pressable>
+                      <Pressable
+                        onPress={() => { triggerLight(); setDeleteId(item.id); }}
+                        className="bg-red items-center justify-center px-5 rounded-r-lg"
+                      >
+                        <Text className="text-xl" style={{ color: "#fff" }}>🗑</Text>
+                      </Pressable>
+                    </View>
                   )}
                 >
                   <View style={{ marginBottom: 8 }}>
