@@ -36,6 +36,7 @@ export default function BriefScreen() {
   const [showWeatherSheet, setShowWeatherSheet] = useState(false);
   const [showMorningBrief, setShowMorningBrief] = useState(false);
   const [showEveningWindDown, setShowEveningWindDown] = useState(false);
+  const [weekExpanded, setWeekExpanded] = useState(false);
   const rainDetail = brief.weather.details.find((d) => d.kind === "rain");
   const rainText = rainDetail?.value ?? "0 mm";
   const windDetail = brief.weather.details.find((d) => d.kind === "wind");
@@ -190,51 +191,66 @@ export default function BriefScreen() {
 
     if (items.length === 0) return null;
 
-    let lastDay = "";
+    const todayItems = items.filter(i => i.sortKey === 0);
+    const restItems = items.filter(i => i.sortKey > 0);
+    const visibleItems = weekExpanded ? items : todayItems;
+    const hiddenCount = restItems.length;
+
+    function renderItem(item: (typeof items)[0], i: number, arr: typeof items) {
+      let lastDay = i > 0 ? arr[i - 1].dayLabel : "";
+      const showDayLabel = item.dayLabel !== lastDay;
+      const row = (
+        <View key={item.id} className={i < arr.length - 1 ? "mb-3" : ""}>
+          {showDayLabel && (
+            <Text className="text-3xs uppercase tracking-[1.2px] text-sage font-bodySemi mb-1">
+              {item.dayLabel}
+            </Text>
+          )}
+          <View className="flex-row items-start gap-2">
+            <Text className="text-base mt-0.5">{item.icon}</Text>
+            <View className="flex-1">
+              <Text className="text-body-lg text-text1 font-bodyMedium">{item.primary}</Text>
+              {item.secondary ? (
+                <Text className="text-xs text-text3 font-body mt-0.5">{item.secondary}</Text>
+              ) : null}
+            </View>
+          </View>
+        </View>
+      );
+      if (item.gatheringId || item.href) {
+        const href = item.gatheringId
+          ? briefGatheringHref(item.gatheringId, item.primary)
+          : (item.href as string);
+        return <Link key={item.id} href={href} asChild><Pressable className="active:opacity-70">{row}</Pressable></Link>;
+      }
+      if (item.onPress) {
+        return <Pressable key={item.id} onPress={item.onPress} className="active:opacity-70">{row}</Pressable>;
+      }
+      return <View key={item.id}>{row}</View>;
+    }
+
     return (
       <View className="mb-1">
-        <SectionLabel>{locale === "no" ? "Uken min" : "My week"}</SectionLabel>
+        <Pressable
+          onPress={() => setWeekExpanded(v => !v)}
+          className="flex-row items-center justify-between mt-5 mb-2 active:opacity-70"
+          hitSlop={8}
+        >
+          <Text className="text-3xs uppercase tracking-[1.92px] text-text3 font-bodySemi">
+            {locale === "no" ? "Uken min" : "My week"}
+          </Text>
+          <Text className="text-body text-text3 font-body">
+            {weekExpanded ? "▲" : `▼${hiddenCount > 0 ? `  +${hiddenCount}` : ""}`}
+          </Text>
+        </Pressable>
         <BriefCard stripeColor="sage">
-          {items.map((item, i) => {
-            const showDayLabel = item.dayLabel !== lastDay;
-            lastDay = item.dayLabel;
-            const row = (
-              <View key={item.id} className={i < items.length - 1 ? "mb-3" : ""}>
-                {showDayLabel && (
-                  <Text className="text-3xs uppercase tracking-[1.2px] text-sage font-bodySemi mb-1">
-                    {item.dayLabel}
-                  </Text>
-                )}
-                <View className="flex-row items-start gap-2">
-                  <Text className="text-base mt-0.5">{item.icon}</Text>
-                  <View className="flex-1">
-                    <Text className="text-body-lg text-text1 font-bodyMedium">{item.primary}</Text>
-                    {item.secondary ? (
-                      <Text className="text-xs text-text3 font-body mt-0.5">{item.secondary}</Text>
-                    ) : null}
-                  </View>
-                </View>
-              </View>
-            );
-            if (item.gatheringId || item.href) {
-              const href = item.gatheringId
-                ? briefGatheringHref(item.gatheringId, item.primary)
-                : (item.href as string);
-              return (
-                <Link key={item.id} href={href} asChild>
-                  <Pressable className="active:opacity-70">{row}</Pressable>
-                </Link>
-              );
-            }
-            if (item.onPress) {
-              return (
-                <Pressable key={item.id} onPress={item.onPress} className="active:opacity-70">
-                  {row}
-                </Pressable>
-              );
-            }
-            return <View key={item.id}>{row}</View>;
-          })}
+          {visibleItems.length === 0 ? (
+            <Text className="text-body text-text3 font-body">
+              {locale === "no" ? "Ingenting i dag." : "Nothing today."}
+            </Text>
+          ) : (
+            visibleItems.map((item, i) => renderItem(item, i, visibleItems))
+          )}
         </BriefCard>
       </View>
     );
