@@ -2,7 +2,7 @@ import { Link, router, useFocusEffect, useLocalSearchParams } from "expo-router"
 import { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, Keyboard, Pressable, ScrollView, Text, View } from "react-native";
 import { Swipeable } from "react-native-gesture-handler";
-import { triggerLight, triggerMedium } from "@/lib/haptics";
+import { triggerLight, triggerMedium, triggerSelection } from "@/lib/haptics";
 import { listGatheringsForUser, getGatheringTalkingPointCount, deleteGathering } from "@/db/repos/gatheringsRepo";
 import type { GatheringListItem } from "@/db/repos/gatheringsRepo";
 import { useAppAuth } from "@/features/auth/useAppAuth";
