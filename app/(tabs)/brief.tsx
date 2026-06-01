@@ -136,7 +136,7 @@ export default function BriefScreen() {
       weekItems.push({
         id: `headsup-${item.day}`,
         sortKey: item.daysUntil,
-        dayLabel: item.day,
+        dayLabel: briefDayLabel(item.daysUntil),
         icon: "💡",
         primary: item.text,
       });
@@ -162,7 +162,7 @@ export default function BriefScreen() {
           <View className="flex-1">
             <Text className="text-body-lg text-text1 font-bodyMedium">{item.primary}</Text>
             {item.secondary ? (
-              <Text className="text-xs text-text3 font-body mt-0.5">{item.secondary}</Text>
+              <Text className="text-sm text-text2 font-body mt-0.5">{item.secondary}</Text>
             ) : null}
           </View>
         </View>
@@ -200,7 +200,7 @@ export default function BriefScreen() {
               <View className={last ? "" : "mb-3"}>
                 <View className="flex-row items-center gap-2">
                   <Text className="text-sm">🕐</Text>
-                  <Text className="text-xs text-text3 font-bodyMedium">{item.time}</Text>
+                  <Text className="text-sm text-text2 font-bodyMedium">{item.time}</Text>
                 </View>
                 <Text className="text-body-lg text-text1 font-bodyMedium mt-1 pl-6">{title}</Text>
                 {item.note ? (
