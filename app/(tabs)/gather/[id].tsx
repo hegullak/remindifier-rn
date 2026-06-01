@@ -68,13 +68,6 @@ export default function GatheringDetailScreen() {
   const suppressCloseRef = useRef(false);
   useEffect(() => () => { mountedRef.current = false; }, []);
 
-  useEffect(() => {
-    const sub = Keyboard.addListener("keyboardDidHide", () => {
-      if (suppressCloseRef.current) return;
-      if (mountedRef.current) setShowInputField(false);
-    });
-    return () => sub.remove();
-  }, []);
 
   const [title, setTitle] = useState("");
   const [editingTitle, setEditingTitle] = useState(false);
@@ -398,25 +391,25 @@ export default function GatheringDetailScreen() {
 
                 {showInputField ? (
                   <View className="pt-4 pb-2">
-                    {/* Kind — bare ikoner, valgt = full opacity med liten prikk */}
-                    <View className="flex-row gap-5 mb-3">
-                      {TALKING_POINT_KINDS.map((kind) => {
+                    {/* Kind — kun ? og 💬, valgt = full opacity med liten prikk */}
+                    <View className="flex-row gap-6 mb-3">
+                      {(["question", "topic"] as const).map((kind) => {
                         const meta = talkingPointMeta(kind);
                         const selected = kind === selectedKind;
                         return (
                           <Pressable
                             key={kind}
+                            onPressIn={() => { suppressCloseRef.current = true; }}
                             onPress={() => {
                               triggerSelection();
                               setSelectedKind(kind);
-                              suppressCloseRef.current = true;
                               pointInputRef.current?.focus();
                               setTimeout(() => { suppressCloseRef.current = false; }, 400);
                             }}
-                            hitSlop={10}
+                            hitSlop={12}
                             className="items-center active:opacity-60"
                           >
-                            <Text style={{ fontSize: 22, opacity: selected ? 1 : 0.3 }}>{meta.icon}</Text>
+                            <Text style={{ fontSize: 24, opacity: selected ? 1 : 0.3 }}>{meta.icon}</Text>
                             {selected ? (
                               <View className="w-1 h-1 rounded-full bg-accent mt-1" />
                             ) : (
