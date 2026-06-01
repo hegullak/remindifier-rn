@@ -66,25 +66,29 @@ function parseYmd(date: string): Date {
 function elapsedSinceStart(startDate: string, asOf: Date, locale: Locale): string | null {
   const start = parseYmd(startDate);
   let years = asOf.getFullYear() - start.getFullYear();
-  const monthDiff = asOf.getMonth() - start.getMonth();
-  const dayDiff = asOf.getDate() - start.getDate();
-  if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) years--;
-
-  if (years >= 1) {
-    return years === 1
-      ? translate(locale, "merkedager.elapsed.oneYear")
-      : translate(locale, "merkedager.elapsed.years", { count: years });
+  let months = asOf.getMonth() - start.getMonth();
+  if (asOf.getDate() < start.getDate()) months--;
+  if (months < 0) {
+    years--;
+    months += 12;
   }
+  if (years < 0) return null;
 
-  let months = (asOf.getFullYear() - start.getFullYear()) * 12 + monthDiff;
-  if (dayDiff < 0) months--;
-  if (months >= 1) {
-    return months === 1
-      ? translate(locale, "merkedager.elapsed.oneMonth")
-      : translate(locale, "merkedager.elapsed.months", { count: months });
-  }
+  const yearPart =
+    years >= 1
+      ? years === 1
+        ? translate(locale, "merkedager.elapsed.oneYear")
+        : translate(locale, "merkedager.elapsed.years", { count: years })
+      : null;
+  const monthPart =
+    months >= 1
+      ? months === 1
+        ? translate(locale, "merkedager.elapsed.oneMonth")
+        : translate(locale, "merkedager.elapsed.months", { count: months })
+      : null;
 
-  return null;
+  if (yearPart && monthPart) return `${yearPart} ${monthPart}`;
+  return yearPart ?? monthPart;
 }
 
 function anniversaryHeadline(row: RedLetterDayRow, refDate: Date, locale: Locale): string {
