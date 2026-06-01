@@ -75,11 +75,118 @@ export default function BriefScreen() {
     return locale === "no" ? label.toUpperCase() : label.charAt(0).toUpperCase() + label.slice(1);
   }
 
+  type UnifiedItem = {
+    id: string;
+    sortKey: number;
+    dayLabel: string;
+    icon: string;
+    primary: string;
+    secondary?: string;
+    href?: string;
+    gatheringId?: string | null;
+    onPress?: () => void;
+  };
+
+  const weekItems: UnifiedItem[] = [];
+
+  for (const event of privateCalendarEvents) {
+    const eventDay = new Date(event.startDate);
+    eventDay.setHours(0, 0, 0, 0);
+    const daysUntil = Math.round((eventDay.getTime() - today.getTime()) / 86400000);
+    const title = event.gatheringId
+      ? localizeGatheringTitle(event.gatheringId, event.title, locale)
+      : event.title;
+    const timeStr = event.allDay
+      ? undefined
+      : event.startDate.toLocaleTimeString(locale === "no" ? "nb-NO" : "en-GB", {
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+    weekItems.push({
+      id: `cal-${event.id}`,
+      sortKey: daysUntil,
+      dayLabel: briefDayLabel(daysUntil),
+      icon: "🕐",
+      primary: title,
+      secondary: timeStr,
+      gatheringId: event.gatheringId,
+    });
+  }
+
+  for (const rld of redLettersThisWeek) {
+    weekItems.push({
+      id: `rld-${rld.id}`,
+      sortKey: rld.daysUntil,
+      dayLabel: briefDayLabel(rld.daysUntil),
+      icon: rld.icon,
+      primary: rld.personName,
+      secondary: rld.headline,
+      href: rld.personId ? `/people/${rld.personId}` : undefined,
+      onPress: rld.kind === "Anniversary"
+        ? () => {
+            const m = anniversaryMilestoneDetail(rld.eventDate);
+            if (m) setAnniversaryDetail({ personName: rld.personName, years: m.years, norwegian: m.norwegian, english: m.english });
+          }
+        : undefined,
+    });
+  }
+
+  if (weekOffset === 0) {
+    for (const item of headsupItems) {
+      weekItems.push({
+        id: `headsup-${item.day}`,
+        sortKey: item.daysUntil,
+        dayLabel: item.day,
+        icon: "💡",
+        primary: item.text,
+      });
+    }
+  }
+
+  weekItems.sort((a, b) => a.sortKey - b.sortKey);
+  const todayItems = weekItems.filter((i) => i.sortKey === 0);
+  const restItems = weekItems.filter((i) => i.sortKey > 0);
+
+  function renderUnifiedRow(item: UnifiedItem, i: number, arr: UnifiedItem[], showDay: boolean) {
+    const prevDay = i > 0 ? arr[i - 1].dayLabel : "";
+    const showDayLabel = showDay && item.dayLabel !== prevDay;
+    const row = (
+      <View className={i < arr.length - 1 ? "mb-3" : ""}>
+        {showDayLabel && (
+          <Text className="text-3xs uppercase tracking-[1.2px] text-sage font-bodySemi mb-1">
+            {item.dayLabel}
+          </Text>
+        )}
+        <View className="flex-row items-start gap-2">
+          <Text className="text-base mt-0.5">{item.icon}</Text>
+          <View className="flex-1">
+            <Text className="text-body-lg text-text1 font-bodyMedium">{item.primary}</Text>
+            {item.secondary ? (
+              <Text className="text-xs text-text3 font-body mt-0.5">{item.secondary}</Text>
+            ) : null}
+          </View>
+        </View>
+      </View>
+    );
+    if (item.gatheringId || item.href) {
+      const href = item.gatheringId
+        ? briefGatheringHref(item.gatheringId, item.primary)
+        : (item.href as string);
+      return <Link key={item.id} href={href} asChild><Pressable className="active:opacity-70">{row}</Pressable></Link>;
+    }
+    if (item.onPress) {
+      return <Pressable key={item.id} onPress={item.onPress} className="active:opacity-70">{row}</Pressable>;
+    }
+    return <View key={item.id}>{row}</View>;
+  }
+
   function renderDagenMin() {
     if (weekOffset !== 0) return null;
     const hasSchedule = brief.schedule.length > 0;
+    const hasTodayItems = todayItems.length > 0;
     const hasTraining = trainingLines.length > 0;
-    if (!hasSchedule && !hasTraining) return null;
+    if (!hasSchedule && !hasTodayItems && !hasTraining) return null;
+    const needDivider1 = (hasSchedule || hasTodayItems) && hasTraining;
     return (
       <View className="mb-1">
         <SectionLabel>{locale === "no" ? "Dagen min" : "My day"}</SectionLabel>
@@ -88,8 +195,9 @@ export default function BriefScreen() {
             const title = item.gatheringId
               ? localizeGatheringTitle(item.gatheringId, item.title, locale)
               : item.title;
+            const last = i === brief.schedule.length - 1 && !hasTodayItems;
             const row = (
-              <View className={i < brief.schedule.length - 1 ? "mb-3" : ""}>
+              <View className={last ? "" : "mb-3"}>
                 <View className="flex-row items-center gap-2">
                   <Text className="text-sm">🕐</Text>
                   <Text className="text-xs text-text3 font-bodyMedium">{item.time}</Text>
@@ -106,7 +214,8 @@ export default function BriefScreen() {
               </Link>
             );
           })}
-          {hasSchedule && hasTraining && <View className="h-px bg-border my-3" />}
+          {todayItems.map((item, i) => renderUnifiedRow(item, i, todayItems, false))}
+          {needDivider1 && <View className="h-px bg-border my-3" />}
           {trainingLines.map((line, i) => (
             <View key={line} className={`flex-row items-start gap-2${i < trainingLines.length - 1 ? " mb-3" : ""}`}>
               <Text className="text-base">{i === 0 ? "🏋️" : "🏃"}</Text>
@@ -119,139 +228,34 @@ export default function BriefScreen() {
   }
 
   function renderUkenMin() {
-    type UnifiedItem = {
-      id: string;
-      sortKey: number;
-      dayLabel: string;
-      icon: string;
-      primary: string;
-      secondary?: string;
-      href?: Parameters<typeof briefGatheringHref>[0] extends infer H ? H : string;
-      gatheringId?: string | null;
-      onPress?: () => void;
-    };
-
-    const items: UnifiedItem[] = [];
-
-    for (const event of privateCalendarEvents) {
-      const eventDay = new Date(event.startDate);
-      eventDay.setHours(0, 0, 0, 0);
-      const daysUntil = Math.round((eventDay.getTime() - today.getTime()) / 86400000);
-      const title = event.gatheringId
-        ? localizeGatheringTitle(event.gatheringId, event.title, locale)
-        : event.title;
-      const timeStr = event.allDay
-        ? undefined
-        : event.startDate.toLocaleTimeString(locale === "no" ? "nb-NO" : "en-GB", {
-            hour: "2-digit",
-            minute: "2-digit",
-          });
-      items.push({
-        id: `cal-${event.id}`,
-        sortKey: daysUntil,
-        dayLabel: briefDayLabel(daysUntil),
-        icon: "🕐",
-        primary: title,
-        secondary: timeStr,
-        gatheringId: event.gatheringId,
-      });
-    }
-
-    for (const rld of redLettersThisWeek) {
-      items.push({
-        id: `rld-${rld.id}`,
-        sortKey: rld.daysUntil,
-        dayLabel: briefDayLabel(rld.daysUntil),
-        icon: rld.icon,
-        primary: rld.personName,
-        secondary: rld.headline,
-        href: rld.personId ? `/people/${rld.personId}` : undefined,
-        onPress: rld.kind === "Anniversary"
-          ? () => {
-              const m = anniversaryMilestoneDetail(rld.eventDate);
-              if (m) setAnniversaryDetail({ personName: rld.personName, years: m.years, norwegian: m.norwegian, english: m.english });
-            }
-          : undefined,
-      });
-    }
-
-    if (weekOffset === 0) {
-      for (const item of headsupItems) {
-        items.push({
-          id: `headsup-${item.day}`,
-          sortKey: item.daysUntil,
-          dayLabel: item.day,
-          icon: "💡",
-          primary: item.text,
-        });
-      }
-    }
-
-    items.sort((a, b) => a.sortKey - b.sortKey);
-
-    if (items.length === 0) return null;
-
-    const todayItems = items.filter(i => i.sortKey === 0);
-    const restItems = items.filter(i => i.sortKey > 0);
-    const visibleItems = weekExpanded ? items : todayItems;
-    const hiddenCount = restItems.length;
-
-    function renderItem(item: (typeof items)[0], i: number, arr: typeof items) {
-      let lastDay = i > 0 ? arr[i - 1].dayLabel : "";
-      const showDayLabel = item.dayLabel !== lastDay;
-      const row = (
-        <View key={item.id} className={i < arr.length - 1 ? "mb-3" : ""}>
-          {showDayLabel && (
-            <Text className="text-3xs uppercase tracking-[1.2px] text-sage font-bodySemi mb-1">
-              {item.dayLabel}
-            </Text>
-          )}
-          <View className="flex-row items-start gap-2">
-            <Text className="text-base mt-0.5">{item.icon}</Text>
-            <View className="flex-1">
-              <Text className="text-body-lg text-text1 font-bodyMedium">{item.primary}</Text>
-              {item.secondary ? (
-                <Text className="text-xs text-text3 font-body mt-0.5">{item.secondary}</Text>
-              ) : null}
-            </View>
-          </View>
-        </View>
-      );
-      if (item.gatheringId || item.href) {
-        const href = item.gatheringId
-          ? briefGatheringHref(item.gatheringId, item.primary)
-          : (item.href as string);
-        return <Link key={item.id} href={href} asChild><Pressable className="active:opacity-70">{row}</Pressable></Link>;
-      }
-      if (item.onPress) {
-        return <Pressable key={item.id} onPress={item.onPress} className="active:opacity-70">{row}</Pressable>;
-      }
-      return <View key={item.id}>{row}</View>;
-    }
-
+    if (weekOffset !== 0) return null;
+    if (restItems.length === 0) return null;
     return (
       <View className="mb-1">
-        <Pressable
-          onPress={() => setWeekExpanded(v => !v)}
-          className="flex-row items-center justify-between mt-5 mb-2 active:opacity-70"
-          hitSlop={8}
-        >
-          <Text className="text-3xs uppercase tracking-[1.92px] text-text3 font-bodySemi">
-            {locale === "no" ? "Uken min" : "My week"}
-          </Text>
-          <Text className="text-body text-text3 font-body">
-            {weekExpanded ? "▲" : `▼${hiddenCount > 0 ? `  +${hiddenCount}` : ""}`}
-          </Text>
-        </Pressable>
-        <BriefCard stripeColor="sage">
-          {visibleItems.length === 0 ? (
-            <Text className="text-body text-text3 font-body">
-              {locale === "no" ? "Ingenting i dag." : "Nothing today."}
-            </Text>
-          ) : (
-            visibleItems.map((item, i) => renderItem(item, i, visibleItems))
-          )}
-        </BriefCard>
+        <SectionLabel>{locale === "no" ? "Uken min" : "My week"}</SectionLabel>
+        {weekExpanded ? (
+          <Pressable onPress={() => setWeekExpanded(false)} className="active:opacity-90">
+            <BriefCard stripeColor="sage">
+              {restItems.map((item, i) => renderUnifiedRow(item, i, restItems, true))}
+              <Text className="text-xs text-text3 font-body mt-3">
+                {locale === "no" ? "Vis mindre" : "Show less"}
+              </Text>
+            </BriefCard>
+          </Pressable>
+        ) : (
+          <Pressable onPress={() => setWeekExpanded(true)} className="active:opacity-70">
+            <BriefCard stripeColor="sage">
+              <View className="flex-row items-center justify-between">
+                <Text className="text-body-lg text-text2 font-body">
+                  {locale === "no"
+                    ? `${restItems.length} ${restItems.length === 1 ? "hendelse" : "hendelser"} resten av uken`
+                    : `${restItems.length} ${restItems.length === 1 ? "event" : "events"} rest of week`}
+                </Text>
+                <Text className="text-body-lg text-sage font-bodySemi">+{restItems.length}</Text>
+              </View>
+            </BriefCard>
+          </Pressable>
+        )}
       </View>
     );
   }
