@@ -37,8 +37,9 @@ function iconForKind(kind: string): string {
     case "Anniversary":
       return "💍";
     case "Smoke-free":
+      return "🚭";
     case "Snus-free":
-      return "🏆";
+      return "🟤";
     default:
       return "📌";
   }

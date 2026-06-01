@@ -6,24 +6,24 @@ import {
 describe("personMerkedagDisplay", () => {
   const asOf = new Date(2026, 10, 1); // 1 Nov 2026
 
-  it("formats birthday with date only (age lives in the header)", () => {
+  it("formats birthday as date only (kind shown via icon; age in header)", () => {
     const line = formatPersonMerkedagLine("Birthday", null, "1987-09-12", true, "no", asOf);
-    expect(line).toBe("Bursdag · 12. sep. 1987");
+    expect(line).toBe("12. sep. 1987");
+    expect(line).not.toContain("Bursdag");
     expect(line).not.toContain("38 år");
   });
 
-  it("formats smoke-free without stuttering the kind word", () => {
+  it("formats smoke-free as elapsed (with months) · siden date, no kind word", () => {
     const line = formatPersonMerkedagLine("Smoke-free", null, "2008-05-15", true, "no", asOf);
-    expect(line).toMatch(/^Røykfri · siden 15\. mai 2008 · /);
-    expect(line).not.toMatch(/røykfri siden/);
-    expect(line).toMatch(/år og \d+ måned/);
+    expect(line).toMatch(/^\d+ år og \d+ måned/);
+    expect(line).toContain("siden 15. mai 2008");
+    expect(line).not.toMatch(/Røykfri|røykfri/);
   });
 
-  it("formats anniversary without the word 'siden'", () => {
+  it("formats anniversary as day+month · years (no 'siden', no months, no kind word)", () => {
     const line = formatPersonMerkedagLine("Anniversary", null, "2003-05-15", true, "no", asOf);
-    expect(line).toMatch(/^Bryllupsdag · \d+ år/);
-    expect(line).not.toMatch(/siden/);
-    expect(line).toContain("15. mai 2003");
+    expect(line).toBe("15. mai · 23 år");
+    expect(line).not.toMatch(/siden|Bryllupsdag|måned/);
   });
 });
 

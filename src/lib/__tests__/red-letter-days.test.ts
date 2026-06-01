@@ -87,9 +87,9 @@ describe("upcomingRedLetterDays", () => {
     expect(upcomingRedLetterDays([row], TODAY, WINDOW, EN)[0].icon).toBe("💍");
   });
 
-  it("uses trophy icon for Smoke-free kind", () => {
+  it("uses no-smoking icon for Smoke-free kind", () => {
     const row = makeRow({ kind: "Smoke-free", eventDate: "2020-05-10" });
-    expect(upcomingRedLetterDays([row], TODAY, WINDOW, EN)[0].icon).toBe("🏆");
+    expect(upcomingRedLetterDays([row], TODAY, WINDOW, EN)[0].icon).toBe("🚭");
   });
 
   it("builds headline with age for Birthday with known year", () => {

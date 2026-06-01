@@ -329,6 +329,7 @@ export const en = {
     addBirthday: "Add birthday",
     marriedSince: "{elapsed} · {date}",
     marriedSinceMilestone: "{elapsed} · {milestone} · {date}",
+    sinceDate: "since {date}",
     smokeFreeSince: "since {date} · {elapsed}",
     snusFreeSince: "since {date} · {elapsed}",
     sinceElapsed: "since {date} · {elapsed}",

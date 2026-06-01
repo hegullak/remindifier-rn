@@ -331,6 +331,7 @@ export const no = {
     addBirthday: "Legg til bursdag",
     marriedSince: "{elapsed} · {date}",
     marriedSinceMilestone: "{elapsed} · {milestone} · {date}",
+    sinceDate: "siden {date}",
     smokeFreeSince: "siden {date} · {elapsed}",
     snusFreeSince: "siden {date} · {elapsed}",
     sinceElapsed: "siden {date} · {elapsed}",
