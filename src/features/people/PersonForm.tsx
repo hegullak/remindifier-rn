@@ -149,10 +149,11 @@ export const PersonForm = forwardRef<PersonFormHandle, PersonFormProps>(function
     </>
   );
 
-  const birthdayFields = (
+  const merkedagerFields = (
     <>
-      <Text className="text-3xs uppercase tracking-[1.5px] text-text3 font-bodySemi">
-        {t("personForm.birthday")}
+      {/* Bursdag — egen 🎂-rad (lagres fortsatt i person.birthday) */}
+      <Text className="text-3xs uppercase tracking-[1.5px] text-text3 font-bodySemi mb-1">
+        🎂 {t("personForm.birthday")}
       </Text>
       <BirthdayField
         birthday={birthday}
@@ -161,13 +162,14 @@ export const PersonForm = forwardRef<PersonFormHandle, PersonFormProps>(function
         onBirthdayYearKnownChange={setBirthdayYearKnown}
         fieldClass={fieldClass}
       />
+      <View className="h-px bg-border my-4" />
+      <RedLetterDaysSection items={redLetterDays} onChange={setRedLetterDays} />
     </>
   );
 
   const extraFields = (
     <>
-      <RedLetterDaysSection items={redLetterDays} onChange={setRedLetterDays} />
-      <Text className="text-3xs uppercase tracking-[1.5px] text-text3 font-bodySemi mt-4">
+      <Text className="text-3xs uppercase tracking-[1.5px] text-text3 font-bodySemi">
         {t("personForm.funFacts")}
       </Text>
       <TextInput
@@ -220,7 +222,7 @@ export const PersonForm = forwardRef<PersonFormHandle, PersonFormProps>(function
     return (
       <View>
         <Card style={{ marginBottom: 12 }}>{nameFields}</Card>
-        <Card style={{ marginBottom: 12 }}>{birthdayFields}</Card>
+        <Card style={{ marginBottom: 12 }}>{merkedagerFields}</Card>
         <Card style={{ marginBottom: 12 }}>{extraFields}</Card>
         {errorBlock}
         {actions}
@@ -231,7 +233,7 @@ export const PersonForm = forwardRef<PersonFormHandle, PersonFormProps>(function
   return (
     <View className="bg-card border border-border rounded-lg px-4 py-4">
       {nameFields}
-      {birthdayFields}
+      <View className="mt-5">{merkedagerFields}</View>
       <View className="mt-5">{extraFields}</View>
       {errorBlock}
       {actions}

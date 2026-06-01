@@ -1,6 +1,6 @@
 import { Pressable, Text, TextInput, View } from "react-native";
 import { useTranslation } from "@/i18n/LanguageContext";
-import { redLetterKindLabel } from "@/i18n/redLetterKinds";
+import { redLetterKindIcon, redLetterKindLabel } from "@/i18n/redLetterKinds";
 import {
   RED_LETTER_OTHER_KINDS,
   type RedLetterDayInput,
@@ -57,8 +57,8 @@ export function RedLetterDaysSection({
           className="bg-bg2 border border-border rounded-lg px-4 py-3"
         >
           <View className="flex-row items-center justify-between mb-3">
-            <Text className="text-xs text-text3 font-bodySemi">
-              {redLetterKindLabel(day.kind, locale)}
+            <Text className="text-sm text-text2 font-bodyMedium">
+              {redLetterKindIcon(day.kind)} {redLetterKindLabel(day.kind, locale)}
               {day.kind === "Other" && day.label ? ` · ${day.label}` : ""}
             </Text>
             <Pressable onPress={() => removeDay(i)}>
@@ -74,10 +74,11 @@ export function RedLetterDaysSection({
               <Pressable
                 key={kind}
                 onPress={() => updateDay(i, { kind: kind as RedLetterKind })}
-                className={`rounded-full px-3 py-1.5 border ${
+                className={`flex-row items-center gap-1.5 rounded-full px-3 py-1.5 border ${
                   day.kind === kind ? "bg-accent border-accent" : "bg-card border-border"
                 }`}
               >
+                <Text className="text-sm">{redLetterKindIcon(kind)}</Text>
                 <Text
                   className={`text-xs font-bodyMedium ${
                     day.kind === kind ? "text-card" : "text-text2"

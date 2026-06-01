@@ -9,6 +9,18 @@ const KIND_PATH: Record<string, string> = {
   Other: "merkedager.kinds.other",
 };
 
+const KIND_ICON: Record<string, string> = {
+  Birthday: "🎂",
+  Anniversary: "💍",
+  "Smoke-free": "🚭",
+  "Snus-free": "🟤",
+  Other: "⭐",
+};
+
+export function redLetterKindIcon(kind: string): string {
+  return KIND_ICON[kind] ?? "⭐";
+}
+
 export function redLetterKindLabel(kind: string, locale: Locale): string {
   const path = KIND_PATH[kind];
   return path ? translate(locale, path) : kind;
