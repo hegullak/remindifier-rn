@@ -358,6 +358,7 @@ export const no = {
     deletePersonButton: "Slett person",
     editPersonA11y: "Rediger person",
     deletePersonA11y: "Slett person",
+    personMenuSection: "Denne personen",
     relations: {
       closeFriend: "Nær venn",
       uncleAunt: "Onkel / tante",

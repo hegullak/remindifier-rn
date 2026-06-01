@@ -5,6 +5,7 @@ import { BlurView } from "expo-blur";
 import Constants from "expo-constants";
 import { Redirect, Tabs } from "expo-router";
 import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
+import { StackActions } from "@react-navigation/native";
 import { useEffect, useState } from "react";
 import { Pressable, Text, View, type ViewProps } from "react-native";
 import { triggerSelection } from "@/lib/haptics";
@@ -101,7 +102,13 @@ function FloatingTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
                 target: route.key,
                 canPreventDefault: true,
               });
-              if (!focused && !event.defaultPrevented) {
+              if (focused) {
+                // Already on this tab — reset its nested stack to the root screen
+                const nested = state.routes[index].state;
+                if (nested && typeof nested.index === "number" && nested.index > 0) {
+                  navigation.dispatch({ ...StackActions.popToTop(), target: nested.key });
+                }
+              } else if (!event.defaultPrevented) {
                 navigation.navigate(route.name);
               }
             }}

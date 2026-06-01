@@ -356,6 +356,7 @@ export const en = {
     deletePersonButton: "Delete person",
     editPersonA11y: "Edit person",
     deletePersonA11y: "Delete person",
+    personMenuSection: "This person",
     relations: {
       closeFriend: "Close friend",
       uncleAunt: "Uncle / aunt",

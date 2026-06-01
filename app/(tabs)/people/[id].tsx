@@ -1,5 +1,5 @@
 import { Link, router, useFocusEffect, useLocalSearchParams } from "expo-router";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Keyboard, Pressable, ScrollView, Text, TextInput, useColorScheme, View } from "react-native";
 import { triggerLight, triggerMedium, triggerSelection } from "@/lib/haptics";
 import { createPersonEntry, deletePerson, deletePersonEntry } from "@/db/repos/peopleRepo";
@@ -12,7 +12,7 @@ import { AppShell } from "@/ui/AppShell";
 import { BottomSheet } from "@/ui/BottomSheet";
 import { Button } from "@/ui/Button";
 import { Card } from "@/ui/Card";
-import { IconButton } from "@/ui/IconButton";
+import type { AddMenuSection } from "@/ui/GlobalAddButton";
 import { SectionLabel } from "@/ui/SectionLabel";
 
 function formatDate(iso: string, locale: Locale) {
@@ -38,7 +38,7 @@ export default function PersonDetailScreen() {
   const [deletingEntry, setDeletingEntry] = useState(false);
   const [confirmDeletePerson, setConfirmDeletePerson] = useState(false);
   const [deletingPerson, setDeletingPerson] = useState(false);
-  const [showActions, setShowActions] = useState(false);
+  const [showNoteInput, setShowNoteInput] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -47,6 +47,34 @@ export default function PersonDetailScreen() {
       };
     }, []),
   );
+
+  const addMenuSections = useMemo((): AddMenuSection[] => {
+    if (!id) return [];
+    return [
+      {
+        title: t("people.personMenuSection"),
+        actions: [
+          {
+            icon: "✎",
+            bgClass: "bg-amber-light",
+            label: t("people.editPersonA11y"),
+            onPress: () => router.push(`/people/${id}/edit`),
+          },
+          {
+            icon: "🗑",
+            bgClass: "bg-red-light",
+            label: t("people.deletePersonTitle"),
+            destructive: true,
+            onPress: () => {
+              setTimeout(() => {
+                if (mountedRef.current) setConfirmDeletePerson(true);
+              }, 300);
+            },
+          },
+        ],
+      },
+    ];
+  }, [id, t]);
 
   const submitEntry = async () => {
     if (!userId || !id) {
@@ -65,6 +93,7 @@ export default function PersonDetailScreen() {
       triggerMedium();
       Keyboard.dismiss();
       setEntryBody("");
+      setShowNoteInput(false);
       reload();
     } catch (err: unknown) {
       setEntryError(err instanceof Error ? err.message : t("people.saveNoteFailed"));
@@ -102,27 +131,19 @@ export default function PersonDetailScreen() {
 
   return (
     <AppShell
+      addMenuSections={addMenuSections}
       headerLeft={
-        returnTo ? (
-          <Pressable
-            onPress={() => { triggerLight(); Keyboard.dismiss(); router.replace(returnTo); }}
-            hitSlop={12}
-            accessibilityLabel="Back"
-          >
-            <Text className="text-xl text-accent font-body">←</Text>
-          </Pressable>
-        ) : null
-      }
-      headerRight={
-        id ? (
-          <Pressable
-            onPress={() => { triggerLight(); setShowActions(true); }}
-            hitSlop={12}
-            accessibilityLabel="More actions"
-          >
-            <Text className="text-nav text-text2 font-body">⋯</Text>
-          </Pressable>
-        ) : null
+        <Pressable
+          onPress={() => {
+            triggerLight();
+            Keyboard.dismiss();
+            router.replace(returnTo ?? "/people");
+          }}
+          hitSlop={12}
+          accessibilityLabel="Back"
+        >
+          <Text className="text-xl text-accent font-body">←</Text>
+        </Pressable>
       }
     >
       <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}>
@@ -213,29 +234,26 @@ export default function PersonDetailScreen() {
               </View>
             )}
 
-            <SectionLabel>{t("people.redLetterDays")}</SectionLabel>
-            {bundle.redLetterDays.length === 0 ? (
-              <Text className="text-body text-text3 font-body">
-                {t("people.noRedLetterDays")}
-              </Text>
-            ) : (
-              bundle.redLetterDays.map((item) => (
-                <Card key={item.id}>
-                  <Text className="text-3xs uppercase tracking-[1.2px] text-amber font-bodySemi">
-                    {formatDate(item.eventDate, locale)} · {item.kind.toLowerCase()}
-                  </Text>
-                  {item.label ? (
-                    <Text className="text-body text-text2 font-body mt-1">{item.label}</Text>
-                  ) : null}
-                </Card>
-              ))
-            )}
+            {bundle.redLetterDays.length > 0 ? (
+              <>
+                <SectionLabel>{t("people.redLetterDays")}</SectionLabel>
+                {bundle.redLetterDays.map((item) => (
+                  <Card key={item.id}>
+                    <Text className="text-3xs uppercase tracking-[1.2px] text-amber font-bodySemi">
+                      {formatDate(item.eventDate, locale)} · {item.kind.toLowerCase()}
+                    </Text>
+                    {item.label ? (
+                      <Text className="text-body text-text2 font-body mt-1">{item.label}</Text>
+                    ) : null}
+                  </Card>
+                ))}
+              </>
+            ) : null}
 
-            <SectionLabel>{t("people.relationships")}</SectionLabel>
-            {bundle.links.length === 0 ? (
-              <Text className="text-body text-text3 font-body">{t("people.noLinks")}</Text>
-            ) : (
-              bundle.links.map((link) => (
+            {bundle.links.length > 0 ? (
+              <>
+                <SectionLabel>{t("people.relationships")}</SectionLabel>
+                {bundle.links.map((link) => (
                 <Link key={link.id} href={`/people/${link.otherPersonId}`} asChild>
                   <Pressable>
                     <Card>
@@ -251,8 +269,9 @@ export default function PersonDetailScreen() {
                     </Card>
                   </Pressable>
                 </Link>
-              ))
-            )}
+                ))}
+              </>
+            ) : null}
 
             <SectionLabel>{t("people.timeline")}</SectionLabel>
             {bundle.timeline.map((entry) => (
@@ -278,11 +297,19 @@ export default function PersonDetailScreen() {
             {bundle.timeline.length === 0 ? (
               <Text className="text-body text-text3 font-body mb-2">{t("people.noNotes")}</Text>
             ) : null}
+
+            {!showNoteInput ? (
+              <Pressable
+                onPress={() => { triggerLight(); setShowNoteInput(true); }}
+                className="flex-row items-center gap-2 py-3 active:opacity-60"
+              >
+                <Text className="text-xl text-accent font-body">+</Text>
+                <Text className="text-body text-text3 font-body">{t("people.addNote")}</Text>
+              </Pressable>
+            ) : (
             <Card style={{ marginBottom: 12 }}>
-              <Text className="text-3xs uppercase tracking-[1.2px] text-text3 font-bodySemi">
-                {t("people.addNote")}
-              </Text>
-              <View className="flex-row gap-2 mt-2">
+              <View className="flex-row gap-2">
+                <View className="flex-row gap-2 flex-1">
                 <Pressable
                   onPress={() => {
                     triggerSelection();
@@ -317,6 +344,14 @@ export default function PersonDetailScreen() {
                     {t("people.followUpType")}
                   </Text>
                 </Pressable>
+                </View>
+                <Pressable
+                  onPress={() => { triggerLight(); setShowNoteInput(false); setEntryBody(""); setEntryError(null); Keyboard.dismiss(); }}
+                  hitSlop={8}
+                  className="p-1"
+                >
+                  <Text className="text-body-lg text-text3">✕</Text>
+                </Pressable>
               </View>
 
               <TextInput
@@ -326,6 +361,7 @@ export default function PersonDetailScreen() {
                 placeholderTextColor={colorScheme === "dark" ? "#7A8CAD" : "#A89E90"}
                 multiline
                 numberOfLines={3}
+                autoFocus
                 className="mt-2 bg-bg2 border border-border rounded-md px-3 py-3 text-sm text-text1 font-body"
                 style={{ textAlignVertical: "top", minHeight: 90 }}
               />
@@ -345,6 +381,7 @@ export default function PersonDetailScreen() {
                 </Button>
               </View>
             </Card>
+            )}
           </>
         ) : null}
       </ScrollView>
@@ -367,37 +404,6 @@ export default function PersonDetailScreen() {
           <Button variant="ghost" onPress={() => setEntryToDelete(null)} disabled={deletingEntry}>
             {t("common.cancel")}
           </Button>
-        </View>
-      </BottomSheet>
-
-      <BottomSheet
-        visible={showActions}
-        onDismiss={() => setShowActions(false)}
-        title={bundle?.person.displayName ?? ""}
-      >
-        <View className="gap-3 pt-1">
-          {id ? (
-            <Link href={`/people/${id}/edit`} asChild>
-              <Pressable
-                onPress={() => { triggerLight(); setShowActions(false); }}
-                className="flex-row items-center gap-4 py-2"
-              >
-                <View className="w-11 h-11 rounded-xl bg-amber-light items-center justify-center">
-                  <Text className="text-xl">✏️</Text>
-                </View>
-                <Text className="text-base text-text1 font-bodyMedium">{t("people.editPersonA11y")}</Text>
-              </Pressable>
-            </Link>
-          ) : null}
-          <Pressable
-            onPress={() => { triggerLight(); setShowActions(false); setTimeout(() => { if (mountedRef.current) setConfirmDeletePerson(true); }, 300); }}
-            className="flex-row items-center gap-4 py-2"
-          >
-            <View className="w-11 h-11 rounded-xl bg-red-light items-center justify-center">
-              <Text className="text-lg">🗑</Text>
-            </View>
-            <Text className="text-base text-red font-bodyMedium">{t("people.deletePersonTitle")}</Text>
-          </Pressable>
         </View>
       </BottomSheet>
 

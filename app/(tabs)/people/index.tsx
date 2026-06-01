@@ -1,14 +1,17 @@
-import { FlashList } from "@shopify/flash-list";
-import { Link, useFocusEffect } from "expo-router";
-import { useCallback } from "react";
-import { Keyboard, Pressable, Text, View } from "react-native";
-import type { PersonSummary } from "@/db/repos/peopleRepo";
+import { Link, router, useFocusEffect } from "expo-router";
+import { useCallback, useState } from "react";
+import { Keyboard, Pressable, ScrollView, Text, View } from "react-native";
+import { Swipeable } from "react-native-gesture-handler";
+import { deletePerson, type PersonSummary } from "@/db/repos/peopleRepo";
 import { useAppAuth } from "@/features/auth/useAppAuth";
 import { usePeopleData } from "@/features/people/usePeopleData";
 import { useTranslation } from "@/i18n/LanguageContext";
 import { translateRelationType } from "@/i18n/relationTypes";
+import { triggerLight, triggerMedium, triggerSelection } from "@/lib/haptics";
 import { buildPersonRelevanceHint } from "@/lib/people/relevanceHint";
 import { AppShell } from "@/ui/AppShell";
+import { BottomSheet } from "@/ui/BottomSheet";
+import { Button } from "@/ui/Button";
 import { Card } from "@/ui/Card";
 import { SectionLabel } from "@/ui/SectionLabel";
 
@@ -27,18 +30,6 @@ function formatAge(
   if (now.getMonth() < month || (now.getMonth() === month && now.getDate() < day)) age--;
   if (age < 0) return null;
   return t("people.years", { count: age });
-}
-
-function formatLastSeen(
-  date: Date | null,
-  t: (path: string, params?: Record<string, string | number>) => string,
-) {
-  if (!date) return null;
-  const days = Math.floor((Date.now() - date.getTime()) / (1000 * 60 * 60 * 24));
-  if (days <= 0) return t("people.lastSeenToday");
-  if (days === 1) return t("people.lastSeenOneDay");
-  if (days < 30) return t("people.lastSeenDays", { count: days });
-  return t("people.lastSeenMonths", { count: Math.round(days / 30) });
 }
 
 function PersonRowCard({
@@ -65,7 +56,7 @@ function PersonRowCard({
   return (
     <Link href={`/people/${person.id}`} asChild>
       <Pressable>
-        <Card style={{ marginBottom: 8 }}>
+        <Card style={{ marginBottom: 0 }}>
           <View>
             <View className="flex-row items-center gap-2">
               <Text className="text-lg text-text1 font-heading">{person.displayName}</Text>
@@ -76,9 +67,7 @@ function PersonRowCard({
                 {translateRelationType(person.relationType, locale)}
               </Text>
             ) : null}
-            {hint ? (
-              <Text className="text-body text-text2 font-body mt-2">{hint}</Text>
-            ) : null}
+            {hint ? <Text className="text-body text-text2 font-body mt-2">{hint}</Text> : null}
           </View>
         </Card>
       </Pressable>
@@ -89,54 +78,103 @@ function PersonRowCard({
 export default function PeopleListScreen() {
   const { userId } = useAppAuth();
   const { t, locale } = useTranslation();
-  const { people, loading, error } = usePeopleData(userId);
+  const { people, loading, error, reload } = usePeopleData(userId);
   const activePeople = people.filter((p) => !p.archived);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
+      void reload();
       return () => {
         Keyboard.dismiss();
       };
-    }, []),
+    }, [reload]),
   );
 
-  const listHeader = (
-    <View className="px-4">
-      <View className="pt-1 pb-2">
-        <Text className="text-3xl leading-[36px] text-text1 font-heading">
-          {t("people.title")}
-        </Text>
-        <Text className="text-body text-text2 font-body mt-1">{t("people.subtitle")}</Text>
-      </View>
-      <SectionLabel>{t("people.listTitle")}</SectionLabel>
-      {loading ? (
-        <Text className="text-body text-text3 font-body">{t("people.loadingPeople")}</Text>
-      ) : null}
-      {error ? <Text className="text-body text-red font-body">{error}</Text> : null}
-    </View>
-  );
+  async function handleDelete() {
+    if (!userId || !deleteId) return;
+    setDeleting(true);
+    try {
+      await deletePerson(userId, deleteId);
+      triggerMedium();
+      setDeleteId(null);
+      await reload();
+    } finally {
+      setDeleting(false);
+    }
+  }
 
-  const listEmpty =
-    !loading && !error ? (
-      <View className="px-4">
-        <Text className="text-body text-text3 font-body">{t("people.noPeople")}</Text>
-      </View>
-    ) : null;
+  const deleteName = activePeople.find((p) => p.id === deleteId)?.displayName ?? "";
 
   return (
     <AppShell>
-      <FlashList
-        data={loading || error ? [] : activePeople}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <View className="px-4">
-            <PersonRowCard person={item} t={t} locale={locale} />
+      <ScrollView contentContainerStyle={{ paddingBottom: 130 }}>
+        <View className="px-4">
+          <View className="pt-1 pb-2">
+            <Text className="text-3xl leading-[36px] text-text1 font-heading">
+              {t("people.title")}
+            </Text>
+            <Text className="text-body text-text2 font-body mt-1">{t("people.subtitle")}</Text>
           </View>
-        )}
-        ListHeaderComponent={listHeader}
-        ListEmptyComponent={listEmpty}
-        contentContainerStyle={{ paddingBottom: 130 }}
-      />
+          <SectionLabel>{t("people.listTitle")}</SectionLabel>
+          {loading ? (
+            <Text className="text-body text-text3 font-body">{t("people.loadingPeople")}</Text>
+          ) : null}
+          {error ? <Text className="text-body text-red font-body">{error}</Text> : null}
+          {!loading && !error && activePeople.length === 0 ? (
+            <Text className="text-body text-text3 font-body">{t("people.noPeople")}</Text>
+          ) : null}
+        </View>
+
+        {activePeople.map((person) => (
+          <View key={person.id} className="px-4" style={{ marginBottom: 8 }}>
+            <View style={{ borderRadius: 20, overflow: "hidden" }}>
+              <Swipeable
+                friction={1.5}
+                overshootRight={false}
+                rightThreshold={40}
+                renderRightActions={() => (
+                  <View className="flex-row">
+                    <Pressable
+                      onPress={() => { triggerSelection(); router.push(`/people/${person.id}/edit`); }}
+                      className="bg-amber items-center justify-center px-5"
+                    >
+                      <Text className="text-xl" style={{ color: "#fff" }}>✎</Text>
+                    </Pressable>
+                    <Pressable
+                      onPress={() => { triggerLight(); setDeleteId(person.id); }}
+                      className="bg-red items-center justify-center px-5"
+                    >
+                      <Text className="text-xl" style={{ color: "#fff" }}>🗑</Text>
+                    </Pressable>
+                  </View>
+                )}
+              >
+                <PersonRowCard person={person} t={t} locale={locale} />
+              </Swipeable>
+            </View>
+          </View>
+        ))}
+      </ScrollView>
+
+      <BottomSheet
+        visible={deleteId !== null}
+        onDismiss={() => setDeleteId(null)}
+        title={t("people.deletePersonTitle")}
+      >
+        <Text className="text-sm text-text2 font-body mb-4">
+          {t("people.deletePersonBody", { name: deleteName || t("people.deletePersonFallback") })}
+        </Text>
+        <View className="gap-2">
+          <Button variant="primary" onPress={() => void handleDelete()} loading={deleting} disabled={deleting}>
+            {t("people.deletePersonButton")}
+          </Button>
+          <Button variant="ghost" onPress={() => setDeleteId(null)} disabled={deleting}>
+            {t("common.cancel")}
+          </Button>
+        </View>
+      </BottomSheet>
     </AppShell>
   );
 }
