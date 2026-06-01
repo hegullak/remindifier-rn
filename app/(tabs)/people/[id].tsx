@@ -26,14 +26,14 @@ import { PersonProfileHeader } from "@/features/people/PersonProfileHeader";
 import { SwipeEditDeleteActions } from "@/features/people/SwipeEditDeleteActions";
 import { usePersonProfileData } from "@/features/people/usePersonProfileData";
 import { useTranslation } from "@/i18n/LanguageContext";
-import { redLetterDisplayLabel, redLetterKindIcon } from "@/i18n/redLetterKinds";
+import { redLetterKindIcon } from "@/i18n/redLetterKinds";
 import type { Locale } from "@/i18n/types";
 import {
   RED_LETTER_OTHER_KINDS,
   type RedLetterDayInput,
   type RedLetterKind,
 } from "@/lib/red-letter-day";
-import { computeAgeFromBirthday } from "@/lib/birthdayForm";
+import { formatPersonMerkedagLine } from "@/lib/people/personMerkedagDisplay";
 import { triggerLight, triggerMedium, triggerSelection } from "@/lib/haptics";
 import { AppShell } from "@/ui/AppShell";
 import { BottomSheet } from "@/ui/BottomSheet";
@@ -41,6 +41,7 @@ import { Button } from "@/ui/Button";
 import { Card } from "@/ui/Card";
 import type { AddMenuSection } from "@/ui/GlobalAddButton";
 import { InputActionButtons } from "@/ui/InputActionButtons";
+import { PersonDetailListRow } from "@/ui/PersonDetailListRow";
 import { SectionLabel } from "@/ui/SectionLabel";
 
 function formatDate(iso: string, locale: Locale) {
@@ -511,51 +512,40 @@ export default function PersonDetailScreen() {
           {bundle ? (
             <>
               <SectionLabel>{t("people.redLetterDays")}</SectionLabel>
-              {merkedagerList.map((item) => {
-                const rowKey = item.id ?? `kind-${item.kind}`;
-                const age =
-                  item.kind === "Birthday"
-                    ? computeAgeFromBirthday(item.eventDate, item.yearKnown)
-                    : null;
-                return (
-                  <View
-                    key={rowKey}
-                    style={{ borderRadius: 12, overflow: "hidden", marginBottom: 8 }}
-                  >
-                    <Swipeable
-                      friction={1.5}
-                      overshootRight={false}
-                      rightThreshold={40}
-                      enabled={!showMerkedagComposer}
-                      renderRightActions={() => (
-                        <SwipeEditDeleteActions
-                          onEdit={() => {
-                            triggerSelection();
-                            openMerkedagComposer(item, item.kind === "Birthday");
-                          }}
-                          onDelete={() => void deleteMerkedagItem(item)}
-                        />
-                      )}
-                    >
-                      <View className="py-3 bg-bg">
-                        <Text className="text-sm text-text1 font-bodyMedium">
-                          {redLetterKindIcon(item.kind)}{" "}
-                          {redLetterDisplayLabel(item.kind, item.label, locale)}
-                          {age !== null ? (
-                            <Text className="text-sm text-text2 font-body">
-                              {" "}
-                              · {t("people.years", { count: age })}
-                            </Text>
-                          ) : null}
-                        </Text>
-                        <Text className="text-3xs text-text3 font-body mt-1">
-                          {formatDate(item.eventDate, locale)}
-                        </Text>
-                      </View>
-                    </Swipeable>
-                  </View>
-                );
-              })}
+              <View className="mb-2 border-t border-border">
+                {merkedagerList.map((item) => {
+                  const rowKey = item.id ?? `kind-${item.kind}`;
+                  const line = formatPersonMerkedagLine(
+                    item.kind,
+                    item.label,
+                    item.eventDate,
+                    locale,
+                  );
+                  return (
+                    <View key={rowKey} style={{ overflow: "hidden" }}>
+                      <Swipeable
+                        friction={1.5}
+                        overshootRight={false}
+                        rightThreshold={40}
+                        enabled={!showMerkedagComposer}
+                        renderRightActions={() => (
+                          <SwipeEditDeleteActions
+                            onEdit={() => {
+                              triggerSelection();
+                              openMerkedagComposer(item, item.kind === "Birthday");
+                            }}
+                            onDelete={() => void deleteMerkedagItem(item)}
+                          />
+                        )}
+                      >
+                        <PersonDetailListRow icon={redLetterKindIcon(item.kind)}>
+                          <Text className="text-body-lg text-text1 font-body">{line}</Text>
+                        </PersonDetailListRow>
+                      </Swipeable>
+                    </View>
+                  );
+                })}
+              </View>
               {merkedagerList.length === 0 && !showMerkedagComposer ? (
                 <Text className="text-body text-text3 font-body mb-3">
                   {t("people.noRedLetterDays")}
@@ -617,51 +607,48 @@ export default function PersonDetailScreen() {
               )}
 
               <SectionLabel>{t("people.funFacts")}</SectionLabel>
-              {(bundle.person.interests ?? []).map((fact, i) => {
-                const isEditing = editingFactIndex === i;
-                return (
-                  <View
-                    key={`${fact}-${i}`}
-                    style={{ borderRadius: 12, overflow: "hidden", marginBottom: 8 }}
-                  >
-                    <Swipeable
-                      friction={1.5}
-                      overshootRight={false}
-                      rightThreshold={40}
-                      enabled={!isEditing}
-                      renderRightActions={() => (
-                        <SwipeEditDeleteActions
-                          onEdit={() => {
-                            setEditingFactText(fact);
-                            setEditingFactIndex(i);
-                          }}
-                          onDelete={() => setFactToDelete(i)}
-                        />
-                      )}
-                    >
-                      <View className="py-3 bg-bg">
-                        {isEditing ? (
-                          <TextInput
-                            value={editingFactText}
-                            onChangeText={setEditingFactText}
-                            autoFocus
-                            multiline
-                            returnKeyType="done"
-                            onBlur={() => void saveFactEdit(i)}
-                            onSubmitEditing={() => void saveFactEdit(i)}
-                            className="text-sm text-text1 font-body bg-transparent"
-                            style={{ minHeight: 24 }}
+              <View className="mb-2 border-t border-border">
+                {(bundle.person.interests ?? []).map((fact, i) => {
+                  const isEditing = editingFactIndex === i;
+                  return (
+                    <View key={`${fact}-${i}`} style={{ overflow: "hidden" }}>
+                      <Swipeable
+                        friction={1.5}
+                        overshootRight={false}
+                        rightThreshold={40}
+                        enabled={!isEditing}
+                        renderRightActions={() => (
+                          <SwipeEditDeleteActions
+                            onEdit={() => {
+                              setEditingFactText(fact);
+                              setEditingFactIndex(i);
+                            }}
+                            onDelete={() => setFactToDelete(i)}
                           />
-                        ) : (
-                          <Text className="text-sm text-text2 font-body leading-[21px]">
-                            · {fact}
-                          </Text>
                         )}
-                      </View>
-                    </Swipeable>
-                  </View>
-                );
-              })}
+                      >
+                        <PersonDetailListRow>
+                          {isEditing ? (
+                            <TextInput
+                              value={editingFactText}
+                              onChangeText={setEditingFactText}
+                              autoFocus
+                              multiline
+                              returnKeyType="done"
+                              onBlur={() => void saveFactEdit(i)}
+                              onSubmitEditing={() => void saveFactEdit(i)}
+                              className="text-body-lg text-text1 font-body bg-transparent"
+                              style={{ minHeight: 24, fontSize: 17 }}
+                            />
+                          ) : (
+                            <Text className="text-body-lg text-text1 font-body">{fact}</Text>
+                          )}
+                        </PersonDetailListRow>
+                      </Swipeable>
+                    </View>
+                  );
+                })}
+              </View>
               {(bundle.person.interests ?? []).length === 0 && !showFactInput ? (
                 <Text className="text-body text-text3 font-body mb-4">{t("people.noFunFacts")}</Text>
               ) : null}
@@ -710,42 +697,43 @@ export default function PersonDetailScreen() {
               {bundle.gatherings.length === 0 ? (
                 <Text className="text-body text-text3 font-body mb-2">{t("people.noEvents")}</Text>
               ) : (
-                bundle.gatherings.map((g) => (
-                  <View
-                    key={g.id}
-                    style={{ borderRadius: 12, overflow: "hidden", marginBottom: 4 }}
-                  >
-                    <Swipeable
-                      friction={1.5}
-                      overshootRight={false}
-                      rightThreshold={40}
-                      renderRightActions={() => (
-                        <SwipeEditDeleteActions
-                          onEdit={() => {
-                            triggerSelection();
-                            router.push(`/gather/${g.id}`);
-                          }}
-                          onDelete={() => setGatheringToDelete(g.id)}
-                        />
-                      )}
-                    >
-                      <Pressable
-                        onPress={() => {
-                          triggerLight();
-                          router.push(`/gather/${g.id}`);
-                        }}
-                        className="py-3 bg-bg active:opacity-80"
-                      >
-                        <Text className="text-sm text-text1 font-bodyMedium">{g.title}</Text>
-                        {g.scheduledAt ? (
-                          <Text className="text-3xs text-text3 font-body mt-1">
-                            {formatDate(g.scheduledAt.toISOString(), locale)}
-                          </Text>
-                        ) : null}
-                      </Pressable>
-                    </Swipeable>
-                  </View>
-                ))
+                <View className="mb-2 border-t border-border">
+                  {bundle.gatherings.map((g) => {
+                    const eventLine = g.scheduledAt
+                      ? `${g.title} · ${formatDate(g.scheduledAt.toISOString(), locale)}`
+                      : g.title;
+                    return (
+                      <View key={g.id} style={{ overflow: "hidden" }}>
+                        <Swipeable
+                          friction={1.5}
+                          overshootRight={false}
+                          rightThreshold={40}
+                          renderRightActions={() => (
+                            <SwipeEditDeleteActions
+                              onEdit={() => {
+                                triggerSelection();
+                                router.push(`/gather/${g.id}`);
+                              }}
+                              onDelete={() => setGatheringToDelete(g.id)}
+                            />
+                          )}
+                        >
+                          <Pressable
+                            onPress={() => {
+                              triggerLight();
+                              router.push(`/gather/${g.id}`);
+                            }}
+                            className="active:opacity-80"
+                          >
+                            <PersonDetailListRow icon="🌿">
+                              <Text className="text-body-lg text-text1 font-body">{eventLine}</Text>
+                            </PersonDetailListRow>
+                          </Pressable>
+                        </Swipeable>
+                      </View>
+                    );
+                  })}
+                </View>
               )}
 
               {bundle.links.length > 0 ? (

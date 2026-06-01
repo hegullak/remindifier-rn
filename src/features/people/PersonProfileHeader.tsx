@@ -10,6 +10,7 @@ import {
   toggleRelationCategory,
   translateRelationType,
 } from "@/i18n/relationTypes";
+import { computeAgeFromBirthday } from "@/lib/birthdayForm";
 import { triggerLight, triggerMedium, triggerSelection } from "@/lib/haptics";
 
 const fieldClass =
@@ -56,6 +57,7 @@ export function PersonProfileHeader({
   }, [displayName, relationType, birthday, editing]);
 
   const relationLabel = translateRelationType(relationType, locale);
+  const age = computeAgeFromBirthday(birthday, birthdayYearKnown);
 
   const startEdit = () => {
     swipeRef.current?.close();
@@ -154,8 +156,12 @@ export function PersonProfileHeader({
   ) : (
     <View>
       <Text className="text-3xl leading-[36px] text-text1 font-heading">{displayName}</Text>
-      {relationLabel ? (
-        <Text className="text-sm text-text2 font-body mt-1">{relationLabel}</Text>
+      {relationLabel || age !== null ? (
+        <Text className="text-body text-text2 font-body mt-1">
+          {relationLabel ?? ""}
+          {relationLabel && age !== null ? " · " : ""}
+          {age !== null ? t("people.years", { count: age }) : ""}
+        </Text>
       ) : null}
     </View>
   );
