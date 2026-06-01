@@ -240,29 +240,54 @@ export default function BriefScreen() {
     );
   }
 
-  const morningPillText = morningBrief.available
-    ? morningBrief.isEmpty
-      ? t("brief.morningBrief.pillEmpty")
-      : morningBrief.pillText
-    : t("brief.morningBrief.pillUnavailable");
+  // Ambient brief: morgen 06–09, kveld 20:30+
+  const ambientPeriod = (() => {
+    const h = new Date().getHours();
+    const m = new Date().getMinutes();
+    if (h >= 6 && h < 9) return "morning";
+    if (h > 20 || (h === 20 && m >= 30)) return "evening";
+    return null;
+  })();
 
-  const eveningPillText = !windDown.available
-    ? t("brief.eveningWindDown.pillUnavailable")
-    : windDown.isEmpty
-      ? t("brief.eveningWindDown.pillEmpty")
-      : windDown.pillText;
+  const ambientHeadline =
+    ambientPeriod === "morning" && morningBrief.available && !morningBrief.isEmpty
+      ? morningBrief.headline
+      : ambientPeriod === "evening" && windDown.available && !windDown.isEmpty
+        ? windDown.headline
+        : null;
+
+  const ambientOnPress =
+    ambientPeriod === "morning"
+      ? () => setShowMorningBrief(true)
+      : ambientPeriod === "evening"
+        ? () => setShowEveningWindDown(true)
+        : undefined;
 
   const listHeader = (
     <View className="pb-2">
-      {/* 1. Hilsen — visuelt anker */}
-      <View style={{ paddingTop: 32, paddingBottom: 8 }}>
+      {/* Hilsen — visuelt anker */}
+      <View style={{ paddingTop: 32, paddingBottom: ambientHeadline ? 6 : 16 }}>
         <Text className="text-5xl leading-tight text-text1 font-heading">
           {greetingLead}{" "}
           <Text className="text-accent">{greetingName}</Text>
         </Text>
       </View>
 
-      {/* 3. Datovelger — navigasjon for seksjonene under */}
+      {/* Ambient linje — kun morgen 06–09 eller kveld 20:30+ */}
+      {ambientHeadline ? (
+        <Pressable
+          onPress={ambientOnPress}
+          className="active:opacity-70"
+          hitSlop={4}
+          style={{ paddingBottom: 16 }}
+        >
+          <Text className="text-body-lg text-text2 font-body leading-[22px]">
+            {ambientHeadline}
+          </Text>
+        </Pressable>
+      ) : null}
+
+      {/* Datovelger */}
       <View className="flex-row items-center gap-3 mb-4">
         <Pressable
           onPress={() => shiftWeek(-1)}
@@ -295,44 +320,6 @@ export default function BriefScreen() {
           className="active:opacity-60"
         >
           <Text className="text-xl text-accent font-body">→</Text>
-        </Pressable>
-      </View>
-
-      <View className="flex-row gap-2 mb-3">
-        <Pressable
-          onPress={() => setShowMorningBrief(true)}
-          className="flex-1 active:opacity-70"
-          accessibilityRole="button"
-        >
-          <View className="bg-card border border-border rounded-[18px] px-4 py-3 flex-row items-center justify-between">
-            <View className="flex-1 mr-2">
-              <Text className="text-2xs uppercase tracking-[1.5px] text-text3 font-bodySemi">
-                {t("brief.morningBrief.sectionLabel")}
-              </Text>
-              <Text className="text-sm text-text1 font-bodyMedium mt-0.5" numberOfLines={1}>
-                {morningPillText}
-              </Text>
-            </View>
-            <Text className="text-lg text-text3 font-body">›</Text>
-          </View>
-        </Pressable>
-
-        <Pressable
-          onPress={() => setShowEveningWindDown(true)}
-          className="flex-1 active:opacity-70"
-          accessibilityRole="button"
-        >
-          <View className="bg-card border border-border rounded-[18px] px-4 py-3 flex-row items-center justify-between">
-            <View className="flex-1 mr-2">
-              <Text className="text-2xs uppercase tracking-[1.5px] text-text3 font-bodySemi">
-                {t("brief.eveningWindDown.sectionLabel")}
-              </Text>
-              <Text className="text-sm text-text1 font-bodyMedium mt-0.5" numberOfLines={1}>
-                {eveningPillText}
-              </Text>
-            </View>
-            <Text className="text-lg text-text3 font-body">›</Text>
-          </View>
         </Pressable>
       </View>
     </View>
