@@ -394,107 +394,80 @@ export default function GatheringDetailScreen() {
                   })
                 )}
 
-                {!showInputField ? (
+                {showInputField ? (
+                  <View className="pt-4 pb-2">
+                    {/* Kind — bare ikoner, valgt = full opacity med liten prikk */}
+                    <View className="flex-row gap-5 mb-3">
+                      {TALKING_POINT_KINDS.map((kind) => {
+                        const meta = talkingPointMeta(kind);
+                        const selected = kind === selectedKind;
+                        return (
+                          <Pressable
+                            key={kind}
+                            onPress={() => {
+                              triggerSelection();
+                              setSelectedKind(kind);
+                              pointInputRef.current?.focus();
+                            }}
+                            hitSlop={10}
+                            className="items-center active:opacity-60"
+                          >
+                            <Text style={{ fontSize: 22, opacity: selected ? 1 : 0.3 }}>{meta.icon}</Text>
+                            {selected ? (
+                              <View className="w-1 h-1 rounded-full bg-accent mt-1" />
+                            ) : (
+                              <View className="w-1 h-1 mt-1" />
+                            )}
+                          </Pressable>
+                        );
+                      })}
+                    </View>
+                    <View className="flex-row items-center gap-2">
+                      <TextInput
+                        ref={pointInputRef}
+                        value={newPointText}
+                        onChangeText={setNewPointText}
+                        placeholder={t("gathering.addPlaceholder")}
+                        placeholderTextColor={placeholderColor}
+                        returnKeyType="done"
+                        onSubmitEditing={() => void addPoint()}
+                        autoFocus
+                        className="flex-1 bg-card border border-border rounded-lg px-3 text-text1 font-body"
+                        style={{ color: inputTextColor, paddingVertical: 10, fontSize: 15, minHeight: 44 }}
+                      />
+                      <Pressable
+                        onPress={() => void addPoint()}
+                        hitSlop={8}
+                        className="w-10 h-10 rounded-full bg-accent items-center justify-center active:opacity-70"
+                      >
+                        <Text className="text-base text-card font-bodySemi">✓</Text>
+                      </Pressable>
+                      <Pressable
+                        onPress={() => { triggerLight(); setShowInputField(false); setNewPointText(""); Keyboard.dismiss(); }}
+                        hitSlop={8}
+                        className="p-2"
+                      >
+                        <Text className="text-body-lg text-text3">✕</Text>
+                      </Pressable>
+                    </View>
+                  </View>
+                ) : (
                   <Pressable
                     onPress={() => {
                       triggerLight();
                       LayoutAnimation.configureNext({
                         duration: 250,
-                        create: {
-                          type: LayoutAnimation.Types.easeInEaseOut,
-                          property: LayoutAnimation.Properties.opacity,
-                        },
+                        create: { type: LayoutAnimation.Types.easeInEaseOut, property: LayoutAnimation.Properties.opacity },
                       });
                       setShowInputField(true);
-                      setTimeout(() => { if (mountedRef.current) pointInputRef.current?.focus(); }, 80);
                     }}
                     className="flex-row items-center gap-2 py-4 active:opacity-60"
                   >
                     <Text className="text-xl text-accent font-body">+</Text>
                     <Text className="text-body text-text3 font-body">{t("gathering.newPoint")}</Text>
                   </Pressable>
-                ) : null}
+                )}
               </ScrollView>
-
-              {showInputField ? (
-                <View
-                  className="border-t border-border bg-bg pt-3 -mx-4 px-4"
-                  style={{ paddingBottom: 100 }}
-                >
-                  <ScrollView
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    contentContainerStyle={{ gap: 8, paddingBottom: 10 }}
-                  >
-                    {TALKING_POINT_KINDS.map((kind) => {
-                      const meta = talkingPointMeta(kind);
-                      const selected = kind === selectedKind;
-                      return (
-                        <Pressable
-                          key={kind}
-                          onPress={() => {
-                            triggerSelection();
-                            setSelectedKind(kind);
-                            pointInputRef.current?.focus();
-                          }}
-                          className={`flex-row items-center gap-1.5 rounded-full border px-3 py-1.5 ${
-                            selected ? "bg-accent border-accent" : "bg-bg2 border-border"
-                          }`}
-                        >
-                          <Text className="text-sm">{meta.icon}</Text>
-                          <Text className={`text-xs font-bodySemi ${selected ? "text-card" : "text-text2"}`}>
-                            {talkingPointLabel(kind, locale)}
-                          </Text>
-                        </Pressable>
-                      );
-                    })}
-                  </ScrollView>
-                  <View className="flex-row items-center gap-2">
-                    <TextInput
-                      ref={pointInputRef}
-                      value={newPointText}
-                      onChangeText={setNewPointText}
-                      placeholder={t("gathering.addPlaceholder")}
-                      placeholderTextColor={placeholderColor}
-                      returnKeyType="done"
-                      onSubmitEditing={() => void addPoint()}
-                      className="flex-1 bg-card border border-border rounded-lg px-3 text-text1 font-body"
-                      style={{
-                        color: inputTextColor,
-                        paddingVertical: 10,
-                        fontSize: 15,
-                        minHeight: 44,
-                      }}
-                    />
-                    <Pressable
-                      onPress={() => void addPoint()}
-                      hitSlop={8}
-                      className="w-10 h-10 rounded-full bg-accent items-center justify-center active:opacity-70"
-                    >
-                      <Text className="text-base text-card font-bodySemi">✓</Text>
-                    </Pressable>
-                    <Pressable
-                      onPress={() => {
-                        triggerLight();
-                        LayoutAnimation.configureNext({
-                          duration: 200,
-                          delete: {
-                            type: LayoutAnimation.Types.easeInEaseOut,
-                            property: LayoutAnimation.Properties.opacity,
-                          },
-                        });
-                        setShowInputField(false);
-                        setNewPointText("");
-                        Keyboard.dismiss();
-                      }}
-                      hitSlop={8}
-                      className="p-2"
-                    >
-                      <Text className="text-body-lg text-text3">✕</Text>
-                    </Pressable>
-                  </View>
-                </View>
-              ) : null}
             </>
           )}
         </View>
