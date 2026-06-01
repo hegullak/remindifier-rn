@@ -255,7 +255,7 @@ export default function BriefScreen() {
   const listHeader = (
     <View className="pb-2">
       {/* 1. Hilsen — visuelt anker */}
-      <View style={{ paddingTop: 16, paddingBottom: 8 }}>
+      <View style={{ paddingTop: 32, paddingBottom: 8 }}>
         <Text className="text-5xl leading-tight text-text1 font-heading">
           {greetingLead}{" "}
           <Text className="text-accent">{greetingName}</Text>
