@@ -254,8 +254,32 @@ export default function BriefScreen() {
 
   const listHeader = (
     <View className="pb-2">
-      {/* 1. Dato + ukenavigasjon øverst */}
-      <View className="flex-row items-center gap-3 mb-1">
+      {/* 1. Vær — kontekst, rask oversikt */}
+      <Pressable
+        onPress={() => setShowWeatherSheet(true)}
+        className="flex-row items-center mb-1 active:opacity-70"
+        accessibilityRole="button"
+        hitSlop={8}
+      >
+        <Text className="text-body-lg mr-1">{brief.weather.icon}</Text>
+        <Text className="text-body text-text2 font-bodyMedium">{brief.weather.temp}</Text>
+        <Text className="text-body text-text3 font-body">  🌧️ {rainText}</Text>
+        {windText ? (
+          <Text className="text-body text-text3 font-body">  💨 {windText}</Text>
+        ) : null}
+        <Text className="text-body text-text3 font-body ml-1">›</Text>
+      </Pressable>
+
+      {/* 2. Hilsen — visuelt anker */}
+      <View style={{ paddingTop: 16, paddingBottom: 8 }}>
+        <Text className="text-5xl leading-tight text-text1 font-heading">
+          {greetingLead}{" "}
+          <Text className="text-accent">{greetingName}</Text>
+        </Text>
+      </View>
+
+      {/* 3. Datovelger — navigasjon for seksjonene under */}
+      <View className="flex-row items-center gap-3 mb-4">
         <Pressable
           onPress={() => shiftWeek(-1)}
           accessibilityRole="button"
@@ -289,30 +313,6 @@ export default function BriefScreen() {
           <Text className="text-xl text-accent font-body">→</Text>
         </Pressable>
       </View>
-
-      {/* 2. Hilsen — visuelt anker */}
-      <View style={{ paddingTop: 16, paddingBottom: 8 }}>
-        <Text className="text-5xl leading-tight text-text1 font-heading">
-          {greetingLead}{" "}
-          <Text className="text-accent">{greetingName}</Text>
-        </Text>
-      </View>
-
-      {/* 3. Vær — kontekst under hilsen */}
-      <Pressable
-        onPress={() => setShowWeatherSheet(true)}
-        className="flex-row items-center mb-4 active:opacity-70"
-        accessibilityRole="button"
-        hitSlop={8}
-      >
-        <Text className="text-body-lg mr-1">{brief.weather.icon}</Text>
-        <Text className="text-body text-text2 font-bodyMedium">{brief.weather.temp}</Text>
-        <Text className="text-body text-text3 font-body">  🌧️ {rainText}</Text>
-        {windText ? (
-          <Text className="text-body text-text3 font-body">  💨 {windText}</Text>
-        ) : null}
-        <Text className="text-body text-text3 font-body ml-1">›</Text>
-      </Pressable>
 
       <View className="flex-row gap-2 mb-3">
         <Pressable
