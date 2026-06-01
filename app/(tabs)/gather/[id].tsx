@@ -78,6 +78,7 @@ export default function GatheringDetailScreen() {
   const [selectedKind, setSelectedKind] = useState<TalkingPointKind>("topic");
   const [newPointText, setNewPointText] = useState("");
   const pointInputRef = useRef<TextInput>(null);
+  const scrollViewRef = useRef<ScrollView>(null);
   const [showInputField, setShowInputField] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
   const [showPersonPicker, setShowPersonPicker] = useState(false);
@@ -357,6 +358,7 @@ export default function GatheringDetailScreen() {
               ) : null}
 
               <ScrollView
+                ref={scrollViewRef}
                 keyboardDismissMode="on-drag"
                 keyboardShouldPersistTaps="handled"
                 contentContainerStyle={{ paddingBottom: 120 }}
@@ -458,6 +460,7 @@ export default function GatheringDetailScreen() {
                         create: { type: LayoutAnimation.Types.easeInEaseOut, property: LayoutAnimation.Properties.opacity },
                       });
                       setShowInputField(true);
+                      setTimeout(() => scrollViewRef.current?.scrollToEnd({ animated: true }), 100);
                     }}
                     className="flex-row items-center gap-2 py-4 active:opacity-60"
                   >
