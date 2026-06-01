@@ -254,23 +254,7 @@ export default function BriefScreen() {
 
   const listHeader = (
     <View className="pb-2">
-      {/* 1. Vær — kontekst, rask oversikt */}
-      <Pressable
-        onPress={() => setShowWeatherSheet(true)}
-        className="flex-row items-center mb-1 active:opacity-70"
-        accessibilityRole="button"
-        hitSlop={8}
-      >
-        <Text className="text-body-lg mr-1">{brief.weather.icon}</Text>
-        <Text className="text-body text-text2 font-bodyMedium">{brief.weather.temp}</Text>
-        <Text className="text-body text-text3 font-body">  🌧️ {rainText}</Text>
-        {windText ? (
-          <Text className="text-body text-text3 font-body">  💨 {windText}</Text>
-        ) : null}
-        <Text className="text-body text-text3 font-body ml-1">›</Text>
-      </Pressable>
-
-      {/* 2. Hilsen — visuelt anker */}
+      {/* 1. Hilsen — visuelt anker */}
       <View style={{ paddingTop: 16, paddingBottom: 8 }}>
         <Text className="text-5xl leading-tight text-text1 font-heading">
           {greetingLead}{" "}
@@ -355,7 +339,24 @@ export default function BriefScreen() {
   );
 
   return (
-    <AppShell>
+    <AppShell
+      headerLeft={
+        <Pressable
+          onPress={() => setShowWeatherSheet(true)}
+          className="flex-row items-center active:opacity-70"
+          accessibilityRole="button"
+          hitSlop={8}
+        >
+          <Text className="text-body-lg mr-1">{brief.weather.icon}</Text>
+          <Text className="text-body text-text2 font-bodyMedium">{brief.weather.temp}</Text>
+          <Text className="text-body text-text3 font-body">  🌧️ {rainText}</Text>
+          {windText ? (
+            <Text className="text-body text-text3 font-body">  💨 {windText}</Text>
+          ) : null}
+          <Text className="text-body text-text3 font-body ml-1">›</Text>
+        </Pressable>
+      }
+    >
       <ScrollView
         contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 130 }}
       >
