@@ -197,7 +197,7 @@ const SEED_EVENTS: SeedEvent[] = [
   // Today — Privat
   {
     key: "today-kaffe-marte",
-    title: "Kaffe med Marte ☕",
+    title: "Kaffe med Marte",
     notes: "Hun byttet jobb nylig — spør hvordan det går.",
     allDay: false,
     fixedHour: 14,
@@ -207,7 +207,7 @@ const SEED_EVENTS: SeedEvent[] = [
   },
   {
     key: "today-tannlege",
-    title: "Tannlege 🦷",
+    title: "Tannlege",
     notes: "Husk parkering bak bygget.",
     allDay: false,
     fixedHour: 16,

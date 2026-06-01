@@ -246,13 +246,13 @@ export default function BriefScreen() {
         ) : (
           <Pressable onPress={() => setWeekExpanded(true)} className="active:opacity-70">
             <BriefCard stripeColor="sage">
-              <View className="flex-row items-center justify-between">
+              <View className="flex-row items-center justify-between py-3">
                 <Text className="text-body-lg text-text2 font-body">
                   {locale === "no"
                     ? `${restItems.length} ${restItems.length === 1 ? "hendelse" : "hendelser"} resten av uken`
                     : `${restItems.length} ${restItems.length === 1 ? "event" : "events"} rest of week`}
                 </Text>
-                <Text className="text-body-lg text-sage font-bodySemi">+{restItems.length}</Text>
+                <Text className="text-xl text-sage font-bodySemi">+{restItems.length}</Text>
               </View>
             </BriefCard>
           </Pressable>

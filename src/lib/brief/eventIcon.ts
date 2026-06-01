@@ -10,6 +10,7 @@ const ICON_RULES: { icon: string; keywords: string[] }[] = [
   { icon: "🦷", keywords: ["tannlege", "dentist"] },
   { icon: "🩺", keywords: ["lege", "legetime", "doctor", "helse"] },
   { icon: "⚽", keywords: ["fotball", "football", "kamp"] },
+  { icon: "🏋️", keywords: ["styrke", "strength"] },
   { icon: "🏃", keywords: ["løp", "trening", "intervall", "gym", "run", "workout"] },
   { icon: "✈️", keywords: ["fly", "reise", "flight", "travel"] },
   { icon: "🎉", keywords: ["fest", "feiring", "party", "bursdag", "birthday"] },
