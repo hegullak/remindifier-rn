@@ -256,6 +256,22 @@ export default function BriefScreen() {
         ? windDown.headline
         : null;
 
+  // Trekk ut relevante detalj-setninger fra body
+  const ambientDetails = (() => {
+    const src = ambientPeriod === "morning" ? morningBrief : ambientPeriod === "evening" ? windDown : null;
+    if (!src?.available || src.isEmpty || !ambientHeadline) return [];
+    const sentences = src.body.split("\n").filter(Boolean);
+    const find = (kw: string) => sentences.find(s => s.toLowerCase().includes(kw));
+    const lines: string[] = [];
+    const firstEvent = sentences[0]; // "Første møte kl. 09:00." / "Første hendelse er kl. …"
+    if (firstEvent) lines.push(firstEvent);
+    const lunch = find("lunsj") ?? find("lunch");
+    if (lunch && lunch !== firstEvent) lines.push(lunch);
+    const weekend = find("helg") ?? find("weekend");
+    if (weekend) lines.push(weekend);
+    return lines;
+  })();
+
   const ambientOnPress =
     ambientPeriod === "morning"
       ? () => setShowMorningBrief(true)
@@ -273,17 +289,22 @@ export default function BriefScreen() {
         </Text>
       </View>
 
-      {/* Ambient linje — kun morgen 06–09 eller kveld 20:30+ */}
+      {/* Ambient — kun morgen 06–09 eller kveld 20:30+ */}
       {ambientHeadline ? (
         <Pressable
           onPress={ambientOnPress}
           className="active:opacity-70"
           hitSlop={4}
-          style={{ paddingBottom: 16 }}
+          style={{ paddingBottom: 20 }}
         >
-          <Text className="text-body-lg text-text2 font-body leading-[22px]">
+          <Text className="text-body-lg text-text1 font-body leading-[24px] mb-2">
             {ambientHeadline}
           </Text>
+          {ambientDetails.map((line, i) => (
+            <Text key={i} className="text-body text-text3 font-body leading-[20px] mb-0.5">
+              {line}
+            </Text>
+          ))}
         </Pressable>
       ) : null}
 
