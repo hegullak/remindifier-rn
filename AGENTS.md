@@ -16,7 +16,7 @@ Read the exact versioned docs at https://docs.expo.dev/versions/v56.0.0/ before 
 - `claude-current-remindifier-state.md` if anything meaningful changed
 - `PROJECT_MEMORY.md` only when conventions or structure change
 
-Cursor hooks: `sessionStart` injects memory · `stop` triggers handoff when git is dirty  
-Cursor rules: `.cursor/rules/session-handoff.mdc` · Skill: `.cursor/skills/project-memory/SKILL.md`
+Cursor hooks: `sessionStart` injects memory · `stop` does **not** auto-handoff
+Cursor rules: `.cursor/rules/session-handoff.mdc` (apply only when user requests SESSION HANDOFF) · Skill: `.cursor/skills/project-memory/SKILL.md`
 
-**Note:** Hooks run from the project root. Open `remindifier-rn` as the Cursor workspace (not the web repo) for auto-load/handoff.
+**Note:** Hooks run from the project root. Open `remindifier-rn` as the Cursor workspace (not the web repo) for session-start memory injection.

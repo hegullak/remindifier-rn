@@ -1,34 +1,8 @@
 import * as Crypto from "expo-crypto";
 import { logger } from "@/lib/logger";
 import type { TalkingPointKind } from "@/lib/gatherings/talkingPoints";
-
-const OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
-const MODEL = "gpt-4o-mini";
-
-const RESPONSE_SCHEMA = {
-  type: "object",
-  properties: {
-    title: { anyOf: [{ type: "string" }, { type: "null" }] },
-    talkingPoints: {
-      type: "array",
-      items: {
-        type: "object",
-        properties: {
-          kind: {
-            type: "string",
-            enum: ["question", "topic", "smalltalk", "headsup"],
-          },
-          text: { type: "string" },
-        },
-        required: ["kind", "text"],
-        additionalProperties: false,
-      },
-    },
-    mentionedPeople: { type: "array", items: { type: "string" } },
-  },
-  required: ["title", "talkingPoints", "mentionedPeople"],
-  additionalProperties: false,
-} as const;
+import { fetchParseCompletion } from "@/lib/parse/parseApiClient";
+import { extractCompletionContent } from "@/lib/parse/openaiTypes";
 
 export type ParsedEventDraft = {
   title: string | null;
@@ -109,69 +83,34 @@ function normalizeApiPayload(payload: unknown, rawInput: string): ParsedEventDra
   };
 }
 
-const SYSTEM_PROMPT = `You extract structured fields from a note about an upcoming social event or gathering.
+export type ParseEventInputOptions = {
+  getToken?: () => Promise<string | null>;
+};
 
-title: a short event title (3-6 words). Infer from context if not stated explicitly.
-talkingPoints: classify each item the user wants to do, discuss, ask or remember:
-  - question: something to ask the other person
-  - topic: something to discuss or bring up
-  - smalltalk: a light conversation topic, icebreaker or shared interest
-  - headsup: something to remember, prepare for, watch for, or plan ahead of the meeting
-mentionedPeople: first names or full names of people mentioned (not the user themselves).
-Do not invent items not in the text. Return ONLY valid JSON. No markdown.`;
-
-export async function parseEventInput(input: string): Promise<ParsedEventDraft> {
+export async function parseEventInput(
+  input: string,
+  options: ParseEventInputOptions = {},
+): Promise<ParsedEventDraft> {
   const trimmed = input.trim();
   if (!trimmed) return fallbackParse("");
 
-  const apiKey = process.env.EXPO_PUBLIC_OPENAI_API_KEY?.trim();
-  if (!apiKey) return fallbackParse(trimmed);
-
-  try {
-    const response = await fetch(OPENAI_API_URL, {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: MODEL,
-        messages: [
-          { role: "system", content: SYSTEM_PROMPT },
-          { role: "user", content: trimmed },
-        ],
-        response_format: {
-          type: "json_schema",
-          json_schema: {
-            name: "event_draft",
-            strict: true,
-            schema: RESPONSE_SCHEMA,
-          },
-        },
-        max_tokens: 512,
-      }),
-    });
-
-    if (!response.ok) {
-      logger.warn("event_parser_http_error", { status: response.status });
-      return fallbackParse(trimmed);
+  if (options.getToken && process.env.EXPO_PUBLIC_PARSE_API_URL?.trim()) {
+    try {
+      const completion = await fetchParseCompletion(trimmed, "event", options.getToken, {
+        timeoutMs: 5_000,
+      });
+      const content = completion ? extractCompletionContent(completion) : null;
+      if (content) {
+        const parsed = JSON.parse(content) as unknown;
+        const draft = normalizeApiPayload(parsed, trimmed);
+        if (draft) return draft;
+      }
+    } catch (err) {
+      logger.warn("event_parser_failed", {
+        error: err instanceof Error ? err.name : "unknown",
+      });
     }
-
-    const body = (await response.json()) as {
-      choices?: Array<{ message?: { content?: string | null; refusal?: string | null } }>;
-    };
-    const message = body.choices?.[0]?.message;
-    if (!message?.content || message.refusal) {
-      return fallbackParse(trimmed);
-    }
-
-    const parsed = JSON.parse(message.content) as unknown;
-    const draft = normalizeApiPayload(parsed, trimmed);
-    return draft ?? fallbackParse(trimmed);
-  } catch (err) {
-    logger.warn("event_parser_failed", {
-      error: err instanceof Error ? err.name : "unknown",
-    });
-    return fallbackParse(trimmed);
   }
+
+  return fallbackParse(trimmed);
 }

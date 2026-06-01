@@ -1,4 +1,4 @@
-import { Pressable, Text } from "react-native";
+import { ActivityIndicator, Pressable, Text } from "react-native";
 
 const variantClass: Record<
   NonNullable<ButtonProps["variant"]>,
@@ -45,7 +45,11 @@ export function Button({
       }`}
       style={({ pressed }) => (pressed && !isDisabled ? { opacity: 0.85 } : undefined)}
     >
-      <Text className={`text-sm font-bodySemi ${styles.text}`}>{loading ? "…" : children}</Text>
+      {loading ? (
+        <ActivityIndicator size="small" color={variant === "primary" ? "#F7F4EF" : "#C4784A"} />
+      ) : (
+        <Text className={`text-sm font-bodySemi ${styles.text}`}>{children}</Text>
+      )}
     </Pressable>
   );
 }

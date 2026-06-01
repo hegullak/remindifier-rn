@@ -21,7 +21,7 @@ type IntakeMode = "natural" | "form";
 type NaturalStep = "input" | "preview";
 
 export default function NewPersonScreen() {
-  const { userId } = useAppAuth();
+  const { userId, getToken } = useAppAuth();
   const { t } = useTranslation();
   const params = useLocalSearchParams<{
     prefillName?: string;
@@ -77,7 +77,7 @@ export default function NewPersonScreen() {
   async function handleNaturalContinue() {
     setParsing(true);
     try {
-      const draft = await parseNaturalPersonInput(naturalText);
+      const draft = await parseNaturalPersonInput(naturalText, { getToken });
       setParsedDraft(draft);
       setNaturalStep("preview");
     } finally {

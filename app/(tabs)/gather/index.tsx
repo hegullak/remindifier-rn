@@ -1,5 +1,5 @@
-import { Link, router, useFocusEffect } from "expo-router";
-import { useCallback, useState } from "react";
+import { Link, useFocusEffect, useLocalSearchParams } from "expo-router";
+import { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, Keyboard, Pressable, ScrollView, Text, View } from "react-native";
 import { triggerLight, triggerMedium } from "@/lib/haptics";
 import { listGatheringsForUser, getGatheringTalkingPointCount, deleteGathering } from "@/db/repos/gatheringsRepo";
@@ -16,20 +16,34 @@ import { Card } from "@/ui/Card";
 function formatDate(iso: Date | null, locale: Locale) {
   if (!iso) return null;
   const dateLocale = locale === "no" ? "nb-NO" : "en-GB";
-  return iso.toLocaleDateString(dateLocale, {
+  const datePart = iso.toLocaleDateString(dateLocale, {
     weekday: "short",
     day: "numeric",
     month: "short",
   });
+  const timePart = iso.toLocaleTimeString(dateLocale, {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+  return `${datePart} · ${timePart}`;
 }
 
 export default function GatherListScreen() {
   const { userId } = useAppAuth();
   const { t, locale } = useTranslation();
+  const { created } = useLocalSearchParams<{ created?: string }>();
   const [items, setItems] = useState<GatheringListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [showCreatedBanner, setShowCreatedBanner] = useState(created === "1");
+
+  useEffect(() => {
+    if (created !== "1") return;
+    setShowCreatedBanner(true);
+    const timer = setTimeout(() => setShowCreatedBanner(false), 3000);
+    return () => clearTimeout(timer);
+  }, [created]);
 
   async function handleDelete() {
     if (!userId || !deleteId) return;
@@ -78,6 +92,12 @@ export default function GatherListScreen() {
         </Text>
         <Text className="text-sm text-text2 font-body mt-1 mb-4">{t("gathering.subtitle")}</Text>
 
+        {showCreatedBanner ? (
+          <View className="mb-3 flex-row items-center rounded-lg border border-border bg-bg2 px-3 py-2">
+            <Text className="text-sm text-sage font-bodySemi">✓ {t("gathering.createdTitle")}</Text>
+          </View>
+        ) : null}
+
         {loading ? (
           <ActivityIndicator color="#C4784A" />
         ) : items.length === 0 ? (
@@ -86,7 +106,7 @@ export default function GatherListScreen() {
             <Text className="text-body text-text3 font-body mt-2">{t("gathering.createFirst")}</Text>
           </View>
         ) : (
-          <ScrollView contentContainerStyle={{ paddingBottom: 130 }}>
+          <ScrollView contentContainerStyle={{ paddingBottom: 32 }}>
             {items.map((item) => {
               const count = getGatheringTalkingPointCount(item.description);
               const dateLabel = formatDate(item.scheduledAt, locale);
@@ -108,7 +128,7 @@ export default function GatherListScreen() {
                             {t("gathering.talkingPointCount", { count })}
                           </Text>
                           {dateLabel ? (
-                            <Text className="text-3xs text-text3 font-body mt-0.5">{dateLabel}</Text>
+                            <Text className="text-xs text-text2 font-body mt-1">{dateLabel}</Text>
                           ) : null}
                         </Pressable>
                       </Link>
@@ -129,26 +149,6 @@ export default function GatherListScreen() {
             })}
           </ScrollView>
         )}
-
-        <Pressable
-          onPress={() => {
-            triggerLight();
-            Keyboard.dismiss();
-            router.push("/gather/new");
-          }}
-          accessibilityRole="button"
-          accessibilityLabel={t("gathering.createButton")}
-          className="absolute right-5 bottom-[100px] w-16 h-16 rounded-full bg-accent items-center justify-center active:opacity-80"
-          style={{
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: 6 },
-            shadowOpacity: 0.25,
-            shadowRadius: 20,
-            elevation: 10,
-          }}
-        >
-          <Text className="text-3xl text-card font-body leading-[30px]">+</Text>
-        </Pressable>
       </View>
 
       <BottomSheet

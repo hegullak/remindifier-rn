@@ -7,11 +7,11 @@ Last updated: 2026-05-31.
 
 | File | Role |
 |------|------|
-| **`claude-current-remindifier-state.md`** | Session snapshot — status, commits, user agreements, in-progress work. **Update at end of session.** |
-| **`PROJECT_MEMORY.md`** (this file) | Stable architecture — update only when conventions change. |
+| **`claude-current-remindifier-state.md`** | Session snapshot — update **only when user requests SESSION HANDOFF** |
+| **`PROJECT_MEMORY.md`** (this file) | Stable architecture — update only when conventions change |
 
 Agent protocol: `.cursor/rules/session-handoff.mdc` · Skill: `.cursor/skills/project-memory/SKILL.md`  
-Hooks: `.cursor/hooks/session-start.js` (inject memory) · `.cursor/hooks/session-stop.js` (auto-handoff when git dirty)
+Hooks: `.cursor/hooks/session-start.js` (inject memory) · `session-stop.js` does **not** auto-handoff
 
 ## What this app is
 
@@ -81,10 +81,10 @@ A contextual memory and heads-up assistant for the people in your life — not a
 ### Semantic intake (`app/intake.tsx`)
 
 - Entry: global **+** menu → «Speak or type» / «Si eller skriv»
-- Flow: type/paste/iOS keyboard dictation → `parseSemanticIntake` (heuristics) → preview card → confirm / edit / inbox
+- Flow: type/paste/iOS keyboard dictation → `parseSemanticIntake` (proxy + heuristic fallback) → preview card → confirm / edit / inbox
 - **No in-app audio recorder** — voice = iOS keyboard dictation only until #38 STT/record is built
 - **No auto-save** on parse; confirm creates gathering or follow-up; inbox → AsyncStorage (`intakeInboxRepo`)
-- Parser: `src/lib/intake/semanticIntakeParser.ts` (testable, no custom STT)
+- Parser: `src/lib/intake/parseSemanticIntake.ts` (API) + `semanticIntakeParser.ts` (local heuristics, offline fallback)
 - **Multiple follow-ups:** parser can emit several bullets (e.g. «husk å … og om …», «nevnte at …», «vil også ta opp at …»); preview shows a bullet list; edit mode = one reminder per line (`intake.followUpPlaceholder`); `applySemanticIntakeEdits` splits `followUpText` on newlines
 - **Datetime conflict:** when raw text mentions two distinct weekday+time pairs (e.g. onsdag 12 vs torsdag 13), parser sets `scheduledAtOptions[]` + ambiguity `datetime_conflict`; preview shows tappable choices; Confirm disabled until user picks; datetime scan uses **full `rawText`** (not follow-up-stripped remainder)
 - **Intake TextInput:** use explicit `style` colors via `useAppTheme` — NativeWind `className` on `TextInput` can hide dictation text on iOS
@@ -142,6 +142,7 @@ A contextual memory and heads-up assistant for the people in your life — not a
 | Variable | Purpose |
 |----------|---------|
 | `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk (required) |
+| `EXPO_PUBLIC_PARSE_API_URL` | Cloudflare Worker base URL for GPT parsing (`POST /api/parse`); omit for local-only heuristics |
 | `EXPO_PUBLIC_BRIEF_WEATHER_LAT` / `LON` | Weather fallback coordinates |
 | `EXPO_PUBLIC_BRIEF_WEATHER_PLACE` | Place label if geocoding fails |
 
@@ -166,7 +167,8 @@ A contextual memory and heads-up assistant for the people in your life — not a
 app/                    expo-router screens
 src/features/           feature screens & hooks (auth, brief, me, people)
 src/i18n/               LanguageProvider, locales, translate, redLetterKinds
-src/lib/                pure logic (brief, timeline, milestones, me/qr, logger)
+src/lib/                pure logic (brief, timeline, milestones, me/qr, logger, parse/)
+workers/parse-api/      Cloudflare Worker — OpenAI proxy + Clerk JWT
 src/db/                 schema, repos, drizzle, seed
 src/ui/                 shared UI (AppShell, cards, sheets, LanguagePicker)
 ```

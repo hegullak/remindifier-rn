@@ -28,9 +28,11 @@ type OnboardingStep = "input" | "preview";
 function OnboardingContent({
   db,
   userId,
+  getToken,
 }: {
   db: ExpoSQLiteDatabase<typeof schema>;
   userId: string;
+  getToken: () => Promise<string | null>;
 }) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
@@ -74,7 +76,7 @@ function OnboardingContent({
   async function handleContinue() {
     setParsing(true);
     try {
-      const draft = await parseNaturalPersonInput(naturalText);
+      const draft = await parseNaturalPersonInput(naturalText, { getToken });
       setParsedDraft(draft);
       setStep("preview");
     } finally {
@@ -160,7 +162,7 @@ function OnboardingContent({
 
 export default function OnboardingScreen() {
   const { t } = useTranslation();
-  const { isSignedIn, isLoaded, userId } = useAppAuth();
+  const { isSignedIn, isLoaded, userId, getToken } = useAppAuth();
   const { db, loading, error } = useUserDrizzleDb(userId);
 
   if (!isLoaded) {
@@ -179,5 +181,5 @@ export default function OnboardingScreen() {
     return <LoadingScreen message={t("startup.openingDatabase")} />;
   }
 
-  return <OnboardingContent db={db} userId={userId} />;
+  return <OnboardingContent db={db} userId={userId} getToken={getToken} />;
 }

@@ -1,6 +1,7 @@
 import { router } from "expo-router";
 import { useCallback, useState } from "react";
 import {
+  ActivityIndicator,
   Keyboard,
   Pressable,
   ScrollView,
@@ -18,7 +19,8 @@ import {
 import { useTranslation } from "@/i18n";
 import { triggerLight, triggerMedium } from "@/lib/haptics";
 import { confirmSemanticIntake } from "@/lib/intake/confirmSemanticIntake";
-import { applySemanticIntakeEdits, parseSemanticIntake } from "@/lib/intake/semanticIntakeParser";
+import { applySemanticIntakeEdits } from "@/lib/intake/semanticIntakeParser";
+import { parseSemanticIntake } from "@/lib/intake/parseSemanticIntake";
 import type { SemanticIntakeParseResult } from "@/lib/intake/semanticIntakeParser.types";
 import { useAppTheme } from "@/theme/ThemeProvider";
 import { AppShell } from "@/ui/AppShell";
@@ -27,7 +29,7 @@ import { Button } from "@/ui/Button";
 type Step = "input" | "preview";
 
 export default function SemanticIntakeScreen() {
-  const { userId } = useAppAuth();
+  const { userId, getToken } = useAppAuth();
   const { t, locale } = useTranslation();
   const { isDark } = useAppTheme();
 
@@ -48,19 +50,31 @@ export default function SemanticIntakeScreen() {
       freeFormNote: null,
     }),
   );
+  const [parsing, setParsing] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleParse = useCallback(() => {
+  const handleParse = useCallback(async () => {
+    if (parsing) return;
     Keyboard.dismiss();
-    const result = parseSemanticIntake(inputText, { locale: locale === "no" ? "no" : "en" });
-    setParsed(result);
-    setValues(valuesFromParse(result));
-    setEditing(false);
+    setParsing(true);
     setError(null);
-    setStep("preview");
-    triggerLight();
-  }, [inputText, locale]);
+    try {
+      const result = await parseSemanticIntake(inputText, {
+        locale: locale === "no" ? "no" : "en",
+        getToken,
+      });
+      setParsed(result);
+      setValues(valuesFromParse(result));
+      setEditing(false);
+      setStep("preview");
+      triggerLight();
+    } catch {
+      setError(t("intake.parseFailed"));
+    } finally {
+      setParsing(false);
+    }
+  }, [inputText, locale, getToken, parsing, t]);
 
   function currentParsed(): SemanticIntakeParseResult | null {
     if (!parsed) return null;
@@ -82,7 +96,7 @@ export default function SemanticIntakeScreen() {
       const result = await confirmSemanticIntake(userId, draft);
       triggerMedium();
       if (result.kind === "gathering") {
-        router.replace(`/gather/${result.gatheringId}`);
+        router.replace("/(tabs)/gather?created=1");
         return;
       }
       if (result.kind === "follow_up") {
@@ -173,11 +187,15 @@ export default function SemanticIntakeScreen() {
               {t("intake.dictationHint")}
             </Text>
             <Pressable
-              onPress={handleParse}
-              disabled={!inputText.trim()}
+              onPress={() => void handleParse()}
+              disabled={!inputText.trim() || parsing}
               className="mt-4 min-h-[48px] rounded-xl bg-accent items-center justify-center disabled:opacity-50"
             >
-              <Text className="text-base text-card font-bodySemi">{t("intake.continue")}</Text>
+              {parsing ? (
+                <ActivityIndicator color={isDark ? "#EEF0F5" : "#F7F4EF"} />
+              ) : (
+                <Text className="text-base text-card font-bodySemi">{t("intake.continue")}</Text>
+              )}
             </Pressable>
           </View>
         ) : null}

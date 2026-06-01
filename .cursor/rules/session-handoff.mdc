@@ -1,38 +1,43 @@
 ---
-description: Session start/end — read and update project memory files (mandatory)
-alwaysApply: true
+description: >-
+  Apply ONLY when the user explicitly requests session handoff (e.g. "SESSION HANDOFF",
+  "session handoff", or asks to save session context for restart). Do NOT run at the
+  end of ordinary feature tasks unless the user asked.
+alwaysApply: false
 ---
 
-# Session handoff (mandatory)
+# Session handoff (explicit request only)
 
-## Two memory files — do not confuse them
+## When to run
+
+| Trigger | Handoff? |
+|---------|----------|
+| User writes **SESSION HANDOFF** or asks to save session / persist context | **Yes** |
+| Ordinary feature work, bugfix, or question answered | **No** |
+| Agent turn finished with uncommitted git | **No** (stop hook does not auto-trigger) |
+
+## Two memory files
 
 | File | Purpose | When to update |
 |------|---------|----------------|
-| **`claude-current-remindifier-state.md`** | Living session snapshot: status, recent commits, agreements, in-progress work, user preferences | **End of every meaningful session** |
-| **`PROJECT_MEMORY.md`** | Stable architecture: routes, i18n, data layer, pitfalls | Only when conventions or structure change |
+| **`claude-current-remindifier-state.md`** | Session snapshot | **Only during explicit handoff** |
+| **`PROJECT_MEMORY.md`** | Stable architecture | Only when conventions or structure change |
 
-**Never** create ad-hoc context files (`AI_PROJECT_CONTEXT.md`, etc.) unless the user explicitly asks.
+**Never** create ad-hoc context files unless the user asks.
 
-## Session START (before any work)
+## Handoff steps (when user requested)
 
-1. Read **`claude-current-remindifier-state.md`**
-2. Read **`PROJECT_MEMORY.md`**
-3. `git pull --rebase origin sandbox`
+1. Read **`claude-current-remindifier-state.md`** and **`PROJECT_MEMORY.md`** if not already loaded
+2. Update state file: latest commit, what was done, uncommitted changes, user agreements
+3. Update **`PROJECT_MEMORY.md`** only if architecture/routes/conventions changed
+4. Stage and commit relevant files — **push only if the user asked** to push (see user git rules)
+5. Do not commit: `.env`, `coverage/`, `expo-output.log`
 
-## Session END (after meaningful work)
+## Session start (before work — not a handoff)
 
-The **`stop` hook** (`.cursor/hooks/session-stop.js`) auto-submits this handoff once per conversation when there are uncommitted changes. Still follow the steps below when the hook fires — or manually at session end.
-
-1. Update **`claude-current-remindifier-state.md`**: latest commit, what was done, uncommitted changes, new user agreements
-2. Update **`PROJECT_MEMORY.md`** only if architecture/routes/conventions changed
-3. Stage, commit, **`git push origin sandbox`** (user rule: always push after task)
-4. Do not commit: `.env`, `coverage/`, `expo-output.log`
-
-## User agreements → always record in state file
-
-New preferences (git workflow, UX choices, naming) go under **User Preferences** in `claude-current-remindifier-state.md`.
+1. Read memory files (or use injected context from `sessionStart` hook)
+2. `git pull --rebase origin sandbox` when starting substantive work
 
 ## Skill
 
-For explicit memory updates, follow `.cursor/skills/project-memory/SKILL.md`.
+Follow `.cursor/skills/project-memory/SKILL.md` for file sections and preferences.

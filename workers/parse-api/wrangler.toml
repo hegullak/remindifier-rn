@@ -1,0 +1,7 @@
+name = "remindifier-parse-api"
+main = "src/index.ts"
+compatibility_date = "2024-11-01"
+
+[vars]
+# Set secrets via: wrangler secret put OPENAI_API_KEY
+#                  wrangler secret put CLERK_SECRET_KEY

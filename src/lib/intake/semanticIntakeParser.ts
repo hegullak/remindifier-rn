@@ -62,18 +62,26 @@ const WORD_HOUR: Record<string, number> = {
 const EVENT_KEYWORDS =
   /\b(dinner|lunch|breakfast|brunch|coffee|drinks|party|meeting|visit|middag|lunsj|frokost|kaffe|besøk|fest|møte|mote)\b/i;
 
-const FOLLOW_UP_CLAUSE_PATTERNS: RegExp[] = [
-  /\bhusk\s+å\s+(.+)/i,
-  /\bikke\s+glem\s+å\s+(.+)/i,
-  /\bremember\s+to\s+(.+)/i,
-  /\bdon'?t\s+forget\s+to\s+(.+)/i,
-  /\b(?:jeg\s+)?vil\s+også\s+ta\s+opp\s+at\s+(.+)/i,
-  /\b(?:hun|han|de|sie|henne)\s+nevnte(?:\s+noe)?\s+om\s+(.+)/i,
-  /\bnevnte\s+noe\s+om\s+(.+)/i,
-  /\b(?:[A-ZÆØÅ][a-zæøå]+|[Hh]un|[Hh]an|[Dd]e)\s+nevnte\s+at\s+(.+)/i,
-  /\bnevnte\s+at\s+(.+)/i,
-  /\bask\s+(?:about|him|her|them)\s+(.+)/i,
-  /\b(?:remember|spør)\s+(?:to\s+)?(?:about|om)\s+(.+)/i,
+const FOLLOW_UP_CLAUSE_PATTERNS: {
+  pattern: RegExp;
+  talkingPointKind: "question" | "topic" | "headsup";
+}[] = [
+  { pattern: /\b(?:jeg\s+)?vil\s+også\s+ta\s+opp\s+at\s+(.+)/i, talkingPointKind: "question" },
+  { pattern: /\bhusk\s+å\s+(.+?)(?=\s*[.!?]|\s+jeg\s+|$)/i, talkingPointKind: "question" },
+  { pattern: /\bikke\s+glem\s+å\s+(.+?)(?=\s*[.!?]|\s+jeg\s+|$)/i, talkingPointKind: "question" },
+  { pattern: /\bremember\s+to\s+(.+?)(?=\s*[.!?]|$)/i, talkingPointKind: "question" },
+  { pattern: /\bdon'?t\s+forget\s+to\s+(.+?)(?=\s*[.!?]|$)/i, talkingPointKind: "question" },
+  { pattern: /\b(?:vi\s+)?skal\s+diskutere\s+(.+?)(?=\s*[.!?]|$|\s+jeg\s+|\s+[A-ZÆØÅ][^.!?]*\s+nevnte)/i, talkingPointKind: "topic" },
+  { pattern: /\bskal\s+snakke\s+om\s+(.+)/i, talkingPointKind: "topic" },
+  { pattern: /\b(?:hun|han|de|sie|henne)\s+nevnte(?:\s+noe)?\s+om\s+(.+)/i, talkingPointKind: "topic" },
+  { pattern: /\bnevnte\s+noe\s+om\s+(.+)/i, talkingPointKind: "topic" },
+  {
+    pattern: /\b(?:[A-ZÆØÅ][a-zæøå]+|[Hh]un|[Hh]an|[Dd]e)\s+nevnte\s+at\s+(.+)/i,
+    talkingPointKind: "headsup",
+  },
+  { pattern: /\bnevnte\s+at\s+(.+)/i, talkingPointKind: "headsup" },
+  { pattern: /\bask\s+(?:about|him|her|them)\s+(.+)/i, talkingPointKind: "question" },
+  { pattern: /\b(?:remember|spør)\s+(?:to\s+)?(?:about|om)\s+(.+)/i, talkingPointKind: "question" },
 ];
 
 const PERSON_WITH_PATTERN =
@@ -108,8 +116,72 @@ function primaryEventKeyword(text: string): string | null {
 
 function trimFollowUpTail(phrase: string): string {
   return normalizeWhitespace(
-    phrase.replace(/\s*[.—–-]\s+.*$/u, "").replace(/[,.]\s*$/, ""),
+    phrase
+      .replace(/\s+jeg\s+vil\s+også\b.*$/i, "")
+      .replace(/\s+husk\s+å\b.*$/i, "")
+      .replace(/\s*[.—–]\s+.*$/u, "")
+      .replace(/\.\s+.*$/, "")
+      .replace(/[,.]\s*$/, ""),
   );
+}
+
+function splitClauses(text: string): string[] {
+  const clauses: string[] = [];
+  const normalized = text.replace(/\r\n/g, "\n");
+  for (const sentence of normalized.split(/(?<=[.!?])(?:\s+|\n+|$)/u)) {
+    for (const piece of sentence.split(/\s*[—–]\s+/u)) {
+      const trimmed = normalizeWhitespace(piece);
+      if (trimmed.length > 0) clauses.push(trimmed);
+    }
+  }
+  return clauses;
+}
+
+function pushFollowUp(
+  list: { text: string; confidence: IntakeConfidence; talkingPointKind?: "question" | "topic" | "headsup" }[],
+  text: string,
+  talkingPointKind: "question" | "topic" | "headsup",
+) {
+  const normalized = normalizeWhitespace(text);
+  if (normalized.length < 3) return;
+  if (list.some((f) => f.text.toLowerCase() === normalized.toLowerCase())) return;
+  list.push({ text: normalized, confidence: "high", talkingPointKind });
+}
+
+function expandFollowUpCapture(
+  raw: string,
+  talkingPointKind: "question" | "topic" | "headsup",
+): { text: string; talkingPointKind: "question" | "topic" | "headsup"; confidence: IntakeConfidence }[] {
+  const segments = raw
+    .split(/\.\s+/)
+    .map(trimFollowUpTail)
+    .filter((s) => s.length >= 3);
+
+  const items: { text: string; talkingPointKind: "question" | "topic" | "headsup"; confidence: IntakeConfidence }[] = [];
+  for (const segment of segments.length > 0 ? segments : [trimFollowUpTail(raw)]) {
+    const trimmedSegment = trimFollowUpTail(segment);
+    if (
+      talkingPointKind === "topic" &&
+      /\s+og\s+hvem\s+(?:som\s+)?/i.test(trimmedSegment)
+    ) {
+      const parts = trimmedSegment.split(/\s+og\s+hvem\s+(?:som\s+)?/i);
+      if (parts.length === 2 && parts[0].length >= 3 && parts[1].length >= 3) {
+        items.push(
+          { text: trimFollowUpTail(parts[0]), talkingPointKind, confidence: "high" },
+          {
+            text: trimFollowUpTail(`hvem som ${parts[1]}`),
+            talkingPointKind,
+            confidence: "high",
+          },
+        );
+        continue;
+      }
+    }
+    for (const part of splitFollowUpPhrase(trimmedSegment)) {
+      if (part.length >= 3) items.push({ text: part, talkingPointKind, confidence: "high" });
+    }
+  }
+  return items;
 }
 
 function splitFollowUpPhrase(phrase: string): string[] {
@@ -138,15 +210,17 @@ function splitFollowUpPhrase(phrase: string): string[] {
   return [p];
 }
 
-function stripFollowUpPhrases(clause: string): { followUps: string[]; stripped: string } {
-  const followUps: string[] = [];
+function stripFollowUpPhrases(clause: string): { followUps: ReturnType<typeof expandFollowUpCapture>; stripped: string } {
+  const followUps: ReturnType<typeof expandFollowUpCapture> = [];
   let stripped = clause;
 
-  for (const pattern of FOLLOW_UP_CLAUSE_PATTERNS) {
+  for (const { pattern, talkingPointKind } of FOLLOW_UP_CLAUSE_PATTERNS) {
     const match = stripped.match(pattern);
     if (!match?.[1]) continue;
-    for (const item of splitFollowUpPhrase(match[1])) {
-      if (!followUps.includes(item)) followUps.push(item);
+    for (const item of expandFollowUpCapture(match[1], talkingPointKind)) {
+      if (!followUps.some((f) => f.text.toLowerCase() === item.text.toLowerCase())) {
+        followUps.push(item);
+      }
     }
     stripped = stripped.replace(pattern, " ");
   }
@@ -161,6 +235,10 @@ function stripFollowUpPhrases(clause: string): { followUps: string[]; stripped: 
   return { followUps, stripped };
 }
 
+function clauseIsAgendaTopic(clause: string): boolean {
+  return /\b(?:skal\s+diskutere|diskutere|snakke\s+om)\b/i.test(clause);
+}
+
 function clauseHasSchedulingSignal(clause: string): boolean {
   return (
     EVENT_KEYWORDS.test(clause) ||
@@ -171,18 +249,31 @@ function clauseHasSchedulingSignal(clause: string): boolean {
   );
 }
 
-function extractFollowUps(text: string): { followUps: string[]; remainder: string } {
-  const followUps: string[] = [];
-  const clauses = text.split(/(?<=[.!?])\s+|\s*[—–]\s+/u);
+function extractFollowUps(text: string): { followUps: ReturnType<typeof expandFollowUpCapture>; remainder: string } {
+  const followUps: ReturnType<typeof expandFollowUpCapture> = [];
+  const clauses = splitClauses(text);
   const remainderParts: string[] = [];
 
-  for (const clause of clauses) {
-    const trimmed = normalizeWhitespace(clause);
-    if (!trimmed) continue;
-
+  for (const trimmed of clauses) {
     const { followUps: extracted, stripped } = stripFollowUpPhrases(trimmed);
     for (const item of extracted) {
-      if (!followUps.includes(item)) followUps.push(item);
+      if (!followUps.some((f) => f.text.toLowerCase() === item.text.toLowerCase())) {
+        followUps.push(item);
+      }
+    }
+
+    if (extracted.length === 0 && clauseIsAgendaTopic(trimmed)) {
+      const agenda = trimmed.match(/\b(?:vi\s+)?skal\s+diskutere\s+(.+?)(?=\s*[.!?]|$)/i)?.[1];
+      if (agenda) {
+        for (const item of expandFollowUpCapture(agenda, "topic")) {
+          if (!followUps.some((f) => f.text.toLowerCase() === item.text.toLowerCase())) {
+            followUps.push(item);
+          }
+        }
+      } else {
+        pushFollowUp(followUps, trimmed, "topic");
+      }
+      continue;
     }
 
     const schedulingSource = stripped || trimmed;
@@ -521,7 +612,7 @@ function extractDateTimeFallback(
   };
 }
 
-function buildFields(
+export function buildFields(
   result: Omit<SemanticIntakeParseResult, "fields" | "overallConfidence">,
 ): SemanticIntakeField[] {
   const fields: SemanticIntakeField[] = [];
@@ -551,7 +642,7 @@ function buildFields(
   return fields;
 }
 
-function overallConfidence(fields: SemanticIntakeField[], ambiguities: string[]): IntakeConfidence {
+export function overallConfidence(fields: SemanticIntakeField[], ambiguities: string[]): IntakeConfidence {
   if (fields.length === 0) return "low";
   if (ambiguities.includes("free_form_only")) return "low";
   if (ambiguities.length > 0) return "medium";
@@ -560,7 +651,7 @@ function overallConfidence(fields: SemanticIntakeField[], ambiguities: string[])
   return "high";
 }
 
-export function parseSemanticIntake(
+export function parseSemanticIntakeLocal(
   rawInput: string,
   options: SemanticIntakeParseOptions = {},
 ): SemanticIntakeParseResult {
@@ -603,9 +694,10 @@ export function parseSemanticIntake(
     ambiguities.push("follow_up_unclear");
   }
 
-  const followUps = followUpTexts.map((text) => ({
-    text,
+  const followUps = followUpTexts.map((item) => ({
+    text: item.text,
     confidence: "high" as const,
+    talkingPointKind: item.talkingPointKind,
   }));
 
   let freeFormNote: string | null = null;
@@ -661,7 +753,7 @@ export function applySemanticIntakeEdits(
             .split(/\n+/)
             .map((line) => line.trim())
             .filter(Boolean)
-            .map((text) => ({ text, confidence: "high" as const }))
+            .map((text) => ({ text, confidence: "high" as const, talkingPointKind: "question" as const }))
         : base.followUps,
   };
 

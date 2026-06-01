@@ -1,6 +1,6 @@
 import { Link, router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import * as Crypto from "expo-crypto";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Keyboard,
   KeyboardAvoidingView,
@@ -35,27 +35,35 @@ import {
   type TalkingPoint,
   type TalkingPointKind,
 } from "@/lib/gatherings/talkingPoints";
+import type { AddMenuSection } from "@/ui/GlobalAddButton";
 import { AppShell } from "@/ui/AppShell";
 import { BottomSheet } from "@/ui/BottomSheet";
 import { BriefCard } from "@/ui/BriefCard";
 import { Button } from "@/ui/Button";
-import { IconButton } from "@/ui/IconButton";
 
-function formatDate(date: Date | null, locale: Locale) {
+const COMPOSER_KIND_ORDER: TalkingPointKind[] = ["topic", "question", "smalltalk", "headsup"];
+
+function formatDateTime(date: Date | null, locale: Locale) {
   if (!date) return null;
   const dateLocale = locale === "no" ? "nb-NO" : "en-GB";
-  return date.toLocaleDateString(dateLocale, {
+  const datePart = date.toLocaleDateString(dateLocale, {
     weekday: "long",
     day: "numeric",
     month: "long",
   });
+  const timePart = date.toLocaleTimeString(dateLocale, {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+  return { datePart, timePart, combined: `${datePart} · ${timePart}` };
 }
 
 export default function GatheringDetailScreen() {
   const { userId } = useAppAuth();
   const { t, locale } = useTranslation();
   const colorScheme = useColorScheme();
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const isDark = colorScheme === "dark";
+  const { id, created } = useLocalSearchParams<{ id: string; created?: string }>();
   const mountedRef = useRef(true);
   useEffect(() => () => { mountedRef.current = false; }, []);
 
@@ -67,11 +75,10 @@ export default function GatheringDetailScreen() {
   const [loading, setLoading] = useState(true);
   const [selectedKind, setSelectedKind] = useState<TalkingPointKind>("topic");
   const [newPointText, setNewPointText] = useState("");
-  const [showKindPicker, setShowKindPicker] = useState(false);
-  const [showInputField, setShowInputField] = useState(false);
+  const pointInputRef = useRef<TextInput>(null);
   const [showDelete, setShowDelete] = useState(false);
   const [showPersonPicker, setShowPersonPicker] = useState(false);
-  const [showActions, setShowActions] = useState(false);
+  const [showCreatedBanner, setShowCreatedBanner] = useState(created === "1");
   const [allPeople, setAllPeople] = useState<{ id: string; displayName: string }[]>([]);
   const [deleting, setDeleting] = useState(false);
 
@@ -105,10 +112,50 @@ export default function GatheringDetailScreen() {
       }
       return () => {
         Keyboard.dismiss();
-        setShowKindPicker(false);
       };
     }, [reload, userId]),
   );
+
+  const addMenuSections = useMemo((): AddMenuSection[] => {
+    return [
+      {
+        title: t("gathering.eventMenuSection"),
+        actions: [
+          {
+            icon: "✎",
+            bgClass: "bg-amber-light",
+            label: t("gathering.editDetails"),
+            onPress: () => {
+              setTimeout(() => {
+                if (mountedRef.current) setEditingTitle(true);
+              }, 300);
+            },
+          },
+          {
+            icon: "👤",
+            bgClass: "bg-green-light",
+            label: t("gathering.addPerson"),
+            onPress: () => {
+              setTimeout(() => {
+                if (mountedRef.current) setShowPersonPicker(true);
+              }, 300);
+            },
+          },
+          {
+            icon: "🗑",
+            bgClass: "bg-red-light",
+            label: t("gathering.deleteEvent"),
+            destructive: true,
+            onPress: () => {
+              setTimeout(() => {
+                if (mountedRef.current) setShowDelete(true);
+              }, 300);
+            },
+          },
+        ],
+      },
+    ];
+  }, [t]);
 
   async function persistContent(next: GatheringContent) {
     if (!userId || !id) return;
@@ -172,43 +219,8 @@ export default function GatheringDetailScreen() {
       done: false,
     };
     setNewPointText("");
-    setShowInputField(false);
     await persistContent({ talkingPoints: [...content.talkingPoints, point] });
-  }
-
-  function handlePlusPress() {
-    triggerLight();
-
-    // If text exists, add the point
-    if (newPointText.trim()) {
-      void addPoint();
-      return;
-    }
-
-    // If input visible but empty, hide it
-    if (showInputField) {
-      LayoutAnimation.configureNext({
-        duration: 200,
-        delete: {
-          type: LayoutAnimation.Types.easeInEaseOut,
-          property: LayoutAnimation.Properties.opacity,
-        },
-      });
-      setShowInputField(false);
-      setShowKindPicker(false);
-      return;
-    }
-
-    // Otherwise open kind picker
-    LayoutAnimation.configureNext({
-      duration: 250,
-      create: {
-        type: LayoutAnimation.Types.spring,
-        property: LayoutAnimation.Properties.opacity,
-        springDamping: 0.7,
-      },
-    });
-    setShowKindPicker(true);
+    setTimeout(() => pointInputRef.current?.focus(), 100);
   }
 
   async function handleAddParticipant(personId: string) {
@@ -236,15 +248,19 @@ export default function GatheringDetailScreen() {
     }
   }
 
-  const dateLabel = formatDate(scheduledAt, locale);
-  const placeholderColor = colorScheme === "dark" ? "#7A8CAD" : "#A89E90";
-  const inputTextColor = colorScheme === "dark" ? "#E8E4DC" : "#1C1915";
+  const dateTime = formatDateTime(scheduledAt, locale);
+  const placeholderColor = isDark ? "#7A8CAD" : "#A89E90";
+  const inputTextColor = isDark ? "#EEF0F5" : "#1C1915";
+  const inputBgColor = isDark ? "#222838" : "#EFECE3";
+  const inputBorderColor = isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.07)";
   const displayTitle = id ? localizeGatheringTitle(id, title, locale) : title;
   const participantIds = new Set(participants.map((p) => p.personId));
   const personReturnTo = id ? `/gather/${id}` : undefined;
+  const selectedMeta = talkingPointMeta(selectedKind);
 
   return (
     <AppShell
+      addMenuSections={addMenuSections}
       headerLeft={
         <Pressable
           onPress={() => { triggerLight(); Keyboard.dismiss(); router.back(); }}
@@ -252,15 +268,6 @@ export default function GatheringDetailScreen() {
           accessibilityLabel="Back"
         >
           <Text className="text-xl text-accent font-body">←</Text>
-        </Pressable>
-      }
-      headerRight={
-        <Pressable
-          onPress={() => { triggerLight(); setShowActions(true); }}
-          hitSlop={12}
-          accessibilityLabel="More actions"
-        >
-          <Text className="text-nav text-text2 font-body">⋯</Text>
         </Pressable>
       }
     >
@@ -277,6 +284,30 @@ export default function GatheringDetailScreen() {
             <Text className="text-body text-text3 font-body">{t("gathering.notFound")}</Text>
           ) : (
             <>
+              {showCreatedBanner ? (
+                <View className="mb-2 flex-row items-center gap-2 rounded-lg border border-border bg-bg2 px-3 py-2">
+                  <Text className="text-sm text-sage font-bodySemi shrink">
+                    ✓ {t("gathering.createdTitle")}
+                  </Text>
+                  {content.talkingPoints.length > 0 ? (
+                    <Text className="text-3xs text-text3 font-body shrink">
+                      · {t("gathering.createdSubtitle", { count: content.talkingPoints.length })}
+                    </Text>
+                  ) : null}
+                  <Pressable
+                    onPress={() => {
+                      triggerLight();
+                      setShowCreatedBanner(false);
+                    }}
+                    hitSlop={8}
+                    accessibilityLabel="Dismiss"
+                    className="ml-auto px-1"
+                  >
+                    <Text className="text-sm text-text3 font-body">✕</Text>
+                  </Pressable>
+                </View>
+              ) : null}
+
               <View className="flex-row items-start gap-2 mb-2">
                 {editingTitle ? (
                   <TextInput
@@ -284,6 +315,7 @@ export default function GatheringDetailScreen() {
                     onChangeText={setTitle}
                     blurOnSubmit
                     returnKeyType="done"
+                    autoFocus
                     onBlur={() => {
                       setEditingTitle(false);
                       void saveTitle(title);
@@ -315,13 +347,16 @@ export default function GatheringDetailScreen() {
                 ))}
               </View>
 
-              {dateLabel ? (
-                <Text className="text-3xs text-text3 font-body mb-3">{dateLabel}</Text>
+              {dateTime ? (
+                <View className="mb-3">
+                  <Text className="text-body text-text1 font-bodyMedium">{dateTime.datePart}</Text>
+                  <Text className="text-xl text-accent font-bodySemi mt-0.5">{dateTime.timePart}</Text>
+                </View>
               ) : null}
 
               <ScrollView
                 keyboardDismissMode="on-drag"
-                contentContainerStyle={{ paddingBottom: 16, flexGrow: 1 }}
+                contentContainerStyle={{ paddingBottom: 8, flexGrow: 1 }}
                 style={{ flex: 1 }}
               >
                 {content.talkingPoints.length === 0 ? (
@@ -365,129 +400,75 @@ export default function GatheringDetailScreen() {
                 )}
               </ScrollView>
 
-              <View style={{ backgroundColor: "transparent" }} className="border-t border-border pt-3 pb-4">
-                {showKindPicker ? (
-                  <Pressable
-                    onPress={() => setShowKindPicker(false)}
-                    className="absolute inset-0 z-10"
-                  />
-                ) : null}
-                <View style={{ flexDirection: "row", alignItems: "flex-end", gap: 8 }}>
-                  {showInputField ? (
-                    <TextInput
-                      value={newPointText}
-                      onChangeText={setNewPointText}
-                      placeholder={t("gathering.addPlaceholder")}
-                      placeholderTextColor={placeholderColor}
-                      returnKeyType="done"
-                      onSubmitEditing={() => void addPoint()}
-                      style={{ color: inputTextColor, flex: 1 }}
-                      className="bg-bg2 border border-border rounded-lg px-3 py-2.5 text-body-lg text-text1 font-body"
-                      autoFocus
-                    />
-                  ) : (
-                    <View style={{ flex: 1 }} />
-                  )}
-                  <View className="relative items-end">
-                    {showKindPicker ? (
-                      <View
-                        className="absolute bottom-11 right-0 rounded-xl border border-border bg-card py-1.5 px-1 gap-1 min-w-[148px] z-20"
-                        style={{
-                          shadowColor: "#000",
-                          shadowOffset: { width: 0, height: -2 },
-                          shadowOpacity: 0.12,
-                          shadowRadius: 8,
-                          elevation: 4,
+              <View
+                className="border-t border-border bg-bg pt-3 -mx-4 px-4"
+                style={{ paddingBottom: 100 }}
+              >
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={{ gap: 8, paddingBottom: 10 }}
+                  className="mb-1"
+                >
+                  {COMPOSER_KIND_ORDER.map((kind) => {
+                    const meta = talkingPointMeta(kind);
+                    const selected = kind === selectedKind;
+                    return (
+                      <Pressable
+                        key={kind}
+                        onPress={() => {
+                          triggerSelection();
+                          setSelectedKind(kind);
+                          pointInputRef.current?.focus();
                         }}
+                        className={`flex-row items-center gap-1.5 rounded-full border px-3 py-2 ${
+                          selected ? "bg-accent border-accent" : "bg-bg2 border-border"
+                        }`}
                       >
-                        {TALKING_POINT_KINDS.map((kind) => {
-                          const meta = talkingPointMeta(kind);
-                          const active = selectedKind === kind;
-                          return (
-                            <Pressable
-                              key={kind}
-                              onPress={() => {
-                                triggerSelection();
-                                setSelectedKind(kind);
-                                LayoutAnimation.configureNext({
-                                  duration: 250,
-                                  delete: {
-                                    type: LayoutAnimation.Types.easeInEaseOut,
-                                    property: LayoutAnimation.Properties.opacity,
-                                  },
-                                  create: {
-                                    type: LayoutAnimation.Types.spring,
-                                    property: LayoutAnimation.Properties.opacity,
-                                    springDamping: 0.7,
-                                  },
-                                });
-                                setShowKindPicker(false);
-                                setShowInputField(true);
-                              }}
-                              className={`flex-row items-center gap-2 px-3 py-2 rounded-lg ${
-                                active ? "bg-accent" : "bg-transparent"
-                              }`}
-                            >
-                              <Text className="text-body leading-[16px]">{meta.icon}</Text>
-                              <Text
-                                className={`text-xs font-bodyMedium leading-[16px] ${
-                                  active ? "text-card" : "text-text2"
-                                }`}
-                              >
-                                {talkingPointLabel(kind, locale)}
-                              </Text>
-                            </Pressable>
-                          );
-                        })}
-                      </View>
-                    ) : null}
-                    <Pressable
-                      onPress={handlePlusPress}
-                      accessibilityRole="button"
-                      accessibilityLabel={t("gathering.addPlaceholder")}
-                      className="w-10 h-10 rounded-lg bg-accent items-center justify-center active:opacity-80"
-                    >
-                      <Text className="text-xl text-card font-body leading-[22px]">+</Text>
-                    </Pressable>
-                  </View>
-                </View>
+                        <Text className="text-sm">{meta.icon}</Text>
+                        <Text
+                          className={`text-xs font-bodySemi ${
+                            selected ? "text-card" : "text-text2"
+                          }`}
+                        >
+                          {talkingPointLabel(kind, locale)}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
+                </ScrollView>
+
+                <Text className="text-3xs uppercase tracking-wide text-text3 font-bodySemi mb-2">
+                  {selectedMeta.icon} {talkingPointLabel(selectedKind, locale)}
+                </Text>
+                <TextInput
+                  ref={pointInputRef}
+                  value={newPointText}
+                  onChangeText={setNewPointText}
+                  placeholder={t("gathering.addPlaceholder")}
+                  placeholderTextColor={placeholderColor}
+                  returnKeyType="done"
+                  onSubmitEditing={() => void addPoint()}
+                  style={{
+                    color: inputTextColor,
+                    backgroundColor: inputBgColor,
+                    borderColor: inputBorderColor,
+                    borderWidth: 1,
+                    borderRadius: 8,
+                    paddingHorizontal: 12,
+                    paddingVertical: 10,
+                    fontSize: 17,
+                    minHeight: 44,
+                  }}
+                />
+                <Text className="text-xs text-text3 font-body mt-2">
+                  {t("gathering.composerKindHint")}
+                </Text>
               </View>
             </>
           )}
         </View>
       </KeyboardAvoidingView>
-
-      <BottomSheet visible={showActions} onDismiss={() => setShowActions(false)} title={displayTitle || t("gathering.newTitle")}>
-        <View className="gap-3 pt-1">
-          <Pressable
-            onPress={() => { triggerLight(); setShowActions(false); setTimeout(() => { if (mountedRef.current) setEditingTitle(true); }, 300); }}
-            className="flex-row items-center gap-4 py-2"
-          >
-            <View className="w-11 h-11 rounded-xl bg-amber-light items-center justify-center">
-              <Text className="text-xl">✏️</Text>
-            </View>
-            <Text className="text-base text-text1 font-bodyMedium">{t("gathering.editTitle")}</Text>
-          </Pressable>
-          <Pressable
-            onPress={() => { triggerLight(); setShowActions(false); setTimeout(() => { if (mountedRef.current) setShowPersonPicker(true); }, 300); }}
-            className="flex-row items-center gap-4 py-2"
-          >
-            <View className="w-11 h-11 rounded-xl bg-green-light items-center justify-center">
-              <Text className="text-xl text-green font-bodyMedium leading-[22px]">+</Text>
-            </View>
-            <Text className="text-base text-text1 font-bodyMedium">{t("gathering.addPerson")}</Text>
-          </Pressable>
-          <Pressable
-            onPress={() => { triggerLight(); setShowActions(false); setTimeout(() => { if (mountedRef.current) setShowDelete(true); }, 300); }}
-            className="flex-row items-center gap-4 py-2"
-          >
-            <View className="w-11 h-11 rounded-xl bg-red-light items-center justify-center">
-              <Text className="text-lg">🗑</Text>
-            </View>
-            <Text className="text-base text-red font-bodyMedium">{t("gathering.deleteEvent")}</Text>
-          </Pressable>
-        </View>
-      </BottomSheet>
 
       <BottomSheet visible={showDelete} onDismiss={() => setShowDelete(false)} title={t("gathering.deleteEvent")}>
         <Text className="text-sm text-text2 font-body mb-4">{t("gathering.deleteEventBody")}</Text>

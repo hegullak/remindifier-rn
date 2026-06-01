@@ -1,10 +1,10 @@
-import { applySemanticIntakeEdits, parseSemanticIntake } from "@/lib/intake/semanticIntakeParser";
+import { applySemanticIntakeEdits, parseSemanticIntakeLocal } from "@/lib/intake/semanticIntakeParser";
 
 const WEDNESDAY = new Date("2026-05-27T12:00:00");
 
-describe("parseSemanticIntake", () => {
+describe("parseSemanticIntakeLocal", () => {
   it("detects event, person, datetime, and follow-up from natural English", () => {
-    const result = parseSemanticIntake(
+    const result = parseSemanticIntakeLocal(
       "Dinner with Kenneth Friday at six, remember to ask about the new job.",
       { referenceDate: WEDNESDAY, locale: "en" },
     );
@@ -18,7 +18,7 @@ describe("parseSemanticIntake", () => {
   });
 
   it("detects person from with-pattern", () => {
-    const result = parseSemanticIntake("Lunch with Anna tomorrow", {
+    const result = parseSemanticIntakeLocal("Lunch with Anna tomorrow", {
       referenceDate: WEDNESDAY,
       locale: "en",
     });
@@ -27,7 +27,7 @@ describe("parseSemanticIntake", () => {
   });
 
   it("detects Norwegian follow-up phrasing", () => {
-    const result = parseSemanticIntake("Middag med Ola fredag kl 19, husk å spørre om hunden", {
+    const result = parseSemanticIntakeLocal("Middag med Ola fredag kl 19, husk å spørre om hunden", {
       referenceDate: WEDNESDAY,
       locale: "no",
     });
@@ -37,7 +37,7 @@ describe("parseSemanticIntake", () => {
   });
 
   it("marks ambiguous free-form input", () => {
-    const result = parseSemanticIntake("maybe something later", {
+    const result = parseSemanticIntakeLocal("maybe something later", {
       referenceDate: WEDNESDAY,
       locale: "en",
     });
@@ -48,7 +48,7 @@ describe("parseSemanticIntake", () => {
   });
 
   it("falls back gracefully on blank input", () => {
-    const result = parseSemanticIntake("   ", { referenceDate: WEDNESDAY });
+    const result = parseSemanticIntakeLocal("   ", { referenceDate: WEDNESDAY });
     expect(result.fields).toEqual([]);
     expect(result.event).toBeNull();
     expect(result.person).toBeNull();
@@ -56,7 +56,7 @@ describe("parseSemanticIntake", () => {
   });
 
   it("applies manual edits for confirmation preview", () => {
-    const parsed = parseSemanticIntake("Dinner with Kenneth Friday at six", {
+    const parsed = parseSemanticIntakeLocal("Dinner with Kenneth Friday at six", {
       referenceDate: WEDNESDAY,
       locale: "en",
     });
@@ -70,7 +70,7 @@ describe("parseSemanticIntake", () => {
   });
 
   it("parses numeric clock times", () => {
-    const result = parseSemanticIntake("Meeting with Sara on Friday at 19:30", {
+    const result = parseSemanticIntakeLocal("Meeting with Sara on Friday at 19:30", {
       referenceDate: WEDNESDAY,
       locale: "en",
     });
@@ -80,7 +80,7 @@ describe("parseSemanticIntake", () => {
   });
 
   it("splits multiple Norwegian follow-ups from one reminder", () => {
-    const result = parseSemanticIntake(
+    const result = parseSemanticIntakeLocal(
       "Middag med Kristoffer fredag kl. 19. Han byttet jobb i januar og jeg har ikke snakket med ham siden. Husk å spørre om den nye stillingen og om han fortsatt løper.",
       { referenceDate: WEDNESDAY, locale: "no" },
     );
@@ -92,7 +92,7 @@ describe("parseSemanticIntake", () => {
   });
 
   it("picks up indirect follow-up from a later sentence", () => {
-    const result = parseSemanticIntake(
+    const result = parseSemanticIntakeLocal(
       "Skal ta en kaffe med Sara på tirsdag. Ingenting spesielt, bare det har gått for lenge. Hun nevnte noe om å flytte i vår.",
       { referenceDate: WEDNESDAY, locale: "no" },
     );
@@ -102,17 +102,42 @@ describe("parseSemanticIntake", () => {
     expect(result.followUps.some((f) => /flytte/i.test(f.text))).toBe(true);
   });
 
+  it("parses multiline Marte/Jonas input with separate follow-ups", () => {
+    const input = `Planlegger å møte Marte og Jonas til lunsj onsdag kl. 12, men Jonas kan ikke før torsdag kl. 13. 
+Vi skal diskutere hyttetur i påsken og hvem som tar med hva. 
+Marte nevnte at hun og Per gifter seg til sommeren — husk å gratulere. 
+Jeg vil også ta opp at Jonas skylder meg 500 kr fra sist.`;
+
+    const result = parseSemanticIntakeLocal(input, { referenceDate: WEDNESDAY, locale: "no" });
+
+    expect(result.followUps.map((f) => f.text)).toEqual([
+      "hyttetur i påsken",
+      "hvem som tar med hva",
+      "hun og Per gifter seg til sommeren",
+      "gratulere",
+      "Jonas skylder meg 500 kr fra sist",
+    ]);
+    expect(result.ambiguities).toContain("datetime_conflict");
+  });
+
   it("extracts several follow-ups from a complex lunch plan", () => {
-    const result = parseSemanticIntake(
+    const result = parseSemanticIntakeLocal(
       "Planlegger å møte Marte og Jonas til lunsj onsdag kl. 12, men Jonas kan ikke før torsdag kl. 13. Vi skal diskutere hyttetur i påsken og hvem som tar med hva. Marte nevnte at hun og Per gifter seg til sommeren — husk å gratulere. Jeg vil også ta opp at Jonas skylder meg 500 kr fra sist.",
       { referenceDate: WEDNESDAY, locale: "no" },
     );
     expect(result.event?.title).toMatch(/Lunsj med Marte og Jonas/i);
     expect(result.person?.name).toBe("Marte og Jonas");
     expect(result.followUps.length).toBeGreaterThanOrEqual(2);
+    expect(result.followUps.some((f) => /hyttetur|påsken/i.test(f.text))).toBe(true);
     expect(result.followUps.some((f) => /gratul/i.test(f.text))).toBe(true);
     expect(result.followUps.some((f) => /gifter seg|Per/i.test(f.text))).toBe(true);
     expect(result.followUps.some((f) => /skylder|500/i.test(f.text))).toBe(true);
+    const gratulere = result.followUps.find((f) => /gratul/i.test(f.text));
+    const gifter = result.followUps.find((f) => /gifter seg|Per/i.test(f.text));
+    expect(gratulere?.text).not.toMatch(/vil også ta opp|skylder/i);
+    expect(gifter?.text).not.toMatch(/gratulere|skylder/i);
+    expect(gratulere?.talkingPointKind).toBe("question");
+    expect(gifter?.talkingPointKind).toBe("headsup");
     expect(result.event?.title?.length ?? 0).toBeLessThanOrEqual(55);
     expect(result.ambiguities).toContain("datetime_conflict");
     expect(result.scheduledAt).toBeNull();
@@ -124,7 +149,7 @@ describe("parseSemanticIntake", () => {
   });
 
   it("clears datetime conflict after user picks an option", () => {
-    const parsed = parseSemanticIntake(
+    const parsed = parseSemanticIntakeLocal(
       "Lunsj onsdag kl. 12, men Jonas kan ikke før torsdag kl. 13.",
       { referenceDate: WEDNESDAY, locale: "no" },
     );
@@ -138,7 +163,7 @@ describe("parseSemanticIntake", () => {
   });
 
   it("splits edited follow-up text into multiple items", () => {
-    const parsed = parseSemanticIntake("Middag med Ola fredag", {
+    const parsed = parseSemanticIntakeLocal("Middag med Ola fredag", {
       referenceDate: WEDNESDAY,
       locale: "no",
     });

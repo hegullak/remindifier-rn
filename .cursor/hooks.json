@@ -8,8 +8,7 @@
     ],
     "stop": [
       {
-        "command": "node .cursor/hooks/session-stop.js",
-        "loop_limit": 1
+        "command": "node .cursor/hooks/session-stop.js"
       }
     ]
   }

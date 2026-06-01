@@ -1,7 +1,7 @@
 import { parseNaturalPersonInput } from "@/lib/people/naturalLanguageParser";
 import {
   normalizeApiDraftPayload,
-  parseNaturalPersonInputWithApi,
+  parseNaturalPersonInputFromCompletion,
 } from "@/lib/people/naturalLanguageParser.api";
 import { parseNaturalPersonInputLocal } from "@/lib/people/naturalLanguageParser.local";
 
@@ -10,7 +10,8 @@ const KENNETH_INPUT =
 
 describe("parseNaturalPersonInput", () => {
   const originalFetch = global.fetch;
-  const originalApiKey = process.env.EXPO_PUBLIC_OPENAI_API_KEY;
+  const originalParseUrl = process.env.EXPO_PUBLIC_PARSE_API_URL;
+  const getToken = async () => "test-token";
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -18,11 +19,12 @@ describe("parseNaturalPersonInput", () => {
 
   afterEach(() => {
     global.fetch = originalFetch;
-    process.env.EXPO_PUBLIC_OPENAI_API_KEY = originalApiKey;
+    if (originalParseUrl) process.env.EXPO_PUBLIC_PARSE_API_URL = originalParseUrl;
+    else delete process.env.EXPO_PUBLIC_PARSE_API_URL;
   });
 
-  it("uses OpenAI API when configured and returns structured data", async () => {
-    process.env.EXPO_PUBLIC_OPENAI_API_KEY = "test-key";
+  it("uses parse API when configured and returns structured data", async () => {
+    process.env.EXPO_PUBLIC_PARSE_API_URL = "https://parse.example.com";
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
       json: async () => ({
@@ -44,7 +46,7 @@ describe("parseNaturalPersonInput", () => {
       }),
     }) as typeof fetch;
 
-    const result = await parseNaturalPersonInput(KENNETH_INPUT);
+    const result = await parseNaturalPersonInput(KENNETH_INPUT, { getToken });
 
     expect(global.fetch).toHaveBeenCalledTimes(1);
     expect(result.displayName).toBe("Kenneth");
@@ -54,13 +56,13 @@ describe("parseNaturalPersonInput", () => {
   });
 
   it("falls back to local parser when API fails", async () => {
-    process.env.EXPO_PUBLIC_OPENAI_API_KEY = "test-key";
+    process.env.EXPO_PUBLIC_PARSE_API_URL = "https://parse.example.com";
     global.fetch = jest.fn().mockRejectedValue(new Error("network")) as typeof fetch;
 
     jest.useFakeTimers();
     jest.setSystemTime(new Date("2026-05-29T12:00:00Z"));
 
-    const result = await parseNaturalPersonInput(KENNETH_INPUT);
+    const result = await parseNaturalPersonInput(KENNETH_INPUT, { getToken });
     const local = parseNaturalPersonInputLocal(KENNETH_INPUT);
 
     expect(result).toEqual(local);
@@ -68,7 +70,7 @@ describe("parseNaturalPersonInput", () => {
   });
 
   it("falls back to local parser when API response cannot be parsed", async () => {
-    process.env.EXPO_PUBLIC_OPENAI_API_KEY = "test-key";
+    process.env.EXPO_PUBLIC_PARSE_API_URL = "https://parse.example.com";
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
       json: async () => ({
@@ -76,13 +78,13 @@ describe("parseNaturalPersonInput", () => {
       }),
     }) as typeof fetch;
 
-    const result = await parseNaturalPersonInput("Helga er venn");
+    const result = await parseNaturalPersonInput("Helga er venn", { getToken });
     expect(global.fetch).toHaveBeenCalled();
     expect(result.displayName).toBe("Helga");
   });
 
-  it("falls back to local parser when API key is missing", async () => {
-    process.env.EXPO_PUBLIC_OPENAI_API_KEY = "";
+  it("falls back to local parser when parse API URL is missing", async () => {
+    delete process.env.EXPO_PUBLIC_PARSE_API_URL;
     global.fetch = jest.fn() as typeof fetch;
 
     jest.useFakeTimers();
@@ -98,24 +100,9 @@ describe("parseNaturalPersonInput", () => {
   });
 });
 
-describe("parseNaturalPersonInputWithApi", () => {
-  const originalFetch = global.fetch;
-
-  afterEach(() => {
-    global.fetch = originalFetch;
-  });
-
-  it("returns null on HTTP errors and malformed payloads", async () => {
-    global.fetch = jest.fn().mockResolvedValue({ ok: false, status: 500 }) as typeof fetch;
-    await expect(parseNaturalPersonInputWithApi("Kenneth", "test-key")).resolves.toBeNull();
-
-    global.fetch = jest.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({
-        choices: [{ message: { content: "not-json", refusal: null } }],
-      }),
-    }) as typeof fetch;
-    await expect(parseNaturalPersonInputWithApi("Kenneth", "test-key")).resolves.toBeNull();
+describe("parseNaturalPersonInputFromCompletion", () => {
+  it("returns null for malformed JSON", () => {
+    expect(parseNaturalPersonInputFromCompletion("Kenneth", "not-json")).toBeNull();
   });
 });
 

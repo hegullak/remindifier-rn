@@ -1,4 +1,5 @@
 export { AppShell } from "./AppShell";
+export { GlobalAddButton, type AddMenuAction, type AddMenuSection } from "./GlobalAddButton";
 export { BottomSheet, useBottomSheet } from "./BottomSheet";
 export { BriefCard } from "./BriefCard";
 export { Button } from "./Button";

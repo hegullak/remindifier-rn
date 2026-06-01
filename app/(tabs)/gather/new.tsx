@@ -36,7 +36,7 @@ type Step = "input" | "preview";
 type MentionChoice = "add" | "skip" | "matched";
 
 export default function NewGatheringScreen() {
-  const { userId } = useAppAuth();
+  const { userId, getToken } = useAppAuth();
   const { t, locale } = useTranslation();
   const colorScheme = useColorScheme();
   const { personId: preselectedPersonId, prefill } = useLocalSearchParams<{
@@ -107,7 +107,7 @@ export default function NewGatheringScreen() {
     }
     setParsing(true);
     try {
-      const parsed = await parseEventInput(inputText);
+      const parsed = await parseEventInput(inputText, { getToken });
       setDraft(parsed);
       setTitle(parsed.title ?? t("gathering.newTitle"));
       const choices: Record<string, MentionChoice> = {};

@@ -6,7 +6,7 @@ alwaysApply: true
 # remindifier-rn context
 
 **Session start:** read `claude-current-remindifier-state.md` then `PROJECT_MEMORY.md`.  
-**Session end:** update state file; see `.cursor/rules/session-handoff.mdc`.
+**Session end:** update state file only when user requests **SESSION HANDOFF** — see `.cursor/rules/session-handoff.mdc`.
 
 ## Essentials (keep in sync with PROJECT_MEMORY.md)
 
@@ -22,6 +22,6 @@ alwaysApply: true
 ## Git workflow (each agent session)
 
 1. **Start:** `git pull --rebase origin sandbox`
-2. **End:** commit relevant changes + **`git push origin sandbox`**
+2. **End:** commit and push **only when the user asks**
 
 When unsure about structure or naming, open `PROJECT_MEMORY.md` instead of broad repo search.

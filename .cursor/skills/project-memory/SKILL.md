@@ -22,12 +22,14 @@ description: >-
 
 ## Session end checklist
 
-The `stop` hook may auto-submit this handoff when git has uncommitted changes (`loop_limit: 1`). When it fires, persist state — do not start new feature work.
+**Only when the user explicitly requests handoff** (e.g. "SESSION HANDOFF"). Do not hand off after every task or turn.
+
+The `stop` hook does **not** auto-submit handoff (it fires after each agent turn).
 
 1. Open `claude-current-remindifier-state.md`
 2. Update: `Last updated`, `Latest commit`, `Recent commits`, `What Was Done`, `Uncommitted local changes`, `User Preferences`
 3. If routes/schema/i18n conventions changed → update `PROJECT_MEMORY.md`
-4. Commit state file (+ code); push to `origin/sandbox`
+4. Commit when the user asked to commit; push only when the user asked to push
 
 ## State file sections to keep current
 

@@ -20,12 +20,13 @@ for (const name of files) {
 }
 
 const protocol = [
-  "SESSION PROTOCOL (mandatory):",
+  "SESSION PROTOCOL:",
   "1. Use the project memory below as ground truth.",
-  "2. Session snapshot → claude-current-remindifier-state.md (update at session end).",
-  "3. Architecture → PROJECT_MEMORY.md (update only when conventions change).",
-  "4. Start: git pull --rebase origin sandbox. End: commit + push origin sandbox.",
-  "5. Never create ad-hoc context files unless the user explicitly asks.",
+  "2. Update claude-current-remindifier-state.md only when the user explicitly requests SESSION HANDOFF.",
+  "3. Update PROJECT_MEMORY.md only when conventions or structure change.",
+  "4. Start substantive work: git pull --rebase origin sandbox.",
+  "5. Commit/push only when the user asks — not after every agent turn.",
+  "6. Never create ad-hoc context files unless the user explicitly asks.",
 ].join("\n");
 
 let additional_context = `<remindifier_project_memory>\n${protocol}\n\n${parts.join("\n\n---\n\n")}\n</remindifier_project_memory>`;

@@ -1,6 +1,7 @@
 import * as Crypto from "expo-crypto";
 import { createGathering } from "@/db/repos/gatheringsRepo";
 import { createPersonEntry, listPeopleSummaries } from "@/db/repos/peopleRepo";
+import { resolveIntakeTalkingPointKind } from "@/lib/intake/intakeTalkingPointKind";
 import type { SemanticIntakeParseResult } from "@/lib/intake/semanticIntakeParser.types";
 import { logger } from "@/lib/logger";
 
@@ -12,7 +13,7 @@ export type SemanticIntakeConfirmResult =
 function buildTalkingPoints(parsed: SemanticIntakeParseResult) {
   return parsed.followUps.map((item) => ({
     id: Crypto.randomUUID(),
-    kind: "question" as const,
+    kind: resolveIntakeTalkingPointKind(item.text, item.talkingPointKind),
     text: item.text,
     done: false as const,
   }));
