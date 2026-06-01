@@ -157,29 +157,33 @@ export function PersonProfileHeader({
     </View>
   ) : (
     <View>
-      <Text className="text-3xl leading-[36px] text-text1 font-heading">
-        {displayName}
-        {relationLabel ? (
-          <Text className="text-2xl text-text2 font-body"> · {relationLabel}</Text>
-        ) : null}
-      </Text>
-      {birthday ? (
-        <Pressable
-          onPress={() => {
-            triggerLight();
-            setShowBirthdayDetail((v) => !v);
-          }}
-          className="flex-row items-center gap-2 mt-2 active:opacity-70"
-          accessibilityRole="button"
-          accessibilityLabel={t("people.birthdayA11y")}
-        >
-          {age !== null ? (
-            <Text className="text-sm text-text2 font-bodyMedium">
-              {t("people.years", { count: age })}
-            </Text>
+      <Text className="text-3xl leading-[36px] text-text1 font-heading">{displayName}</Text>
+      {relationLabel || birthday ? (
+        <View className="flex-row items-center justify-between mt-1 gap-3">
+          {relationLabel ? (
+            <Text className="text-sm text-text2 font-body flex-1 shrink">{relationLabel}</Text>
+          ) : (
+            <View className="flex-1" />
+          )}
+          {birthday ? (
+            <Pressable
+              onPress={() => {
+                triggerLight();
+                setShowBirthdayDetail((v) => !v);
+              }}
+              className="flex-row items-center gap-1.5 active:opacity-70"
+              accessibilityRole="button"
+              accessibilityLabel={t("people.birthdayA11y")}
+            >
+              {age !== null ? (
+                <Text className="text-sm text-text2 font-bodyMedium">
+                  {t("people.years", { count: age })}
+                </Text>
+              ) : null}
+              <Text className="text-base">🎂</Text>
+            </Pressable>
           ) : null}
-          <Text className="text-base">🎂</Text>
-        </Pressable>
+        </View>
       ) : null}
       {showBirthdayDetail && birthday ? (
         <Text className="text-sm text-text3 font-body mt-1">

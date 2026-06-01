@@ -21,20 +21,25 @@ import {
   updatePersonEntry,
 } from "@/db/repos/peopleRepo";
 import { useAppAuth } from "@/features/auth/useAppAuth";
+import { MerkedagComposer } from "@/features/people/MerkedagComposer";
 import { PersonProfileHeader } from "@/features/people/PersonProfileHeader";
-import { RedLetterDaysSection } from "@/features/people/RedLetterDaysSection";
 import { SwipeEditDeleteActions } from "@/features/people/SwipeEditDeleteActions";
 import { usePersonProfileData } from "@/features/people/usePersonProfileData";
 import { useTranslation } from "@/i18n/LanguageContext";
 import { redLetterDisplayLabel, redLetterKindIcon } from "@/i18n/redLetterKinds";
 import type { Locale } from "@/i18n/types";
-import type { RedLetterDayInput, RedLetterKind } from "@/lib/red-letter-day";
+import {
+  RED_LETTER_OTHER_KINDS,
+  type RedLetterDayInput,
+  type RedLetterKind,
+} from "@/lib/red-letter-day";
 import { triggerLight, triggerMedium, triggerSelection } from "@/lib/haptics";
 import { AppShell } from "@/ui/AppShell";
 import { BottomSheet } from "@/ui/BottomSheet";
 import { Button } from "@/ui/Button";
 import { Card } from "@/ui/Card";
 import type { AddMenuSection } from "@/ui/GlobalAddButton";
+import { InputActionButtons } from "@/ui/InputActionButtons";
 import { SectionLabel } from "@/ui/SectionLabel";
 
 function formatDate(iso: string, locale: Locale) {
@@ -131,9 +136,8 @@ export default function PersonDetailScreen() {
   const [editingEntryId, setEditingEntryId] = useState<string | null>(null);
   const [editingEntryText, setEditingEntryText] = useState("");
 
-  const [editingMerkedager, setEditingMerkedager] = useState(false);
-  const [merkedagerDraft, setMerkedagerDraft] = useState<RedLetterDayInput[]>([]);
-  const [merkedagerSaving, setMerkedagerSaving] = useState(false);
+  const [showMerkedagComposer, setShowMerkedagComposer] = useState(false);
+  const [merkedagEditInitial, setMerkedagEditInitial] = useState<RedLetterDayInput | undefined>();
 
   const [showFactInput, setShowFactInput] = useState(false);
   const [factDraft, setFactDraft] = useState("");
@@ -214,22 +218,37 @@ export default function PersonDetailScreen() {
     return bundle.redLetterDays.filter((d) => d.kind !== "Birthday");
   }, [bundle]);
 
-  const openMerkedagerEditor = () => {
-    if (!bundle) return;
-    setMerkedagerDraft(mapRedLetterDays(bundle).filter((d) => d.kind !== "Birthday"));
-    setEditingMerkedager(true);
-    setTimeout(() => scrollViewRef.current?.scrollTo({ y: 0, animated: true }), 100);
+  const merkedagerUsedKinds = useMemo(
+    () => merkedagerDisplay.map((d) => d.kind as RedLetterKind),
+    [merkedagerDisplay],
+  );
+
+  const canAddMerkedag = merkedagerUsedKinds.length < RED_LETTER_OTHER_KINDS.length;
+
+  const dismissMerkedagComposer = () => {
+    setShowMerkedagComposer(false);
+    setMerkedagEditInitial(undefined);
+    Keyboard.dismiss();
   };
 
-  const saveMerkedager = async () => {
-    setMerkedagerSaving(true);
-    try {
-      await savePerson({ redLetterDays: merkedagerDraft });
-      triggerMedium();
-      setEditingMerkedager(false);
-    } finally {
-      setMerkedagerSaving(false);
-    }
+  const confirmMerkedag = async (day: RedLetterDayInput) => {
+    if (!bundle) return;
+    const others = mapRedLetterDays(bundle).filter(
+      (d) => d.kind !== "Birthday" && d.kind !== day.kind,
+    );
+    await savePerson({ redLetterDays: [...others, day] });
+    triggerMedium();
+    dismissMerkedagComposer();
+  };
+
+  const deleteMerkedagFromComposer = async () => {
+    if (!bundle || !merkedagEditInitial?.id) return;
+    const others = mapRedLetterDays(bundle).filter(
+      (d) => d.kind !== "Birthday" && d.id !== merkedagEditInitial.id,
+    );
+    await savePerson({ redLetterDays: others });
+    triggerMedium();
+    dismissMerkedagComposer();
   };
 
   const saveFunFacts = async (facts: string[]) => {
@@ -407,73 +426,74 @@ export default function PersonDetailScreen() {
 
           {bundle ? (
             <>
-              <SectionAddHeader
-                title={t("people.redLetterDays")}
-                onAdd={() => {
-                  Keyboard.dismiss();
-                  if (editingMerkedager) return;
-                  openMerkedagerEditor();
-                }}
-              />
-              {editingMerkedager ? (
-                <Card style={{ marginBottom: 12 }}>
-                  <RedLetterDaysSection
-                    items={merkedagerDraft}
-                    onChange={setMerkedagerDraft}
-                    showSectionTitle={false}
-                  />
-                  <View className="flex-row gap-2 mt-3">
-                    <Pressable
-                      onPress={() => void saveMerkedager()}
-                      disabled={merkedagerSaving}
-                      className="flex-1 bg-accent rounded-lg py-2.5 items-center active:opacity-80"
-                    >
-                      <Text className="text-sm text-card font-bodySemi">
-                        {merkedagerSaving ? t("personForm.saving") : t("people.saveProfile")}
-                      </Text>
-                    </Pressable>
-                    <Pressable
-                      onPress={() => {
-                        triggerLight();
-                        setEditingMerkedager(false);
-                      }}
-                      disabled={merkedagerSaving}
-                      className="px-4 py-2.5 rounded-lg border border-border"
-                    >
-                      <Text className="text-sm text-text3 font-body">✕</Text>
-                    </Pressable>
-                  </View>
-                </Card>
-              ) : (
-                <>
-                  {merkedagerDisplay.length === 0 ? (
-                    <Text className="text-body text-text3 font-body mb-3">
-                      {t("people.noRedLetterDays")}
+              <SectionLabel>{t("people.redLetterDays")}</SectionLabel>
+              {merkedagerDisplay.map((item) => (
+                <Pressable
+                  key={item.id}
+                  onPress={() => {
+                    if (showMerkedagComposer) return;
+                    triggerLight();
+                    setMerkedagEditInitial({
+                      id: item.id,
+                      kind: item.kind as RedLetterKind,
+                      label: item.label,
+                      eventDate: item.eventDate,
+                      yearKnown: item.yearKnown,
+                      recurring: item.recurring,
+                    });
+                    setShowMerkedagComposer(true);
+                  }}
+                  className="mb-1 active:opacity-80"
+                >
+                  <Card style={{ marginBottom: 4 }}>
+                    <Text className="text-sm text-text1 font-bodyMedium">
+                      {redLetterKindIcon(item.kind)}{" "}
+                      {redLetterDisplayLabel(item.kind, item.label, locale)}
                     </Text>
-                  ) : (
-                    merkedagerDisplay.map((item) => (
-                      <Card key={item.id} style={{ marginBottom: 4 }}>
-                        <Text className="text-sm text-text1 font-bodyMedium">
-                          {redLetterKindIcon(item.kind)}{" "}
-                          {redLetterDisplayLabel(item.kind, item.label, locale)}
-                        </Text>
-                        <Text className="text-3xs text-text3 font-body mt-1">
-                          {formatDate(item.eventDate, locale)}
-                        </Text>
-                      </Card>
-                    ))
-                  )}
-                </>
+                    <Text className="text-3xs text-text3 font-body mt-1">
+                      {formatDate(item.eventDate, locale)}
+                    </Text>
+                  </Card>
+                </Pressable>
+              ))}
+              {merkedagerDisplay.length === 0 && !showMerkedagComposer ? (
+                <Text className="text-body text-text3 font-body mb-2">
+                  {t("people.noRedLetterDays")}
+                </Text>
+              ) : null}
+              {showMerkedagComposer ? (
+                <Card style={{ marginBottom: 12 }}>
+                  <MerkedagComposer
+                    initial={merkedagEditInitial}
+                    usedKinds={merkedagerUsedKinds.filter(
+                      (k) => k !== merkedagEditInitial?.kind,
+                    )}
+                    onConfirm={(day) => void confirmMerkedag(day)}
+                    onDismiss={dismissMerkedagComposer}
+                    onDelete={
+                      merkedagEditInitial?.id
+                        ? () => void deleteMerkedagFromComposer()
+                        : undefined
+                    }
+                  />
+                </Card>
+              ) : canAddMerkedag ? (
+                <Pressable
+                  onPress={() => {
+                    triggerLight();
+                    setMerkedagEditInitial(undefined);
+                    setShowMerkedagComposer(true);
+                  }}
+                  className="flex-row items-center gap-2 py-2 mb-3 active:opacity-60"
+                >
+                  <Text className="text-xl text-accent font-body">+</Text>
+                  <Text className="text-body text-text3 font-body">{t("redLetter.add")}</Text>
+                </Pressable>
+              ) : (
+                <View className="mb-3" />
               )}
 
-              <SectionAddHeader
-                title={t("people.funFacts")}
-                onAdd={() => {
-                  Keyboard.dismiss();
-                  setShowFactInput(true);
-                  setTimeout(() => scrollViewRef.current?.scrollToEnd({ animated: true }), 100);
-                }}
-              />
+              <SectionLabel>{t("people.funFacts")}</SectionLabel>
               {(bundle.person.interests ?? []).map((fact, i) => {
                 const isEditing = editingFactIndex === i;
                 return (
@@ -522,42 +542,40 @@ export default function PersonDetailScreen() {
               {(bundle.person.interests ?? []).length === 0 && !showFactInput ? (
                 <Text className="text-body text-text3 font-body mb-2">{t("people.noFunFacts")}</Text>
               ) : null}
-              {showFactInput ? (
-                <Card style={{ marginBottom: 12 }}>
-                  <View className="flex-row items-center gap-2">
-                    <TextInput
-                      value={factDraft}
-                      onChangeText={setFactDraft}
-                      placeholder={t("personForm.funFactsPlaceholder")}
-                      placeholderTextColor={placeholderColor}
-                      autoFocus
-                      returnKeyType="done"
-                      onSubmitEditing={() => void submitFact()}
-                      className="flex-1 bg-bg2 border border-border rounded-md px-3 text-sm text-text1 font-body"
-                      style={{ paddingVertical: 10, minHeight: 44 }}
-                    />
-                    <Pressable
-                      onPress={() => void submitFact()}
-                      hitSlop={8}
-                      className="w-10 h-10 rounded-full bg-accent items-center justify-center active:opacity-70"
-                    >
-                      <Text className="text-base text-card font-bodySemi">✓</Text>
-                    </Pressable>
-                    <Pressable
-                      onPress={() => {
-                        triggerLight();
-                        setShowFactInput(false);
-                        setFactDraft("");
-                        Keyboard.dismiss();
-                      }}
-                      hitSlop={8}
-                      className="p-1"
-                    >
-                      <Text className="text-body-lg text-text3">✕</Text>
-                    </Pressable>
-                  </View>
-                </Card>
-              ) : null}
+              {!showFactInput ? (
+                <Pressable
+                  onPress={() => {
+                    triggerLight();
+                    setShowFactInput(true);
+                  }}
+                  className="flex-row items-center gap-2 py-3 mb-2 active:opacity-60"
+                >
+                  <Text className="text-xl text-accent font-body">+</Text>
+                  <Text className="text-body text-text3 font-body">{t("people.addFunFact")}</Text>
+                </Pressable>
+              ) : (
+                <View className="flex-row items-start gap-2 mb-3">
+                  <TextInput
+                    value={factDraft}
+                    onChangeText={setFactDraft}
+                    placeholder={t("personForm.funFactsPlaceholder")}
+                    placeholderTextColor={placeholderColor}
+                    autoFocus
+                    returnKeyType="done"
+                    onSubmitEditing={() => void submitFact()}
+                    className="flex-1 bg-bg2 border border-border rounded-md px-3 text-sm text-text1 font-body"
+                    style={{ paddingVertical: 10, minHeight: 44 }}
+                  />
+                  <InputActionButtons
+                    onConfirm={() => void submitFact()}
+                    onDismiss={() => {
+                      setShowFactInput(false);
+                      setFactDraft("");
+                      Keyboard.dismiss();
+                    }}
+                  />
+                </View>
+              )}
 
               <SectionAddHeader
                 title={t("people.events")}

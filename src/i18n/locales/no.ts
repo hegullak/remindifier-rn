@@ -328,6 +328,7 @@ export const no = {
     notFound: "Fant ikke personen.",
     noRedLetterDays: "Ingen merkedager ennå.",
     noFunFacts: "Ingenting her ennå — trykk + for å legge til.",
+    addFunFact: "Legg til punkt",
     noEvents: "Ingen events ennå.",
     noLinks: "Ingen koblinger ennå.",
     noNotes: "Ingen notater ennå.",

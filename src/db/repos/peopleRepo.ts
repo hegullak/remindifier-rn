@@ -340,6 +340,32 @@ async function upsertRedLetterDays(userId: string, personId: string, days: RedLe
             eq(personRedLetterDays.id, day.id),
           ),
         );
+      continue;
+    }
+
+    const [existingByKind] = await db
+      .select({ id: personRedLetterDays.id })
+      .from(personRedLetterDays)
+      .where(
+        and(
+          eq(personRedLetterDays.userId, userId),
+          eq(personRedLetterDays.personId, personId),
+          eq(personRedLetterDays.kind, day.kind),
+        ),
+      )
+      .limit(1);
+
+    if (existingByKind) {
+      await db
+        .update(personRedLetterDays)
+        .set(payload)
+        .where(
+          and(
+            eq(personRedLetterDays.userId, userId),
+            eq(personRedLetterDays.personId, personId),
+            eq(personRedLetterDays.id, existingByKind.id),
+          ),
+        );
     } else {
       await db.insert(personRedLetterDays).values({
         id: `rld-${Crypto.randomUUID()}`,

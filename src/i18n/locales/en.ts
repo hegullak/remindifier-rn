@@ -326,6 +326,7 @@ export const en = {
     notFound: "Person not found.",
     noRedLetterDays: "No red-letter days yet.",
     noFunFacts: "Nothing here yet — tap + to add.",
+    addFunFact: "Add item",
     noEvents: "No events yet.",
     noLinks: "No links yet.",
     noNotes: "No notes yet.",
