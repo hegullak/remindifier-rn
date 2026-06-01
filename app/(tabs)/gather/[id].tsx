@@ -1,6 +1,7 @@
 import { Link, router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import * as Crypto from "expo-crypto";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Swipeable } from "react-native-gesture-handler";
 import {
   Keyboard,
   KeyboardAvoidingView,
@@ -80,6 +81,8 @@ export default function GatheringDetailScreen() {
   const pointInputRef = useRef<TextInput>(null);
   const scrollViewRef = useRef<ScrollView>(null);
   const [showInputField, setShowInputField] = useState(false);
+  const [editingPointId, setEditingPointId] = useState<string | null>(null);
+  const [editingText, setEditingText] = useState("");
   const [showDelete, setShowDelete] = useState(false);
   const [showPersonPicker, setShowPersonPicker] = useState(false);
   const [showCreatedBanner, setShowCreatedBanner] = useState(created === "1");
@@ -199,6 +202,26 @@ export default function GatheringDetailScreen() {
     });
     void persistContent({
       talkingPoints: content.talkingPoints.filter((p) => p.id !== pointId),
+    });
+  }
+
+  function startEdit(pointId: string) {
+    const point = content.talkingPoints.find((p) => p.id === pointId);
+    if (!point) return;
+    setEditingText(point.text);
+    setEditingPointId(pointId);
+  }
+
+  async function saveEdit(pointId: string) {
+    const trimmed = editingText.trim();
+    setEditingPointId(null);
+    setEditingText("");
+    if (!trimmed) return;
+    triggerLight();
+    await persistContent({
+      talkingPoints: content.talkingPoints.map((p) =>
+        p.id === pointId ? { ...p, text: trimmed } : p,
+      ),
     });
   }
 
@@ -371,23 +394,57 @@ export default function GatheringDetailScreen() {
                 ) : (
                   content.talkingPoints.map((point) => {
                     const meta = talkingPointMeta(point.kind);
+                    const isEditing = editingPointId === point.id;
                     return (
-                      <Pressable
+                      <Swipeable
                         key={point.id}
-                        onPress={() => toggleDone(point.id)}
-                        onLongPress={() => { triggerMedium(); removePoint(point.id); }}
-                        delayLongPress={500}
-                        className="flex-row items-start gap-3 py-3 border-b border-border active:opacity-60"
+                        friction={2}
+                        rightThreshold={40}
+                        renderRightActions={() => (
+                          <View className="flex-row">
+                            <Pressable
+                              onPress={() => { triggerSelection(); startEdit(point.id); }}
+                              className="bg-amber items-center justify-center px-5"
+                            >
+                              <Text className="text-xl">✎</Text>
+                            </Pressable>
+                            <Pressable
+                              onPress={() => { triggerMedium(); removePoint(point.id); }}
+                              className="bg-red items-center justify-center px-5 rounded-r-lg"
+                            >
+                              <Text className="text-xl">🗑</Text>
+                            </Pressable>
+                          </View>
+                        )}
                       >
-                        <Text className="text-base mt-0.5">{meta.icon}</Text>
-                        <Text
-                          className={`text-body-lg font-body flex-1 ${
-                            point.done ? "opacity-40 line-through text-text3" : "text-text1"
-                          }`}
-                        >
-                          {point.text}
-                        </Text>
-                      </Pressable>
+                        <View className="flex-row items-start gap-3 py-3 border-b border-border bg-bg">
+                          <Pressable onPress={() => toggleDone(point.id)} hitSlop={4}>
+                            <Text className="text-base mt-0.5" style={{ opacity: point.done ? 0.4 : 1 }}>{meta.icon}</Text>
+                          </Pressable>
+                          {isEditing ? (
+                            <TextInput
+                              value={editingText}
+                              onChangeText={setEditingText}
+                              autoFocus
+                              returnKeyType="done"
+                              onSubmitEditing={() => void saveEdit(point.id)}
+                              onBlur={() => void saveEdit(point.id)}
+                              className="flex-1 text-body-lg text-text1 font-body bg-transparent"
+                              style={{ color: inputTextColor, fontSize: 15 }}
+                            />
+                          ) : (
+                            <Pressable onPress={() => toggleDone(point.id)} className="flex-1">
+                              <Text
+                                className={`text-body-lg font-body ${
+                                  point.done ? "opacity-40 line-through text-text3" : "text-text1"
+                                }`}
+                              >
+                                {point.text}
+                              </Text>
+                            </Pressable>
+                          )}
+                        </View>
+                      </Swipeable>
                     );
                   })
                 )}
