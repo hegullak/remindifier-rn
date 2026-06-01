@@ -6,6 +6,7 @@ import { useBriefData } from "@/features/brief/useBriefData";
 import { useTranslation } from "@/i18n";
 import { isDateInCalendarWeek } from "@/lib/brief/calendarWeek";
 import { briefGreetingLine } from "@/lib/brief/greeting";
+import { eventIcon } from "@/lib/brief/eventIcon";
 import { briefGatheringHref } from "@/lib/gatherings/briefLinks";
 import { localizeGatheringTitle } from "@/lib/gatherings/localizeGathering";
 import { anniversaryMilestoneDetail } from "@/lib/milestones/anniversaries";
@@ -106,7 +107,7 @@ export default function BriefScreen() {
       id: `cal-${event.id}`,
       sortKey: daysUntil,
       dayLabel: briefDayLabel(daysUntil),
-      icon: "🕐",
+      icon: eventIcon(title),
       primary: title,
       secondary: timeStr,
       gatheringId: event.gatheringId,
@@ -199,7 +200,7 @@ export default function BriefScreen() {
             const row = (
               <View className={last ? "" : "mb-3"}>
                 <View className="flex-row items-center gap-2">
-                  <Text className="text-sm">🕐</Text>
+                  <Text className="text-sm">{eventIcon(title)}</Text>
                   <Text className="text-sm text-text2 font-bodyMedium">{item.time}</Text>
                 </View>
                 <Text className="text-body-lg text-text1 font-bodyMedium mt-1 pl-6">{title}</Text>
