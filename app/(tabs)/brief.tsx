@@ -134,11 +134,12 @@ export default function BriefScreen() {
 
   if (weekOffset === 0) {
     for (const item of headsupItems) {
+      const hsIcon = eventIcon(item.text);
       weekItems.push({
         id: `headsup-${item.day}`,
         sortKey: item.daysUntil,
         dayLabel: briefDayLabel(item.daysUntil),
-        icon: "💡",
+        icon: hsIcon === "🕐" ? "💡" : hsIcon,
         primary: item.text,
       });
     }
