@@ -53,7 +53,8 @@ export const PersonForm = forwardRef<PersonFormHandle, PersonFormProps>(function
   const [birthday, setBirthday] = useState(initial?.birthday ?? "");
   const [birthdayYearKnown, setBirthdayYearKnown] = useState(initial?.birthdayYearKnown ?? true);
   const [isSensitive, setIsSensitive] = useState(initial?.isSensitive ?? false);
-  const [funFactsText, setFunFactsText] = useState((initial?.funFacts ?? []).join("\n"));
+  const [funFacts, setFunFacts] = useState<string[]>(initial?.funFacts ?? []);
+  const [factDraft, setFactDraft] = useState("");
   const [redLetterDays, setRedLetterDays] = useState<RedLetterDayInput[]>(
     initial?.redLetterDays ?? [],
   );
@@ -69,17 +70,16 @@ export const PersonForm = forwardRef<PersonFormHandle, PersonFormProps>(function
     onSavingChange?.(true);
     setError(null);
     try {
-      const funFacts = funFactsText
-        .split("\n")
-        .map((line) => line.trim())
-        .filter(Boolean);
+      // Include any unsubmitted draft text as a final fact
+      const draft = factDraft.trim();
+      const allFacts = draft ? [...funFacts, draft] : funFacts;
       await onSubmit({
         displayName,
         relationType: relationType.trim() || null,
         birthday: birthday.trim() || null,
         birthdayYearKnown,
         isSensitive,
-        funFacts,
+        funFacts: allFacts,
         redLetterDays,
       });
     } catch (err: unknown) {
@@ -167,22 +167,51 @@ export const PersonForm = forwardRef<PersonFormHandle, PersonFormProps>(function
     </>
   );
 
+  const addFact = () => {
+    const trimmed = factDraft.trim();
+    if (!trimmed) return;
+    setFunFacts((prev) => [...prev, trimmed]);
+    setFactDraft("");
+  };
+
   const extraFields = (
     <>
-      <Text className="text-3xs uppercase tracking-[1.5px] text-text3 font-bodySemi">
+      <Text className="text-3xs uppercase tracking-[1.5px] text-text3 font-bodySemi mb-2">
         {t("personForm.funFacts")}
       </Text>
-      <TextInput
-        value={funFactsText}
-        onChangeText={setFunFactsText}
-        placeholder={t("personForm.funFactsPlaceholder")}
-        placeholderTextColor="#7A8CAD"
-        multiline
-        numberOfLines={5}
-        className={fieldClass}
-        style={{ textAlignVertical: "top", minHeight: 110 }}
-      />
-      <View className="flex-row items-center justify-between mt-3">
+      {funFacts.map((fact, i) => (
+        <View key={`${fact}-${i}`} className="flex-row items-start gap-2 mb-2">
+          <Text className="text-body-lg text-text2 font-body flex-1">· {fact}</Text>
+          <Pressable
+            onPress={() => setFunFacts((prev) => prev.filter((_, idx) => idx !== i))}
+            hitSlop={8}
+            className="p-1"
+          >
+            <Text className="text-sm text-text3">✕</Text>
+          </Pressable>
+        </View>
+      ))}
+      <View className="flex-row items-center gap-2 mt-1">
+        <TextInput
+          value={factDraft}
+          onChangeText={setFactDraft}
+          placeholder={t("personForm.funFactsPlaceholder")}
+          placeholderTextColor="#7A8CAD"
+          returnKeyType="done"
+          onSubmitEditing={addFact}
+          blurOnSubmit={false}
+          className="flex-1 bg-bg2 border border-border rounded-md px-3 text-sm text-text1 font-body"
+          style={{ paddingVertical: 10, minHeight: 44 }}
+        />
+        <Pressable
+          onPress={addFact}
+          hitSlop={8}
+          className="w-10 h-10 rounded-full bg-accent items-center justify-center active:opacity-70"
+        >
+          <Text className="text-base text-card font-bodySemi">+</Text>
+        </Pressable>
+      </View>
+      <View className="flex-row items-center justify-between mt-4">
         <Text className="text-xs text-text2 font-body">{t("personForm.handleWithCare")}</Text>
         <Switch value={isSensitive} onValueChange={setIsSensitive} />
       </View>

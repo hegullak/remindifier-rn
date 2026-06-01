@@ -385,7 +385,7 @@ export const en = {
     birthdayPlaceholder: "Pick a date",
     yearKnown: "Year is known",
     funFacts: "Nice to know",
-    funFactsPlaceholder: "One per line\nRan her 6th half marathon in May this year.",
+    funFactsPlaceholder: "E.g. ran her 6th half marathon in May…",
     handleWithCare: "Handle with care",
     saving: "Saving...",
     deletePerson: "Delete person",

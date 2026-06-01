@@ -387,7 +387,7 @@ export const no = {
     birthdayPlaceholder: "Velg dato",
     yearKnown: "Årstall er kjent",
     funFacts: "Kjekt å vite",
-    funFactsPlaceholder: "Én per linje\nLøp sitt 6. halvmaraton i mai i år.",
+    funFactsPlaceholder: "F.eks. løp sitt 6. halvmaraton i mai…",
     handleWithCare: "Håndter med varsomhet",
     saving: "Lagrer…",
     deletePerson: "Slett person",
