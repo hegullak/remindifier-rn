@@ -310,7 +310,7 @@ export default function GatheringDetailScreen() {
                 </View>
               ) : null}
 
-              <View className="flex-row items-start gap-2 mb-2">
+              <View className="flex-row items-start gap-2 mb-2 pt-3">
                 {editingTitle ? (
                   <TextInput
                     value={title}
@@ -358,6 +358,7 @@ export default function GatheringDetailScreen() {
 
               <ScrollView
                 keyboardDismissMode="on-drag"
+                keyboardShouldPersistTaps="handled"
                 contentContainerStyle={{ paddingBottom: 120 }}
                 style={{ flex: 1 }}
               >
