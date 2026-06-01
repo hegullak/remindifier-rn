@@ -68,6 +68,7 @@ A contextual memory and heads-up assistant for the people in your life — not a
   - Open-Meteo forecast; BottomSheet shows full details grid
 - **Body text:** use `"\n"` as sentence separator in brief bodies; renderer splits on `"\n"` — never `". "` (breaks «kl. 09:00»)
 - Static demo content: `getHeadsupItems(locale)`, `getFallbackTraining(locale)` in `briefContent.ts`
+- **Push-Pull-Legs:** session names stay English in all locales; active day highlighted via `PplSessionLabel` (`src/ui/PplSessionLabel.tsx`) — never translate to e.g. «Trekk»
 - Section order: per-user in DB, draggable list in `brief.tsx`
 - **Tab bar:** `FloatingTabBar` with `expo-blur` in dev client; **Expo Go** (`Constants.appOwnership === "expo"`) uses solid `View` fallback
 

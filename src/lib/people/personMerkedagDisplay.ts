@@ -47,8 +47,29 @@ export function formatElapsedSinceStart(
         : translate(locale, "merkedager.elapsed.months", { count: months })
       : null;
 
-  if (yearPart && monthPart) return `${yearPart} ${monthPart}`;
+  if (yearPart && monthPart) {
+    const joiner = locale === "no" ? " og " : " and ";
+    return `${yearPart}${joiner}${monthPart}`;
+  }
   return yearPart ?? monthPart;
+}
+
+function formatSinceWithDate(
+  locale: Locale,
+  key:
+    | "people.marriedSince"
+    | "people.marriedSinceMilestone"
+    | "people.smokeFreeSince"
+    | "people.snusFreeSince"
+    | "people.sinceElapsed",
+  eventDate: string,
+  asOf: Date,
+  extra?: { milestone?: string },
+): string | null {
+  const date = formatMerkedagShortDate(eventDate, locale);
+  const elapsed = formatElapsedSinceStart(eventDate, asOf, locale);
+  if (!elapsed) return null;
+  return translate(locale, key, { date, elapsed, ...extra });
 }
 
 function formatAnniversaryMiddle(
@@ -57,15 +78,16 @@ function formatAnniversaryMiddle(
   locale: Locale,
   asOf: Date,
 ): string | null {
-  const elapsed = formatElapsedSinceStart(eventDate, asOf, locale);
-  if (!elapsed) return label?.trim() || null;
-
   const years = weddingAnniversaryYears(eventDate, asOf);
   const milestoneName = years ? weddingAnniversaryName(years, locale) : null;
   if (milestoneName) {
-    return translate(locale, "people.marriedSinceMilestone", { elapsed, milestone: milestoneName });
+    return (
+      formatSinceWithDate(locale, "people.marriedSinceMilestone", eventDate, asOf, {
+        milestone: milestoneName,
+      }) ?? (label?.trim() || null)
+    );
   }
-  return translate(locale, "people.marriedSince", { elapsed });
+  return formatSinceWithDate(locale, "people.marriedSince", eventDate, asOf) ?? (label?.trim() || null);
 }
 
 function formatSinceMiddle(
@@ -74,15 +96,21 @@ function formatSinceMiddle(
   locale: Locale,
   asOf: Date,
 ): string | null {
-  const elapsed = formatElapsedSinceStart(eventDate, asOf, locale);
-  if (!elapsed) return null;
   const key = kind === "Snus-free" ? "people.snusFreeSince" : "people.smokeFreeSince";
-  return translate(locale, key, { elapsed });
+  return formatSinceWithDate(locale, key, eventDate, asOf);
 }
+
+/** Kinds where middle already embeds the date (gift/røykfri/siden-phrasing). */
+const MIDDLE_INCLUDES_DATE_KINDS = new Set([
+  "Anniversary",
+  "Smoke-free",
+  "Snus-free",
+  "Other",
+]);
 
 /**
  * One-line merkedag label for person detail, e.g.
- * «Bursdag · 38 år · 12. sep. 1987» or «Røykfri · røykfri siden 17 år 7 måneder · 1. nov. 2008».
+ * «Bursdag · 38 år · 12. sep. 1987» or «Bryllupsdag · gift siden 1. nov. 2003, 23 år og 7 måneder».
  */
 export function formatPersonMerkedagLine(
   kind: string,
@@ -108,12 +136,14 @@ export function formatPersonMerkedagLine(
   } else if (kind === "Snus-free") {
     middle = formatSinceMiddle("Snus-free", eventDate, locale, asOf);
   } else if (kind === "Other") {
-    const elapsed = formatElapsedSinceStart(eventDate, asOf, locale);
-    if (elapsed) {
-      middle = translate(locale, "people.sinceElapsed", { elapsed });
-    }
+    middle = formatSinceWithDate(locale, "people.sinceElapsed", eventDate, asOf);
   }
 
-  if (middle) return `${kindLabel} · ${middle} · ${datePart}`;
+  if (middle) {
+    if (MIDDLE_INCLUDES_DATE_KINDS.has(kind)) {
+      return `${kindLabel} · ${middle}`;
+    }
+    return `${kindLabel} · ${middle} · ${datePart}`;
+  }
   return `${kindLabel} · ${datePart}`;
 }

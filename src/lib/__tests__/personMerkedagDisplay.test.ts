@@ -13,25 +13,22 @@ describe("personMerkedagDisplay", () => {
     expect(line).toContain("12. sep. 1987");
   });
 
-  it("formats smoke-free with siden phrasing", () => {
-    const line = formatPersonMerkedagLine("Smoke-free", null, "2008-11-01", true, "no", asOf);
-    expect(line).toContain("Røykfri");
-    expect(line).toMatch(/røykfri siden/i);
-    expect(line).toContain("1. nov. 2008");
+  it("formats smoke-free as røykfri siden date, elapsed", () => {
+    const line = formatPersonMerkedagLine("Smoke-free", null, "2008-05-15", true, "no", asOf);
+    expect(line).toMatch(/Røykfri · røykfri siden 15\. mai 2008,/);
+    expect(line).toMatch(/år og \d+ måned/);
   });
 
-  it("formats anniversary with gift siden and milestone", () => {
-    const line = formatPersonMerkedagLine("Anniversary", null, "2003-11-01", true, "no", asOf);
-    expect(line).toContain("Bryllupsdag");
-    expect(line).toMatch(/gift siden/i);
-    expect(line).toContain("1. nov. 2003");
+  it("formats anniversary as gift siden date, elapsed", () => {
+    const line = formatPersonMerkedagLine("Anniversary", null, "2003-05-15", true, "no", asOf);
+    expect(line).toMatch(/Bryllupsdag · gift siden 15\. mai 2003,/);
+    expect(line).toMatch(/\d+ år( og \d+ måned)?/);
   });
 });
 
 describe("formatElapsedSinceStart", () => {
-  it("combines years and months when both are non-zero", () => {
+  it("combines years and months with og when both are non-zero", () => {
     const result = formatElapsedSinceStart("2008-05-15", new Date(2026, 10, 1), "no");
-    expect(result).toMatch(/år/);
-    expect(result).toMatch(/måned/);
+    expect(result).toMatch(/år og \d+ måned/);
   });
 });

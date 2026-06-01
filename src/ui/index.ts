@@ -1,6 +1,7 @@
 export { AppShell } from "./AppShell";
 export { GlobalAddButton, type AddMenuAction, type AddMenuSection } from "./GlobalAddButton";
 export { PersonDetailListRow } from "./PersonDetailListRow";
+export { PplSessionLabel } from "./PplSessionLabel";
 export { BottomSheet, useBottomSheet } from "./BottomSheet";
 export { BriefCard } from "./BriefCard";
 export { Button } from "./Button";

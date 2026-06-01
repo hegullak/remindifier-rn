@@ -6,7 +6,7 @@ import { useBriefData } from "@/features/brief/useBriefData";
 import { useTranslation } from "@/i18n";
 import { isDateInCalendarWeek } from "@/lib/brief/calendarWeek";
 import { briefGreetingLine } from "@/lib/brief/greeting";
-import { eventIcon } from "@/lib/brief/eventIcon";
+import { eventIcon, iconAndTitle } from "@/lib/brief/eventIcon";
 import { briefGatheringHref } from "@/lib/gatherings/briefLinks";
 import { localizeGatheringTitle } from "@/lib/gatherings/localizeGathering";
 import { anniversaryMilestoneDetail } from "@/lib/milestones/anniversaries";
@@ -16,7 +16,9 @@ import { buildMorningBrief } from "@/lib/brief/morningBrief";
 import { AppShell } from "@/ui/AppShell";
 import { BottomSheet } from "@/ui/BottomSheet";
 import { BriefCard } from "@/ui/BriefCard";
+import { PplSessionLabel } from "@/ui/PplSessionLabel";
 import { SectionLabel } from "@/ui/SectionLabel";
+import type { TrainingDisplayLine } from "@/lib/brief/pplTraining";
 
 export default function BriefScreen() {
   const { t, locale } = useTranslation();
@@ -79,14 +81,18 @@ export default function BriefScreen() {
   type UnifiedItem = {
     id: string;
     sortKey: number;
+    sortMinutes?: number; // minute-of-day for chronological ordering within a day
     dayLabel: string;
     icon: string;
     primary: string;
     secondary?: string;
+    note?: string;
     href?: string;
     gatheringId?: string | null;
     onPress?: () => void;
   };
+
+  const nowMinutes = new Date().getHours() * 60 + new Date().getMinutes();
 
   const weekItems: UnifiedItem[] = [];
 
@@ -94,9 +100,10 @@ export default function BriefScreen() {
     const eventDay = new Date(event.startDate);
     eventDay.setHours(0, 0, 0, 0);
     const daysUntil = Math.round((eventDay.getTime() - today.getTime()) / 86400000);
-    const title = event.gatheringId
+    const rawTitle = event.gatheringId
       ? localizeGatheringTitle(event.gatheringId, event.title, locale)
       : event.title;
+    const { icon, title } = iconAndTitle(rawTitle);
     const timeStr = event.allDay
       ? undefined
       : event.startDate.toLocaleTimeString(locale === "no" ? "nb-NO" : "en-GB", {
@@ -106,8 +113,9 @@ export default function BriefScreen() {
     weekItems.push({
       id: `cal-${event.id}`,
       sortKey: daysUntil,
+      sortMinutes: event.allDay ? undefined : event.startDate.getHours() * 60 + event.startDate.getMinutes(),
       dayLabel: briefDayLabel(daysUntil),
-      icon: eventIcon(title),
+      icon,
       primary: title,
       secondary: timeStr,
       gatheringId: event.gatheringId,
@@ -134,13 +142,17 @@ export default function BriefScreen() {
 
   if (weekOffset === 0) {
     for (const item of headsupItems) {
-      const hsIcon = eventIcon(item.text);
+      // Split "Legetime · 15:00 på Åsane" → primary "Legetime", secondary "15:00 på Åsane"
+      const [head, ...rest] = item.text.split(" · ");
+      const secondary = rest.length > 0 ? rest.join(" · ") : undefined;
+      const hsIcon = eventIcon(head);
       weekItems.push({
         id: `headsup-${item.day}`,
         sortKey: item.daysUntil,
         dayLabel: briefDayLabel(item.daysUntil),
         icon: hsIcon === "🕐" ? "💡" : hsIcon,
-        primary: item.text,
+        primary: head,
+        secondary,
       });
     }
   }
@@ -149,11 +161,17 @@ export default function BriefScreen() {
   const todayItems = weekItems.filter((i) => i.sortKey === 0);
   const restItems = weekItems.filter((i) => i.sortKey > 0);
 
-  function renderUnifiedRow(item: UnifiedItem, i: number, arr: UnifiedItem[], showDay: boolean) {
+  function renderUnifiedRow(
+    item: UnifiedItem,
+    i: number,
+    arr: UnifiedItem[],
+    showDay: boolean,
+    dimmed = false,
+  ) {
     const prevDay = i > 0 ? arr[i - 1].dayLabel : "";
     const showDayLabel = showDay && item.dayLabel !== prevDay;
     const row = (
-      <View className={i < arr.length - 1 ? "mb-3" : ""}>
+      <View className={i < arr.length - 1 ? "mb-3" : ""} style={dimmed ? { opacity: 0.45 } : undefined}>
         {showDayLabel && (
           <Text className="text-3xs uppercase tracking-[1.2px] text-sage font-bodySemi mb-1">
             {item.dayLabel}
@@ -165,6 +183,9 @@ export default function BriefScreen() {
             <Text className="text-body-lg text-text1 font-bodyMedium">{item.primary}</Text>
             {item.secondary ? (
               <Text className="text-sm text-text2 font-body mt-0.5">{item.secondary}</Text>
+            ) : null}
+            {item.note ? (
+              <Text className="text-xs text-text3 font-body mt-0.5">{item.note}</Text>
             ) : null}
           </View>
         </View>
@@ -184,44 +205,57 @@ export default function BriefScreen() {
 
   function renderDagenMin() {
     if (weekOffset !== 0) return null;
-    const hasSchedule = brief.schedule.length > 0;
-    const hasTodayItems = todayItems.length > 0;
+
+    // Merge demo schedule + today's calendar/red-letter items into one chronological list
+    const scheduleItems: UnifiedItem[] = brief.schedule.map((item) => {
+      const rawTitle = item.gatheringId
+        ? localizeGatheringTitle(item.gatheringId, item.title, locale)
+        : item.title;
+      const { icon, title } = iconAndTitle(rawTitle);
+      const [h, m] = item.time.split(":").map(Number);
+      return {
+        id: `sched-${item.id}`,
+        sortKey: 0,
+        sortMinutes: Number.isFinite(h) ? h * 60 + (m || 0) : undefined,
+        dayLabel: "I DAG",
+        icon,
+        primary: title,
+        secondary: item.time,
+        note: item.note || undefined,
+        gatheringId: item.gatheringId,
+      };
+    });
+
+    const dayCombined = [...scheduleItems, ...todayItems].sort(
+      (a, b) => (a.sortMinutes ?? -1) - (b.sortMinutes ?? -1),
+    );
+
+    const hasDay = dayCombined.length > 0;
     const hasTraining = trainingLines.length > 0;
-    if (!hasSchedule && !hasTodayItems && !hasTraining) return null;
-    const needDivider1 = (hasSchedule || hasTodayItems) && hasTraining;
+    if (!hasDay && !hasTraining) return null;
+    const needDivider1 = hasDay && hasTraining;
+
     return (
       <View className="mb-1">
         <SectionLabel>{locale === "no" ? "Dagen min" : "My day"}</SectionLabel>
         <BriefCard stripeColor="blue">
-          {brief.schedule.map((item, i) => {
-            const title = item.gatheringId
-              ? localizeGatheringTitle(item.gatheringId, item.title, locale)
-              : item.title;
-            const last = i === brief.schedule.length - 1 && !hasTodayItems;
-            const row = (
-              <View className={last ? "" : "mb-3"}>
-                <View className="flex-row items-center gap-2">
-                  <Text className="text-sm">{eventIcon(title)}</Text>
-                  <Text className="text-sm text-text2 font-bodyMedium">{item.time}</Text>
-                </View>
-                <Text className="text-body-lg text-text1 font-bodyMedium mt-1 pl-6">{title}</Text>
-                {item.note ? (
-                  <Text className="text-xs text-text3 font-body mt-1 pl-6">{item.note}</Text>
-                ) : null}
-              </View>
-            );
-            return (
-              <Link key={item.id} href={briefGatheringHref(item.gatheringId, title)} asChild>
-                <Pressable className="active:opacity-70">{row}</Pressable>
-              </Link>
-            );
+          {dayCombined.map((item, i) => {
+            // Dim events whose time has already passed today (winding-down feel)
+            const dimmed = item.sortMinutes !== undefined && item.sortMinutes < nowMinutes;
+            return renderUnifiedRow(item, i, dayCombined, false, dimmed);
           })}
-          {todayItems.map((item, i) => renderUnifiedRow(item, i, todayItems, false))}
           {needDivider1 && <View className="h-px bg-border my-3" />}
           {trainingLines.map((line, i) => (
-            <View key={line} className={`flex-row items-start gap-2${i < trainingLines.length - 1 ? " mb-3" : ""}`}>
+            <View
+              key={trainingLineKey(line, i)}
+              className={`flex-row items-start gap-2${i < trainingLines.length - 1 ? " mb-3" : ""}`}
+            >
               <Text className="text-base">{i === 0 ? "🏋️" : "🏃"}</Text>
-              <Text className="text-body-lg text-text1 font-body flex-1">{line}</Text>
+              {line.kind === "ppl" ? (
+                <PplSessionLabel active={line.active} className="flex-1" />
+              ) : (
+                <Text className="text-body-lg text-text1 font-body flex-1">{line.text}</Text>
+              )}
             </View>
           ))}
         </BriefCard>
@@ -556,4 +590,9 @@ function RedLetterRow({
       <Text className="text-body text-text2 font-body mt-0.5">{item.timing}</Text>
     </View>
   );
+}
+
+function trainingLineKey(line: TrainingDisplayLine, index: number): string {
+  if (line.kind === "ppl") return `ppl-${line.active}`;
+  return `text-${index}-${line.text}`;
 }
