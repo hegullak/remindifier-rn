@@ -1,6 +1,7 @@
 import { Link, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, Keyboard, Pressable, ScrollView, Text, View } from "react-native";
+import { Swipeable } from "react-native-gesture-handler";
 import { triggerLight, triggerMedium } from "@/lib/haptics";
 import { listGatheringsForUser, getGatheringTalkingPointCount, deleteGathering } from "@/db/repos/gatheringsRepo";
 import type { GatheringListItem } from "@/db/repos/gatheringsRepo";
@@ -106,16 +107,28 @@ export default function GatherListScreen() {
             <Text className="text-body text-text3 font-body mt-2">{t("gathering.createFirst")}</Text>
           </View>
         ) : (
-          <ScrollView contentContainerStyle={{ paddingBottom: 32 }}>
+          <ScrollView contentContainerStyle={{ paddingBottom: 32 }} keyboardShouldPersistTaps="handled">
             {items.map((item) => {
               const count = getGatheringTalkingPointCount(item.description);
               const dateLabel = formatDate(item.scheduledAt, locale);
               return (
-                <View key={item.id} style={{ marginBottom: 8 }}>
-                  <Card>
-                    <View className="flex-row items-start gap-3">
-                      <Link href={`/gather/${item.id}`} asChild className="flex-1">
-                        <Pressable className="flex-1">
+                <Swipeable
+                  key={item.id}
+                  friction={2}
+                  rightThreshold={40}
+                  renderRightActions={() => (
+                    <Pressable
+                      onPress={() => { triggerLight(); setDeleteId(item.id); }}
+                      className="bg-red items-center justify-center px-6 rounded-r-lg mb-2"
+                    >
+                      <Text className="text-xl">🗑</Text>
+                    </Pressable>
+                  )}
+                >
+                  <View style={{ marginBottom: 8 }}>
+                    <Card>
+                      <Link href={`/gather/${item.id}`} asChild>
+                        <Pressable>
                           <Text className="text-body-lg text-text1 font-bodyMedium">
                             {localizeGatheringTitle(item.id, item.title, locale)}
                           </Text>
@@ -132,19 +145,9 @@ export default function GatherListScreen() {
                           ) : null}
                         </Pressable>
                       </Link>
-                      <Pressable
-                        onPress={(e) => {
-                          e.stopPropagation();
-                          triggerLight();
-                          setDeleteId(item.id);
-                        }}
-                        hitSlop={8}
-                      >
-                        <Text className="text-lg text-red font-body">🗑</Text>
-                      </Pressable>
-                    </View>
-                  </Card>
-                </View>
+                    </Card>
+                  </View>
+                </Swipeable>
               );
             })}
           </ScrollView>

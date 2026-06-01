@@ -1,4 +1,4 @@
-import "react-native-gesture-handler";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { ClerkProvider, useAuth } from "@clerk/clerk-expo";
 import {
   DMSans_400Regular,
@@ -31,6 +31,7 @@ export default function RootLayout() {
   }
 
   return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
     <SafeAreaProvider>
       <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
         <LanguageProvider>
@@ -40,6 +41,7 @@ export default function RootLayout() {
         </LanguageProvider>
       </ClerkProvider>
     </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }
 
