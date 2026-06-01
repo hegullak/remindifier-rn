@@ -102,14 +102,17 @@ function FloatingTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
                 target: route.key,
                 canPreventDefault: true,
               });
-              if (focused) {
-                // Already on this tab — reset its nested stack to the root screen
-                const nested = state.routes[index].state;
-                if (nested && typeof nested.index === "number" && nested.index > 0) {
-                  navigation.dispatch({ ...StackActions.popToTop(), target: nested.key });
-                }
-              } else if (!event.defaultPrevented) {
+              if (event.defaultPrevented) return;
+              // Always land on the tab's root list — reset its nested stack to top
+              // whether the tab is already focused or navigated to from another tab.
+              const nested = state.routes[index].state;
+              const hasNestedHistory =
+                nested && typeof nested.index === "number" && nested.index > 0 && nested.key;
+              if (!focused) {
                 navigation.navigate(route.name);
+              }
+              if (hasNestedHistory) {
+                navigation.dispatch({ ...StackActions.popToTop(), target: nested.key });
               }
             }}
             style={{ flex: 1, alignItems: "center", justifyContent: "center", gap: 3 }}

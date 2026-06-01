@@ -297,7 +297,7 @@ export default function GatheringDetailScreen() {
             triggerLight();
             Keyboard.dismiss();
             if (returnTo) router.replace(returnTo);
-            else router.back();
+            else router.replace("/gather");
           }}
           hitSlop={12}
           accessibilityLabel="Back"

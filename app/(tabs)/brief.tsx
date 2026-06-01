@@ -87,7 +87,7 @@ export default function BriefScreen() {
     primary: string;
     secondary?: string;
     note?: string;
-    href?: string;
+    href?: string | { pathname: "/gather/new"; params: { prefill: string } };
     gatheringId?: string | null;
     onPress?: () => void;
   };
@@ -170,6 +170,7 @@ export default function BriefScreen() {
   ) {
     const prevDay = i > 0 ? arr[i - 1].dayLabel : "";
     const showDayLabel = showDay && item.dayLabel !== prevDay;
+    const navigable = Boolean(item.gatheringId || item.href || item.onPress);
     const row = (
       <View className={i < arr.length - 1 ? "mb-3" : ""} style={dimmed ? { opacity: 0.45 } : undefined}>
         {showDayLabel && (
@@ -188,13 +189,16 @@ export default function BriefScreen() {
               <Text className="text-xs text-text3 font-body mt-0.5">{item.note}</Text>
             ) : null}
           </View>
+          {navigable ? (
+            <Text className="text-base text-text3 font-body mt-0.5">›</Text>
+          ) : null}
         </View>
       </View>
     );
     if (item.gatheringId || item.href) {
       const href = item.gatheringId
         ? briefGatheringHref(item.gatheringId, item.primary)
-        : (item.href as string);
+        : item.href!;
       return <Link key={item.id} href={href} asChild><Pressable className="active:opacity-70">{row}</Pressable></Link>;
     }
     if (item.onPress) {
@@ -222,7 +226,7 @@ export default function BriefScreen() {
         primary: title,
         secondary: item.time,
         note: item.note || undefined,
-        gatheringId: item.gatheringId,
+        href: briefGatheringHref(item.gatheringId, title),
       };
     });
 
