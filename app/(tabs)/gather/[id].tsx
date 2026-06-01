@@ -67,6 +67,13 @@ export default function GatheringDetailScreen() {
   const mountedRef = useRef(true);
   useEffect(() => () => { mountedRef.current = false; }, []);
 
+  useEffect(() => {
+    const sub = Keyboard.addListener("keyboardDidHide", () => {
+      if (mountedRef.current) setShowInputField(false);
+    });
+    return () => sub.remove();
+  }, []);
+
   const [title, setTitle] = useState("");
   const [editingTitle, setEditingTitle] = useState(false);
   const [content, setContent] = useState<GatheringContent>({ talkingPoints: [] });
@@ -218,6 +225,8 @@ export default function GatheringDetailScreen() {
       done: false,
     };
     setNewPointText("");
+    setShowInputField(false);
+    Keyboard.dismiss();
     await persistContent({ talkingPoints: [...content.talkingPoints, point] });
   }
 
