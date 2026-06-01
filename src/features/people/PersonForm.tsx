@@ -4,7 +4,12 @@ import type { UpsertPersonInput } from "@/db/repos/peopleRepo";
 import { BirthdayField } from "@/features/people/BirthdayField";
 import { RedLetterDaysSection } from "@/features/people/RedLetterDaysSection";
 import { useTranslation } from "@/i18n/LanguageContext";
-import { RELATION_CATEGORIES } from "@/i18n/relationTypes";
+import {
+  parseRelationTypes,
+  RELATION_CATEGORIES,
+  serializeRelationTypes,
+  toggleRelationCategory,
+} from "@/i18n/relationTypes";
 import type { RedLetterDayInput } from "@/lib/red-letter-day";
 import { Card } from "@/ui/Card";
 
@@ -49,7 +54,9 @@ export const PersonForm = forwardRef<PersonFormHandle, PersonFormProps>(function
 ) {
   const { t } = useTranslation();
   const [displayName, setDisplayName] = useState(initial?.displayName ?? "");
-  const [relationType, setRelationType] = useState(initial?.relationType ?? "");
+  const [selectedRelations, setSelectedRelations] = useState<string[]>(() =>
+    parseRelationTypes(initial?.relationType ?? null),
+  );
   const [birthday, setBirthday] = useState(initial?.birthday ?? "");
   const isSensitive = initial?.isSensitive ?? false;
   const [funFacts, setFunFacts] = useState<string[]>(initial?.funFacts ?? []);
@@ -74,7 +81,7 @@ export const PersonForm = forwardRef<PersonFormHandle, PersonFormProps>(function
       const allFacts = draft ? [...funFacts, draft] : funFacts;
       await onSubmit({
         displayName,
-        relationType: relationType.trim() || null,
+        relationType: serializeRelationTypes(selectedRelations),
         birthday: birthday.trim() || null,
         birthdayYearKnown: true,
         isSensitive,
@@ -129,11 +136,13 @@ export const PersonForm = forwardRef<PersonFormHandle, PersonFormProps>(function
       </Text>
       <View className="flex-row flex-wrap gap-2">
         {RELATION_CATEGORIES.map((cat) => {
-          const selected = relationType === cat.value;
+          const selected = selectedRelations.includes(cat.value);
           return (
             <Pressable
               key={cat.value}
-              onPress={() => setRelationType(selected ? "" : cat.value)}
+              onPress={() =>
+                setSelectedRelations((prev) => toggleRelationCategory(prev, cat.value))
+              }
               className={`px-3 py-1.5 rounded-pill border ${
                 selected ? "bg-accent border-accent" : "bg-bg2 border-border"
               }`}

@@ -1,5 +1,6 @@
 import { Text, View } from "react-native";
 import { useTranslation } from "@/i18n/LanguageContext";
+import { translateRelationType } from "@/i18n/relationTypes";
 import type { ParsedPersonDraft } from "@/lib/people/naturalLanguageParser";
 import { Card } from "@/ui/Card";
 
@@ -8,7 +9,7 @@ type Props = {
 };
 
 export function ParsedPersonPreviewCard({ draft }: Props) {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
 
   return (
     <Card style={{ marginBottom: 12, borderRadius: 18 }}>
@@ -20,7 +21,10 @@ export function ParsedPersonPreviewCard({ draft }: Props) {
           <PreviewRow label={t("personForm.fullName")} value={draft.displayName} />
         ) : null}
         {draft.relationType ? (
-          <PreviewRow label={t("personForm.relationType")} value={draft.relationType} />
+          <PreviewRow
+            label={t("personForm.relationType")}
+            value={translateRelationType(draft.relationType, locale) ?? draft.relationType}
+          />
         ) : null}
         {draft.birthday ? (
           <PreviewRow label={t("personForm.birthday")} value={draft.birthday} />

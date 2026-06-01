@@ -126,7 +126,7 @@ Big UX pass on **brief, events, and people**. All committed + pushed to `sandbox
 
 ### Brief
 - Weather moved to AppShell header (top-left, same row as +/HG), tappable → weather BottomSheet
-- Greeting is the visual anchor (`text-5xl`); time-contextual **ambient headline** under it (morning 06–09 / evening 20:30+) with detail lines (first meeting, lunch, weekend). **NOTE: time windows TEMP-widened for testing in brief.tsx — `h>=6&&h<15`=morning, `h>=15`=evening. Revert to real windows (`6–9` / `20:30+`) before release.**
+- Greeting is the visual anchor (`text-5xl`); time-contextual **ambient headline** under it (morning 06–09 / evening 20:30+) with detail lines (first meeting, lunch, weekend).
 - Simplified to **two sections**: "Dagen min" (today: schedule + today's calendar/red-letter + training) and "Uken min" (tomorrow+, collapsible accordion showing "+N", tap card to expand)
 - Contextual event icons via `src/lib/brief/eventIcon.ts` (☕🥗🍽️🦷🩺⚽🏋️🏃✈️🎉, clock fallback)
 - Seed: added today private events (Kaffe med Marte, Tannlege) in `seedCalendar.ts`
@@ -149,12 +149,12 @@ Big UX pass on **brief, events, and people**. All committed + pushed to `sandbox
 - Tailwind named font-size tokens; removed unused `@anthropic-ai/sdk`
 - Code review fixes (`337dc2e`): SQLCipher key guard, QR payload limits, N+1→batched in peopleRepo, setTimeout mountedRef guards, briefHelpers extraction, briefGreetingLine→{lead,name}, BriefWeatherDetail.kind
 
-### NEXT (requested, not yet done)
-1. **relationType multi-select** — currently single string. User wants to pick multiple ("Min far og nære venn"). Needs: store multiple (comma-join canonical values), update `translateRelationType` to split+join with "og"/"and", multi-select chips in PersonForm, display in list/detail. Decide on "Min" possessive prefix (user was asked, no answer yet).
+### Done (2026-06-01 Cursor)
+1. **relationType multi-select** — comma-separated canonical values in DB; `parseRelationTypes` / `serializeRelationTypes`; `translateRelationType` joins with «og»/«and»; PersonForm chips toggle multiple; list/detail unchanged (use translator). **Possessive «Min» prefix:** not implemented — labels stay neutral (Forelder, Nær venn); confirm with Henning if needed.
+2. **Ambient windows** reverted in `brief.tsx` (06–09 / 20:30+).
+3. **OpenAI parse proxy** — shipped earlier (`workers/parse-api`, `EXPO_PUBLIC_PARSE_API_URL`); no client-side API key in app code.
 
 ### Noted for later
-- **Revert TEMP ambient time windows** in `app/(tabs)/brief.tsx` before release
-- OpenAI API key client-side → backend proxy (Cloudflare Worker in progress per earlier prompt)
 - expo-blur tab bar inactive until dev client rebuild
 
 ---

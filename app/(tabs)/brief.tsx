@@ -266,8 +266,9 @@ export default function BriefScreen() {
   const ambientPeriod = (() => {
     const h = new Date().getHours();
     const m = new Date().getMinutes();
-    if (h >= 6 && h < 15) return "morning";   // TEMP: utvidet for testing
-    if (h >= 15) return "evening";             // TEMP: utvidet for testing
+    const minutes = h * 60 + m;
+    if (h >= 6 && h < 9) return "morning";
+    if (minutes >= 20 * 60 + 30) return "evening";
     return null;
   })();
 
