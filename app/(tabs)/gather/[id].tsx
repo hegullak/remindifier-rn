@@ -65,10 +65,12 @@ export default function GatheringDetailScreen() {
   const isDark = colorScheme === "dark";
   const { id, created } = useLocalSearchParams<{ id: string; created?: string }>();
   const mountedRef = useRef(true);
+  const suppressCloseRef = useRef(false);
   useEffect(() => () => { mountedRef.current = false; }, []);
 
   useEffect(() => {
     const sub = Keyboard.addListener("keyboardDidHide", () => {
+      if (suppressCloseRef.current) return;
       if (mountedRef.current) setShowInputField(false);
     });
     return () => sub.remove();
@@ -407,7 +409,9 @@ export default function GatheringDetailScreen() {
                             onPress={() => {
                               triggerSelection();
                               setSelectedKind(kind);
+                              suppressCloseRef.current = true;
                               pointInputRef.current?.focus();
+                              setTimeout(() => { suppressCloseRef.current = false; }, 400);
                             }}
                             hitSlop={10}
                             className="items-center active:opacity-60"
@@ -433,7 +437,7 @@ export default function GatheringDetailScreen() {
                         onSubmitEditing={() => void addPoint()}
                         autoFocus
                         className="flex-1 bg-card border border-border rounded-lg px-3 text-text1 font-body"
-                        style={{ color: inputTextColor, paddingVertical: 10, fontSize: 15, minHeight: 44 }}
+                        style={{ paddingVertical: 10, fontSize: 15, minHeight: 44 }}
                       />
                       <Pressable
                         onPress={() => void addPoint()}
