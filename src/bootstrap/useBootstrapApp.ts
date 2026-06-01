@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { ensureDefaultBriefPreferences } from "@/db/repos/userRepo";
-import { patchDevMilestoneSeed, seedLocalData } from "@/db/seed";
+import { ensureDemoGathering, patchDevMilestoneSeed, seedLocalData } from "@/db/seed";
 import { seedDevCalendar } from "@/db/seedCalendar";
 import { logger } from "@/lib/logger";
 
@@ -30,6 +30,14 @@ export function useBootstrapApp(userId: string | null | undefined, migrationsRea
         await patchDevMilestoneSeed(activeUserId);
       } catch (error) {
         logger.error("bootstrap_milestone_patch_failed", {
+          error: error instanceof Error ? error.name : "unknown",
+        });
+      }
+
+      try {
+        await ensureDemoGathering(activeUserId);
+      } catch (error) {
+        logger.error("bootstrap_ensure_gathering_failed", {
           error: error instanceof Error ? error.name : "unknown",
         });
       }

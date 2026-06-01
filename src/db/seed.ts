@@ -45,6 +45,49 @@ export async function patchDevMilestoneSeed(userId: string) {
     .onConflictDoNothing();
 }
 
+/**
+ * Ensures the demo gathering "Dinner at Ida's" (g-1) exists and is scheduled for
+ * today 19:00 — so the demo schedule row "Middag hos Ida" always links to a real
+ * event even if it was deleted during testing. Idempotent; dev only.
+ */
+export async function ensureDemoGathering(userId: string) {
+  if (!__DEV__) return;
+  const db = await getDrizzleDbForUser(userId);
+
+  const todayAt19 = new Date();
+  todayAt19.setHours(19, 0, 0, 0);
+
+  await db
+    .insert(gatherings)
+    .values({
+      id: "g-1",
+      userId,
+      title: "Dinner at Ida's",
+      scheduledAt: todayAt19,
+      location: "St. Hanshaugen",
+      description: JSON.stringify({
+        talkingPoints: [
+          { id: "tp-1", kind: "topic", text: "Ask about the Copenhagen apartment offer", done: false },
+          { id: "tp-2", kind: "topic", text: "Bring flowers", done: false },
+        ],
+      }),
+      type: "dinner",
+    })
+    .onConflictDoUpdate({
+      target: gatherings.id,
+      set: { scheduledAt: todayAt19, title: "Dinner at Ida's" },
+    });
+
+  await db
+    .insert(gatheringParticipants)
+    .values([
+      { id: "gp-1", gatheringId: "g-1", personId: "p-ida", userId },
+      { id: "gp-2", gatheringId: "g-1", personId: "p-eirik", userId },
+      { id: "gp-3", gatheringId: "g-1", personId: "p-anna", userId },
+    ])
+    .onConflictDoNothing();
+}
+
 export async function seedLocalData(userId: string) {
   if (await hasSeedData(userId)) return;
   const db = await getDrizzleDbForUser(userId);
