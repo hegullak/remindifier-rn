@@ -367,6 +367,10 @@ export const en = {
       cousin: "Cousin",
       acquaintance: "Acquaintance",
       colleagues: "Colleagues",
+      partner: "Partner",
+      parent: "Parent",
+      child: "Child",
+      friendOfFriend: "Friend of a friend",
     },
   },
   personForm: {

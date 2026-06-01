@@ -4,6 +4,7 @@ import type { UpsertPersonInput } from "@/db/repos/peopleRepo";
 import { BirthdayField } from "@/features/people/BirthdayField";
 import { RedLetterDaysSection } from "@/features/people/RedLetterDaysSection";
 import { useTranslation } from "@/i18n/LanguageContext";
+import { RELATION_CATEGORIES } from "@/i18n/relationTypes";
 import type { RedLetterDayInput } from "@/lib/red-letter-day";
 import { Card } from "@/ui/Card";
 
@@ -124,13 +125,27 @@ export const PersonForm = forwardRef<PersonFormHandle, PersonFormProps>(function
         placeholderTextColor="#7A8CAD"
         className={fieldClass}
       />
-      <TextInput
-        value={relationType}
-        onChangeText={setRelationType}
-        placeholder={t("personForm.relationType")}
-        placeholderTextColor="#7A8CAD"
-        className={fieldClass}
-      />
+      <Text className="text-3xs uppercase tracking-[1.5px] text-text3 font-bodySemi mt-4 mb-2">
+        {t("personForm.relationType")}
+      </Text>
+      <View className="flex-row flex-wrap gap-2">
+        {RELATION_CATEGORIES.map((cat) => {
+          const selected = relationType === cat.value;
+          return (
+            <Pressable
+              key={cat.value}
+              onPress={() => setRelationType(selected ? "" : cat.value)}
+              className={`px-3 py-1.5 rounded-pill border ${
+                selected ? "bg-accent border-accent" : "bg-bg2 border-border"
+              }`}
+            >
+              <Text className={`text-xs font-bodyMedium ${selected ? "text-card" : "text-text2"}`}>
+                {t(cat.key)}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
     </>
   );
 
