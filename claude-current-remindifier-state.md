@@ -1,6 +1,6 @@
 # remindifier-rn — Current AI Session State
 
-*Last updated: 2026-05-31 (session handoff — intake datetime conflict picker)*
+*Last updated: 2026-06-01 (session handoff — events + people redesign)*
 
 **This file is the session snapshot.** Architecture lives in [`PROJECT_MEMORY.md`](./PROJECT_MEMORY.md).  
 Agent protocol: `.cursor/rules/session-handoff.mdc` · Skill: `.cursor/skills/project-memory/SKILL.md`
@@ -13,8 +13,7 @@ Agent protocol: `.cursor/rules/session-handoff.mdc` · Skill: `.cursor/skills/pr
 
 - **Repo:** `https://github.com/hegullak/remindifier-rn`
 - **Active branch:** `sandbox`
-- **Latest commit:** `ee70547` — `docs: sync session state commit hash`
-- **Previous:** `286b384` — intake datetime conflict picker
+- **Latest commit:** `5bcc6d0` — `feat(people): edit form polish — date pickers, icon kind picker, cleanup`
 - **CI:** lint + typecheck + test:coverage (expected green)
 
 ### Git workflow (user rule)
@@ -116,14 +115,51 @@ c5b3f62 docs: sync session state commit hash
 
 - Session memory → `claude-current-remindifier-state.md` only
 - Pull before / push after each agent task
-- Session handoff **only when user asks** or session ends
+- Session handoff **only when user explicitly asks** (e.g. "SESSION HANDOFF") — never after ordinary tasks or because git is dirty
 - NativeWind **named tokens**; icons over text; `logger` not `console.log`
 
 ---
 
-## What Was Done (this session — 2026-05-31)
+## What Was Done (this session — 2026-06-01, Claude Code)
 
-### Intake — datetime conflict (user feedback)
+Big UX pass on **brief, events, and people**. All committed + pushed to `sandbox` (latest `5bcc6d0`).
+
+### Brief
+- Weather moved to AppShell header (top-left, same row as +/HG), tappable → weather BottomSheet
+- Greeting is the visual anchor (`text-5xl`); time-contextual **ambient headline** under it (morning 06–09 / evening 20:30+) with detail lines (first meeting, lunch, weekend). **NOTE: time windows TEMP-widened for testing in brief.tsx — `h>=6&&h<15`=morning, `h>=15`=evening. Revert to real windows (`6–9` / `20:30+`) before release.**
+- Simplified to **two sections**: "Dagen min" (today: schedule + today's calendar/red-letter + training) and "Uken min" (tomorrow+, collapsible accordion showing "+N", tap card to expand)
+- Contextual event icons via `src/lib/brief/eventIcon.ts` (☕🥗🍽️🦷🩺⚽🏋️🏃✈️🎉, clock fallback)
+- Seed: added today private events (Kaffe med Marte, Tannlege) in `seedCalendar.ts`
+
+### Events (gather)
+- Detail redesign: flat talking-point rows with kind emoji, tap=toggle done, **swipe→✎edit (inline)+🗑delete**
+- Inline composer: + reveals input below last point, icon-only kind picker (2 kinds: ?/💬), ✓ adds, scrollToEnd, keyboardShouldPersistTaps
+- List: swipe→✎/🗑, rounded corners via `borderRadius+overflow:hidden` wrapper
+
+### People
+- List: swipe→✎edit/🗑delete (Card-outer structure for rounded corners), reloads on focus (usePeopleData exposes `reload`)
+- Detail simplified to 3 roles: **Kjekt å vite** (facts) · **Events** · **Oppfølging** (follow-ups only; timeline note/follow_up toggle removed). Monogram avatar (initials, per-person color). Swipe edit/delete on follow-ups.
+- Header: ⋯ menu → moved to AppShell **+ menu** (Edit/Delete); back arrow always → returnTo or /people
+- Edit form: relationType = **preset category chips** (label now "Hvordan vi kjenner hverandre"); birthday+merkedager unified into one section; merkedag uses **DateTimePicker** + icon kind picker; removed "Årstall er kjent" + "Håndter med varsomhet"; "Kjekt å vite" = inline fact list (not textarea)
+- Merkedager elapsed time now shows **combined "X år Y måneder"** (`red-letter-days.ts`)
+
+### Global fixes
+- **BottomSheet now re-applies `dark` class** from `useAppTheme` (Modal renders outside ThemeProvider tree → fixed all modal text-color bugs at the root). Removed per-component color hacks.
+- Tab bar: tapping already-focused tab pops nested stack to root (people icon → always list)
+- Tailwind named font-size tokens; removed unused `@anthropic-ai/sdk`
+- Code review fixes (`337dc2e`): SQLCipher key guard, QR payload limits, N+1→batched in peopleRepo, setTimeout mountedRef guards, briefHelpers extraction, briefGreetingLine→{lead,name}, BriefWeatherDetail.kind
+
+### NEXT (requested, not yet done)
+1. **relationType multi-select** — currently single string. User wants to pick multiple ("Min far og nære venn"). Needs: store multiple (comma-join canonical values), update `translateRelationType` to split+join with "og"/"and", multi-select chips in PersonForm, display in list/detail. Decide on "Min" possessive prefix (user was asked, no answer yet).
+
+### Noted for later
+- **Revert TEMP ambient time windows** in `app/(tabs)/brief.tsx` before release
+- OpenAI API key client-side → backend proxy (Cloudflare Worker in progress per earlier prompt)
+- expo-blur tab bar inactive until dev client rebuild
+
+---
+
+## Earlier this session (Cursor — intake datetime conflict)
 
 User tested Marte/Jonas lunch text again: parser got most fields but **missed torsdag kl. 13** vs onsdag kl. 12. Wanted app to **ask which time** to save.
 
