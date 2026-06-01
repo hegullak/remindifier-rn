@@ -345,7 +345,8 @@ export default function BriefScreen() {
       {/* Hilsen — visuelt anker */}
       <View style={{ paddingTop: 32, paddingBottom: ambientHeadline ? 6 : 16 }}>
         <Text className="text-5xl leading-tight text-text1 font-heading">
-          {greetingLead}{" "}
+          {greetingLead}
+          {"\n"}
           <Text className="text-accent">{greetingName}</Text>
         </Text>
       </View>
