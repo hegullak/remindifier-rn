@@ -19,10 +19,11 @@ describe("personMerkedagDisplay", () => {
     expect(line).toMatch(/år og \d+ måned/);
   });
 
-  it("formats anniversary as siden date · elapsed", () => {
+  it("formats anniversary without the word 'siden'", () => {
     const line = formatPersonMerkedagLine("Anniversary", null, "2003-05-15", true, "no", asOf);
-    expect(line).toMatch(/^Bryllupsdag · siden 15\. mai 2003 · /);
-    expect(line).not.toMatch(/gift siden/);
+    expect(line).toMatch(/^Bryllupsdag · \d+ år/);
+    expect(line).not.toMatch(/siden/);
+    expect(line).toContain("15. mai 2003");
   });
 });
 

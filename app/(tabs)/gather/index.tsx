@@ -138,20 +138,20 @@ export default function GatherListScreen() {
                     <Card style={{ marginBottom: 0 }}>
                       <Link href={`/gather/${item.id}`} asChild>
                         <Pressable>
-                          <Text className="text-body-lg text-text1 font-bodyMedium">
+                          <Text className="text-xl text-text1 font-bodyMedium">
                             {localizeGatheringTitle(item.id, item.title, locale)}
                           </Text>
                           {item.participants.length > 0 ? (
-                            <Text className="text-xs text-text3 font-body mt-1">
+                            <Text className="text-sm text-text3 font-body mt-1">
                               {item.participants.join(", ")}
                             </Text>
                           ) : null}
-                          <Text className="text-3xs text-text3 font-body mt-1">
+                          {dateLabel ? (
+                            <Text className="text-sm text-text2 font-bodyMedium mt-1">{dateLabel}</Text>
+                          ) : null}
+                          <Text className="text-2xs text-text3 font-body mt-1">
                             {t("gathering.talkingPointCount", { count })}
                           </Text>
-                          {dateLabel ? (
-                            <Text className="text-xs text-text2 font-body mt-1">{dateLabel}</Text>
-                          ) : null}
                         </Pressable>
                       </Link>
                     </Card>

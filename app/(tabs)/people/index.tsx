@@ -58,15 +58,15 @@ function PersonRowCard({
       <Link href={`/people/${person.id}`} asChild>
         <Pressable>
           <View className="flex-row items-center gap-2">
-            <Text className="text-lg text-text1 font-heading">{person.displayName}</Text>
-            {age ? <Text className="text-xs text-text3 font-body">{age}</Text> : null}
+            <Text className="text-xl text-text1 font-heading">{person.displayName}</Text>
+            {age ? <Text className="text-sm text-text3 font-body">{age}</Text> : null}
           </View>
           {person.relationType ? (
-            <Text className="text-3xs uppercase tracking-[1.5px] text-text3 font-bodySemi mt-1">
+            <Text className="text-2xs uppercase tracking-[1.5px] text-text3 font-bodySemi mt-1">
               {translateRelationType(person.relationType, locale)}
             </Text>
           ) : null}
-          {hint ? <Text className="text-body text-text2 font-body mt-2">{hint}</Text> : null}
+          {hint ? <Text className="text-body-lg text-text2 font-body mt-2">{hint}</Text> : null}
         </Pressable>
       </Link>
     </Card>

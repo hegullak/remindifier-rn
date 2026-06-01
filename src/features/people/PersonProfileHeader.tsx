@@ -157,7 +157,7 @@ export const PersonProfileHeader = forwardRef<PersonProfileHeaderHandle, Props>(
     <View>
       <Text className="text-3xl leading-[36px] text-text1 font-heading">{displayName}</Text>
       {relationLabel || age !== null ? (
-        <Text className="text-body text-text2 font-body mt-1">
+        <Text className="text-body-lg text-text2 font-bodyMedium mt-1.5">
           {relationLabel ?? ""}
           {relationLabel && age !== null ? " · " : ""}
           {age !== null ? t("people.years", { count: age }) : ""}
