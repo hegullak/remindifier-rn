@@ -54,24 +54,22 @@ function PersonRowCard({
   );
 
   return (
-    <Link href={`/people/${person.id}`} asChild>
-      <Pressable>
-        <Card style={{ marginBottom: 0 }}>
-          <View>
-            <View className="flex-row items-center gap-2">
-              <Text className="text-lg text-text1 font-heading">{person.displayName}</Text>
-              {age ? <Text className="text-xs text-text3 font-body">{age}</Text> : null}
-            </View>
-            {person.relationType ? (
-              <Text className="text-3xs uppercase tracking-[1.5px] text-text3 font-bodySemi mt-1">
-                {translateRelationType(person.relationType, locale)}
-              </Text>
-            ) : null}
-            {hint ? <Text className="text-body text-text2 font-body mt-2">{hint}</Text> : null}
+    <Card style={{ marginBottom: 0 }}>
+      <Link href={`/people/${person.id}`} asChild>
+        <Pressable>
+          <View className="flex-row items-center gap-2">
+            <Text className="text-lg text-text1 font-heading">{person.displayName}</Text>
+            {age ? <Text className="text-xs text-text3 font-body">{age}</Text> : null}
           </View>
-        </Card>
-      </Pressable>
-    </Link>
+          {person.relationType ? (
+            <Text className="text-3xs uppercase tracking-[1.5px] text-text3 font-bodySemi mt-1">
+              {translateRelationType(person.relationType, locale)}
+            </Text>
+          ) : null}
+          {hint ? <Text className="text-body text-text2 font-body mt-2">{hint}</Text> : null}
+        </Pressable>
+      </Link>
+    </Card>
   );
 }
 
@@ -127,9 +125,9 @@ export default function PeopleListScreen() {
           ) : null}
         </View>
 
-        {activePeople.map((person) => (
-          <View key={person.id} className="px-4" style={{ marginBottom: 8 }}>
-            <View style={{ borderRadius: 20, overflow: "hidden" }}>
+        <View className="px-4">
+          {activePeople.map((person) => (
+            <View key={person.id} style={{ borderRadius: 20, overflow: "hidden", marginBottom: 8 }}>
               <Swipeable
                 friction={1.5}
                 overshootRight={false}
@@ -151,11 +149,13 @@ export default function PeopleListScreen() {
                   </View>
                 )}
               >
-                <PersonRowCard person={person} t={t} locale={locale} />
+                <View>
+                  <PersonRowCard person={person} t={t} locale={locale} />
+                </View>
               </Swipeable>
             </View>
-          </View>
-        ))}
+          ))}
+        </View>
       </ScrollView>
 
       <BottomSheet

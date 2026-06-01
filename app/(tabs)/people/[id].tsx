@@ -1,6 +1,7 @@
 import { Link, router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Keyboard, Pressable, ScrollView, Text, TextInput, useColorScheme, View } from "react-native";
+import { Keyboard, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, useColorScheme, View } from "react-native";
+import { Swipeable } from "react-native-gesture-handler";
 import { triggerLight, triggerMedium, triggerSelection } from "@/lib/haptics";
 import { createPersonEntry, deletePerson, deletePersonEntry } from "@/db/repos/peopleRepo";
 import { useAppAuth } from "@/features/auth/useAppAuth";
@@ -29,6 +30,7 @@ export default function PersonDetailScreen() {
   const { bundle, loading, error, reload } = usePersonProfileData(userId, id);
   const colorScheme = useColorScheme();
   const mountedRef = useRef(true);
+  const scrollViewRef = useRef<ScrollView>(null);
   useEffect(() => () => { mountedRef.current = false; }, []);
   const [entryType, setEntryType] = useState<"note" | "follow_up">("note");
   const [entryBody, setEntryBody] = useState("");
@@ -146,7 +148,17 @@ export default function PersonDetailScreen() {
         </Pressable>
       }
     >
-      <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        keyboardVerticalOffset={90}
+      >
+      <ScrollView
+        ref={scrollViewRef}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
+        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}
+      >
         <View className="pt-1 pb-2">
           <Text className="text-3xl leading-[36px] text-text1 font-heading">
             {bundle?.person.displayName ?? t("people.personFallback")}
@@ -275,23 +287,28 @@ export default function PersonDetailScreen() {
 
             <SectionLabel>{t("people.timeline")}</SectionLabel>
             {bundle.timeline.map((entry) => (
-              <View key={entry.id} className="border-l-2 border-border pl-3 py-2 mb-2">
-                <View className="flex-row items-start justify-between gap-2">
-                  <Text className="text-2xs uppercase tracking-[1.2px] text-text3 font-bodyMedium flex-1">
-                    {formatDate(entry.occurredAt.toISOString(), locale)} ·{" "}
-                    {entry.entryType === "follow_up" ? t("people.followUp") : t("people.note")}
-                  </Text>
-                  <Pressable
-                    onPress={() => {
-                      triggerLight();
-                      setEntryToDelete(entry.id);
-                    }}
-                    hitSlop={8}
-                  >
-                    <Text className="text-sm text-text3 font-body">✕</Text>
-                  </Pressable>
-                </View>
-                <Text className="text-sm text-text2 font-body mt-1">{entry.body}</Text>
+              <View key={entry.id} style={{ borderRadius: 12, overflow: "hidden", marginBottom: 8 }}>
+                <Swipeable
+                  friction={1.5}
+                  overshootRight={false}
+                  rightThreshold={40}
+                  renderRightActions={() => (
+                    <Pressable
+                      onPress={() => { triggerLight(); setEntryToDelete(entry.id); }}
+                      className="bg-red items-center justify-center px-6"
+                    >
+                      <Text className="text-xl" style={{ color: "#fff" }}>🗑</Text>
+                    </Pressable>
+                  )}
+                >
+                  <View className="border-l-2 border-border pl-3 py-2 bg-bg">
+                    <Text className="text-2xs uppercase tracking-[1.2px] text-text3 font-bodyMedium">
+                      {formatDate(entry.occurredAt.toISOString(), locale)} ·{" "}
+                      {entry.entryType === "follow_up" ? t("people.followUp") : t("people.note")}
+                    </Text>
+                    <Text className="text-sm text-text2 font-body mt-1">{entry.body}</Text>
+                  </View>
+                </Swipeable>
               </View>
             ))}
             {bundle.timeline.length === 0 ? (
@@ -300,7 +317,11 @@ export default function PersonDetailScreen() {
 
             {!showNoteInput ? (
               <Pressable
-                onPress={() => { triggerLight(); setShowNoteInput(true); }}
+                onPress={() => {
+                  triggerLight();
+                  setShowNoteInput(true);
+                  setTimeout(() => scrollViewRef.current?.scrollToEnd({ animated: true }), 100);
+                }}
                 className="flex-row items-center gap-2 py-3 active:opacity-60"
               >
                 <Text className="text-xl text-accent font-body">+</Text>
@@ -385,6 +406,7 @@ export default function PersonDetailScreen() {
           </>
         ) : null}
       </ScrollView>
+      </KeyboardAvoidingView>
 
       <BottomSheet
         visible={entryToDelete !== null}
