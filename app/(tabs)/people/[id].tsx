@@ -147,10 +147,12 @@ function mergeBirthdayRedLetterDay(
   ];
 }
 
+const ADD_ROW_CLASS = "flex-row items-center gap-2 py-1.5 active:opacity-60";
+
 function SectionAddHeader({ title, onAdd }: { title: string; onAdd: () => void }) {
   return (
-    <View className="flex-row items-center justify-between mb-1">
-      <SectionLabel>{title}</SectionLabel>
+    <View className="flex-row items-center justify-between mt-3 mb-1">
+      <Text className="text-3xs uppercase tracking-[1.92px] text-text3 font-bodySemi">{title}</Text>
       <Pressable
         onPress={() => {
           triggerLight();
@@ -472,7 +474,7 @@ export default function PersonDetailScreen() {
           ref={scrollViewRef}
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="on-drag"
-          contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}
+          contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 140 }}
         >
           {bundle ? (
             <PersonProfileHeader
@@ -511,8 +513,8 @@ export default function PersonDetailScreen() {
 
           {bundle ? (
             <>
-              <SectionLabel>{t("people.redLetterDays")}</SectionLabel>
-              <View className="mb-2 border-t border-border">
+              <SectionLabel compact>{t("people.redLetterDays")}</SectionLabel>
+              <View className="border-t border-border">
                 {merkedagerList.map((item) => {
                   const rowKey = item.id ?? `kind-${item.kind}`;
                   const line = formatPersonMerkedagLine(
@@ -547,12 +549,12 @@ export default function PersonDetailScreen() {
                 })}
               </View>
               {merkedagerList.length === 0 && !showMerkedagComposer ? (
-                <Text className="text-body text-text3 font-body mb-3">
+                <Text className="text-body text-text3 font-body mb-1">
                   {t("people.noRedLetterDays")}
                 </Text>
               ) : null}
               {showMerkedagComposer ? (
-                <View className="mb-4">
+                <View className="mb-2">
                   <MerkedagComposer
                     initial={merkedagEditInitial}
                     birthdayOnly={composerBirthdayOnly}
@@ -583,7 +585,7 @@ export default function PersonDetailScreen() {
                     triggerLight();
                     openMerkedagComposer(undefined, true);
                   }}
-                  className="flex-row items-center gap-2 py-2 mb-2 active:opacity-60"
+                  className={ADD_ROW_CLASS}
                 >
                   <Text className="text-xl text-accent font-body">+</Text>
                   <Text className="text-body text-text3 font-body">
@@ -597,17 +599,15 @@ export default function PersonDetailScreen() {
                     triggerLight();
                     openMerkedagComposer();
                   }}
-                  className="flex-row items-center gap-2 py-2 mb-4 active:opacity-60"
+                  className={ADD_ROW_CLASS}
                 >
                   <Text className="text-xl text-accent font-body">+</Text>
                   <Text className="text-body text-text3 font-body">{t("redLetter.add")}</Text>
                 </Pressable>
-              ) : (
-                <View className="mb-2" />
-              )}
+              ) : null}
 
-              <SectionLabel>{t("people.funFacts")}</SectionLabel>
-              <View className="mb-2 border-t border-border">
+              <SectionLabel compact>{t("people.funFacts")}</SectionLabel>
+              <View className="border-t border-border">
                 {(bundle.person.interests ?? []).map((fact, i) => {
                   const isEditing = editingFactIndex === i;
                   return (
@@ -650,7 +650,7 @@ export default function PersonDetailScreen() {
                 })}
               </View>
               {(bundle.person.interests ?? []).length === 0 && !showFactInput ? (
-                <Text className="text-body text-text3 font-body mb-4">{t("people.noFunFacts")}</Text>
+                <Text className="text-body text-text3 font-body mb-1">{t("people.noFunFacts")}</Text>
               ) : null}
               {!showFactInput ? (
                 <Pressable
@@ -658,13 +658,13 @@ export default function PersonDetailScreen() {
                     triggerLight();
                     setShowFactInput(true);
                   }}
-                  className="flex-row items-center gap-2 py-4 mt-2 mb-4 active:opacity-60"
+                  className={ADD_ROW_CLASS}
                 >
                   <Text className="text-xl text-accent font-body">+</Text>
                   <Text className="text-body text-text3 font-body">{t("people.addFunFact")}</Text>
                 </Pressable>
               ) : (
-                <View className="flex-row items-start gap-3 mt-4 mb-8 py-2">
+                <View className="flex-row items-start gap-3 mt-1 mb-2 py-1">
                   <TextInput
                     value={factDraft}
                     onChangeText={setFactDraft}
@@ -695,9 +695,9 @@ export default function PersonDetailScreen() {
                 }}
               />
               {bundle.gatherings.length === 0 ? (
-                <Text className="text-body text-text3 font-body mb-2">{t("people.noEvents")}</Text>
+                <Text className="text-body text-text3 font-body mb-1">{t("people.noEvents")}</Text>
               ) : (
-                <View className="mb-2 border-t border-border">
+                <View className="border-t border-border">
                   {bundle.gatherings.map((g) => {
                     const eventLine = g.scheduledAt
                       ? `${g.title} · ${formatDate(g.scheduledAt.toISOString(), locale)}`
@@ -757,13 +757,13 @@ export default function PersonDetailScreen() {
                 </>
               ) : null}
 
-              <SectionLabel>{t("people.followUpsTitle")}</SectionLabel>
+              <SectionLabel compact>{t("people.followUpsTitle")}</SectionLabel>
               {bundle.timeline.map((entry) => {
                 const isEditing = editingEntryId === entry.id;
                 return (
                   <View
                     key={entry.id}
-                    style={{ borderRadius: 12, overflow: "hidden", marginBottom: 8 }}
+                    style={{ borderRadius: 12, overflow: "hidden", marginBottom: 4 }}
                   >
                     <Swipeable
                       friction={1.5}
@@ -780,7 +780,7 @@ export default function PersonDetailScreen() {
                         />
                       )}
                     >
-                      <View className="border-l-2 border-accent pl-3 py-3 bg-bg">
+                      <View className="border-l-2 border-accent pl-3 py-2.5 bg-bg">
                         <View className="flex-row items-center gap-2">
                           <Text className="text-sm">🔔</Text>
                           <Text className="text-2xs uppercase tracking-[1.2px] text-text3 font-bodyMedium">
@@ -810,7 +810,7 @@ export default function PersonDetailScreen() {
                 );
               })}
               {bundle.timeline.length === 0 && !showNoteInput ? (
-                <Text className="text-body text-text3 font-body mb-2">{t("people.noFollowUps")}</Text>
+                <Text className="text-body text-text3 font-body mb-1">{t("people.noFollowUps")}</Text>
               ) : null}
 
               {!showNoteInput ? (
@@ -818,15 +818,15 @@ export default function PersonDetailScreen() {
                   onPress={() => {
                     triggerLight();
                     setShowNoteInput(true);
-                    setTimeout(() => scrollViewRef.current?.scrollToEnd({ animated: true }), 100);
+                    setTimeout(() => scrollViewRef.current?.scrollToEnd({ animated: true }), 150);
                   }}
-                  className="flex-row items-center gap-2 py-3 active:opacity-60"
+                  className={`${ADD_ROW_CLASS} mb-2`}
                 >
                   <Text className="text-xl text-accent font-body">+</Text>
                   <Text className="text-body text-text3 font-body">{t("people.addFollowUp")}</Text>
                 </Pressable>
               ) : (
-                <Card style={{ marginBottom: 12 }}>
+                <Card style={{ marginBottom: 8 }}>
                   <View className="flex-row items-center gap-2">
                     <TextInput
                       value={entryBody}

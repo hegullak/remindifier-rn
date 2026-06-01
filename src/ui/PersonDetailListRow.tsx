@@ -10,7 +10,7 @@ export function PersonDetailListRow({
   children: ReactNode;
 }) {
   return (
-    <View className="flex-row items-start gap-3 py-3 border-b border-border bg-bg">
+    <View className="flex-row items-start gap-3 py-2.5 border-b border-border bg-bg">
       {icon ? (
         <Text className="text-base mt-0.5 shrink-0" accessibilityElementsHidden>
           {icon}

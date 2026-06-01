@@ -167,7 +167,7 @@ export function PersonProfileHeader({
   );
 
   return (
-    <View className="flex-row items-start gap-4 pt-2 pb-4">
+    <View className="flex-row items-start gap-4 pt-2 pb-2">
       {monogram}
       <View className="flex-1" style={{ borderRadius: 12, overflow: "hidden" }}>
         <Swipeable

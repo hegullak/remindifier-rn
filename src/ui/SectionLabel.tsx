@@ -4,11 +4,15 @@ export interface SectionLabelProps {
   children: string;
   style?: TextStyle;
   drag?: () => void;
+  /** Tighter vertical rhythm (e.g. person detail). */
+  compact?: boolean;
 }
 
-export function SectionLabel({ children, style, drag }: SectionLabelProps) {
+export function SectionLabel({ children, style, drag, compact }: SectionLabelProps) {
   return (
-    <View className="flex-row items-center justify-between mt-5 mb-2">
+    <View
+      className={`flex-row items-center justify-between ${compact ? "mt-3 mb-1" : "mt-5 mb-2"}`}
+    >
       <Text
         className="text-3xs uppercase tracking-[1.92px] text-text3 font-bodySemi"
         style={style}
