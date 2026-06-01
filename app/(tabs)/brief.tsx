@@ -347,11 +347,11 @@ export default function BriefScreen() {
           accessibilityRole="button"
           hitSlop={8}
         >
-          <Text className="text-body-lg mr-1">{brief.weather.icon}</Text>
-          <Text className="text-body text-text2 font-bodyMedium">{brief.weather.temp}</Text>
-          <Text className="text-body text-text3 font-body">  🌧️ {rainText}</Text>
+          <Text className="text-2xl mr-1">{brief.weather.icon}</Text>
+          <Text className="text-base text-text2 font-bodyMedium">{brief.weather.temp}</Text>
+          <Text className="text-body-lg text-text3 font-body">  🌧️ {rainText}</Text>
           {windText ? (
-            <Text className="text-body text-text3 font-body">  💨 {windText}</Text>
+            <Text className="text-body-lg text-text3 font-body">  💨 {windText}</Text>
           ) : null}
           <Text className="text-body text-text3 font-body ml-1">›</Text>
         </Pressable>
