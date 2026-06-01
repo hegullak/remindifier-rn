@@ -40,3 +40,10 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# Cloudflare Wrangler local state
+.wrangler/
+
+# test / dev artifacts
+coverage/
+expo-output.log
