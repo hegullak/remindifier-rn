@@ -256,20 +256,20 @@ export default function BriefScreen() {
     <View className="pb-2">
       <Pressable
         onPress={() => setShowWeatherSheet(true)}
-        className="flex-row items-center justify-center mb-2 active:opacity-70"
+        className="flex-row items-center mb-1 active:opacity-70"
         accessibilityRole="button"
         hitSlop={8}
       >
-        <Text className="text-body-lg mr-0.5">{brief.weather.icon}</Text>
-        <Text className="text-sm text-text1 font-bodyMedium">{brief.weather.temp}</Text>
-        <Text className="text-body text-text3 font-body">  🌧️ {rainText}</Text>
+        <Text className="text-xl mr-1">{brief.weather.icon}</Text>
+        <Text className="text-base text-text1 font-bodyMedium">{brief.weather.temp}</Text>
+        <Text className="text-body-lg text-text3 font-body">  🌧️ {rainText}</Text>
         {windText ? (
-          <Text className="text-body text-text3 font-body">  💨 {windText}</Text>
+          <Text className="text-body-lg text-text3 font-body">  💨 {windText}</Text>
         ) : null}
         <Text className="text-body text-text3 font-body ml-1">›</Text>
       </Pressable>
 
-      <View className="flex-row items-center justify-center gap-4 mb-2">
+      <View className="flex-row items-center gap-3 mb-1">
         <Pressable
           onPress={() => shiftWeek(-1)}
           accessibilityRole="button"
@@ -277,7 +277,7 @@ export default function BriefScreen() {
           hitSlop={16}
           className="active:opacity-60"
         >
-          <Text className="text-nav text-accent font-body">←</Text>
+          <Text className="text-xl text-accent font-body">←</Text>
         </Pressable>
         <Pressable
           onPress={resetWeek}
@@ -288,7 +288,7 @@ export default function BriefScreen() {
           className="active:opacity-70"
         >
           <Text
-            className={`text-body font-bodySemi ${weekOffset === 0 ? "text-text3" : "text-accent"}`}
+            className={`text-base font-bodySemi ${weekOffset === 0 ? "text-text3" : "text-accent"}`}
           >
             {dateLine}
           </Text>
@@ -300,7 +300,7 @@ export default function BriefScreen() {
           hitSlop={16}
           className="active:opacity-60"
         >
-          <Text className="text-nav text-accent font-body">→</Text>
+          <Text className="text-xl text-accent font-body">→</Text>
         </Pressable>
       </View>
       <View className="pt-6 pb-8">
