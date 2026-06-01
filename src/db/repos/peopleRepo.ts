@@ -450,6 +450,21 @@ export async function createPersonEntry(userId: string, input: CreatePersonEntry
   }
 }
 
+export async function updatePersonEntry(userId: string, entryId: string, body: string) {
+  try {
+    const db = await getDrizzleDbForUser(userId);
+    const trimmed = body.trim();
+    if (!trimmed) return;
+    await db
+      .update(personEntries)
+      .set({ body: trimmed, rawInput: trimmed, updatedAt: new Date() })
+      .where(and(eq(personEntries.userId, userId), eq(personEntries.id, entryId)));
+    logger.info("person_entry_updated", { userId, entryId });
+  } catch (err) {
+    logRepoError("person_entry_update_failed", err, { userId, entryId });
+  }
+}
+
 export async function deletePersonEntry(userId: string, entryId: string) {
   try {
     const db = await getDrizzleDbForUser(userId);

@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Keyboard, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, useColorScheme, View } from "react-native";
 import { Swipeable } from "react-native-gesture-handler";
 import { triggerLight, triggerMedium, triggerSelection } from "@/lib/haptics";
-import { createPersonEntry, deletePerson, deletePersonEntry } from "@/db/repos/peopleRepo";
+import { createPersonEntry, deletePerson, deletePersonEntry, updatePersonEntry } from "@/db/repos/peopleRepo";
 import { useAppAuth } from "@/features/auth/useAppAuth";
 import { usePersonProfileData } from "@/features/people/usePersonProfileData";
 import { useTranslation } from "@/i18n/LanguageContext";
@@ -41,6 +41,8 @@ export default function PersonDetailScreen() {
   const [confirmDeletePerson, setConfirmDeletePerson] = useState(false);
   const [deletingPerson, setDeletingPerson] = useState(false);
   const [showNoteInput, setShowNoteInput] = useState(false);
+  const [editingEntryId, setEditingEntryId] = useState<string | null>(null);
+  const [editingEntryText, setEditingEntryText] = useState("");
 
   useFocusEffect(
     useCallback(() => {
@@ -115,6 +117,16 @@ export default function PersonDetailScreen() {
     } finally {
       setDeletingEntry(false);
     }
+  };
+
+  const saveEntryEdit = async (entryId: string) => {
+    const trimmed = editingEntryText.trim();
+    setEditingEntryId(null);
+    setEditingEntryText("");
+    if (!userId || !trimmed) return;
+    await updatePersonEntry(userId, entryId, trimmed);
+    triggerLight();
+    reload();
   };
 
   const handleDeletePerson = async () => {
@@ -286,19 +298,30 @@ export default function PersonDetailScreen() {
             ) : null}
 
             <SectionLabel>{t("people.timeline")}</SectionLabel>
-            {bundle.timeline.map((entry) => (
+            {bundle.timeline.map((entry) => {
+              const isEditing = editingEntryId === entry.id;
+              return (
               <View key={entry.id} style={{ borderRadius: 12, overflow: "hidden", marginBottom: 8 }}>
                 <Swipeable
                   friction={1.5}
                   overshootRight={false}
                   rightThreshold={40}
+                  enabled={!isEditing}
                   renderRightActions={() => (
-                    <Pressable
-                      onPress={() => { triggerLight(); setEntryToDelete(entry.id); }}
-                      className="bg-red items-center justify-center px-6"
-                    >
-                      <Text className="text-xl" style={{ color: "#fff" }}>🗑</Text>
-                    </Pressable>
+                    <View className="flex-row">
+                      <Pressable
+                        onPress={() => { triggerSelection(); setEditingEntryText(entry.body); setEditingEntryId(entry.id); }}
+                        className="bg-amber items-center justify-center px-5"
+                      >
+                        <Text className="text-xl" style={{ color: "#fff" }}>✎</Text>
+                      </Pressable>
+                      <Pressable
+                        onPress={() => { triggerLight(); setEntryToDelete(entry.id); }}
+                        className="bg-red items-center justify-center px-5"
+                      >
+                        <Text className="text-xl" style={{ color: "#fff" }}>🗑</Text>
+                      </Pressable>
+                    </View>
                   )}
                 >
                   <View className="border-l-2 border-border pl-3 py-2 bg-bg">
@@ -306,11 +329,26 @@ export default function PersonDetailScreen() {
                       {formatDate(entry.occurredAt.toISOString(), locale)} ·{" "}
                       {entry.entryType === "follow_up" ? t("people.followUp") : t("people.note")}
                     </Text>
-                    <Text className="text-sm text-text2 font-body mt-1">{entry.body}</Text>
+                    {isEditing ? (
+                      <TextInput
+                        value={editingEntryText}
+                        onChangeText={setEditingEntryText}
+                        autoFocus
+                        multiline
+                        returnKeyType="done"
+                        onBlur={() => void saveEntryEdit(entry.id)}
+                        onSubmitEditing={() => void saveEntryEdit(entry.id)}
+                        className="text-sm text-text1 font-body mt-1 bg-transparent"
+                        style={{ minHeight: 24 }}
+                      />
+                    ) : (
+                      <Text className="text-sm text-text2 font-body mt-1">{entry.body}</Text>
+                    )}
                   </View>
                 </Swipeable>
               </View>
-            ))}
+              );
+            })}
             {bundle.timeline.length === 0 ? (
               <Text className="text-body text-text3 font-body mb-2">{t("people.noNotes")}</Text>
             ) : null}
