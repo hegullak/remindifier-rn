@@ -37,18 +37,28 @@ function formatLabel(iso: string, locale: "en" | "no"): string {
 
 type Props = {
   initial?: RedLetterDayInput;
-  /** Kinds already saved on this person (excl. Birthday). */
+  /** Kinds already saved (cannot pick these except current). */
   usedKinds: RedLetterKind[];
+  /** When editing birthday — only 🎂, no other kind icons. */
+  birthdayOnly?: boolean;
   onConfirm: (day: RedLetterDayInput) => void;
   onDismiss: () => void;
   onDelete?: () => void;
 };
 
-export function MerkedagComposer({ initial, usedKinds, onConfirm, onDismiss, onDelete }: Props) {
+export function MerkedagComposer({
+  initial,
+  usedKinds,
+  birthdayOnly = false,
+  onConfirm,
+  onDismiss,
+  onDelete,
+}: Props) {
   const { t, locale } = useTranslation();
   const { isDark } = useAppTheme();
   const [kind, setKind] = useState<RedLetterKind>(() => {
-    if (initial?.kind && initial.kind !== "Birthday") return initial.kind;
+    if (initial?.kind) return initial.kind;
+    if (birthdayOnly) return "Birthday";
     const available = RED_LETTER_OTHER_KINDS.find((k) => !usedKinds.includes(k));
     return available ?? "Anniversary";
   });
@@ -56,9 +66,9 @@ export function MerkedagComposer({ initial, usedKinds, onConfirm, onDismiss, onD
   const [eventDate, setEventDate] = useState(initial?.eventDate ?? `${CURRENT_YEAR}-01-01`);
   const [showPicker, setShowPicker] = useState(false);
 
-  const selectableKinds = RED_LETTER_OTHER_KINDS.filter(
-    (k) => k === kind || !usedKinds.includes(k),
-  );
+  const iconKinds: RedLetterKind[] = birthdayOnly
+    ? ["Birthday"]
+    : RED_LETTER_OTHER_KINDS.filter((k) => k === kind || !usedKinds.includes(k));
 
   const handleConfirm = () => {
     onConfirm({
@@ -71,26 +81,36 @@ export function MerkedagComposer({ initial, usedKinds, onConfirm, onDismiss, onD
     });
   };
 
+  const kindName = redLetterKindLabel(kind, locale);
+
   return (
-    <View className="flex-row items-start gap-2">
+    <View className="flex-row items-start gap-2 py-2">
       <View className="flex-1 gap-3">
-        <View className="flex-row gap-5">
-          {selectableKinds.map((k) => {
-            const selected = kind === k;
-            return (
-              <Pressable
-                key={k}
-                onPress={() => setKind(k)}
-                hitSlop={8}
-                className="items-center active:opacity-60"
-                accessibilityLabel={redLetterKindLabel(k, locale)}
-              >
-                <Text style={{ fontSize: 28, opacity: selected ? 1 : 0.35 }}>
-                  {redLetterKindIcon(k)}
-                </Text>
-              </Pressable>
-            );
-          })}
+        <View className="flex-row items-center gap-3">
+          <View className="flex-row gap-4 shrink">
+            {iconKinds.map((k) => {
+              const selected = kind === k;
+              return (
+                <Pressable
+                  key={k}
+                  onPress={() => setKind(k)}
+                  hitSlop={8}
+                  className="items-center active:opacity-60"
+                  accessibilityLabel={redLetterKindLabel(k, locale)}
+                >
+                  <Text style={{ fontSize: 28, opacity: selected ? 1 : 0.35 }}>
+                    {redLetterKindIcon(k)}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+          <Text
+            className="flex-1 text-sm text-text2 font-bodyMedium text-right pr-1"
+            numberOfLines={2}
+          >
+            {kindName}
+          </Text>
         </View>
 
         {kind === "Other" ? (
@@ -128,7 +148,7 @@ export function MerkedagComposer({ initial, usedKinds, onConfirm, onDismiss, onD
       <InputActionButtons
         onConfirm={handleConfirm}
         onDismiss={onDismiss}
-        onDelete={initial?.id ? onDelete : undefined}
+        onDelete={onDelete}
       />
     </View>
   );

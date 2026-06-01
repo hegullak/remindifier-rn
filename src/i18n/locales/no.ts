@@ -329,6 +329,7 @@ export const no = {
     noRedLetterDays: "Ingen merkedager ennå.",
     noFunFacts: "Ingenting her ennå — trykk + for å legge til.",
     addFunFact: "Legg til punkt",
+    addBirthday: "Legg til bursdag",
     noEvents: "Ingen events ennå.",
     noLinks: "Ingen koblinger ennå.",
     noNotes: "Ingen notater ennå.",
@@ -407,7 +408,7 @@ export const no = {
     dateLabel: "Dato (ÅÅÅÅ-MM-DD)",
     yearKnown: "Årstall er kjent",
     remove: "Fjern",
-    add: "+ Legg til merkedag",
+    add: "Legg til merkedag",
   },
   signInForm: {
     sessionNotStarted: "Innloggingen fullførte, men økten startet ikke. Prøv igjen.",

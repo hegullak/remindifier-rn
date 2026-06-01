@@ -327,6 +327,7 @@ export const en = {
     noRedLetterDays: "No red-letter days yet.",
     noFunFacts: "Nothing here yet — tap + to add.",
     addFunFact: "Add item",
+    addBirthday: "Add birthday",
     noEvents: "No events yet.",
     noLinks: "No links yet.",
     noNotes: "No notes yet.",
@@ -405,7 +406,7 @@ export const en = {
     dateLabel: "Date (YYYY-MM-DD)",
     yearKnown: "Year is known",
     remove: "Remove",
-    add: "+ Add red-letter day",
+    add: "Add red-letter day",
   },
   signInForm: {
     sessionNotStarted: "Sign-in completed, but the session did not start. Try again.",

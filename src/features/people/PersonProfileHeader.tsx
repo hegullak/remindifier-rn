@@ -10,7 +10,6 @@ import {
   toggleRelationCategory,
   translateRelationType,
 } from "@/i18n/relationTypes";
-import { computeAgeFromBirthday, formatBirthdayLabel } from "@/lib/birthdayForm";
 import { triggerLight, triggerMedium, triggerSelection } from "@/lib/haptics";
 
 const fieldClass =
@@ -41,7 +40,6 @@ export function PersonProfileHeader({
   const { t, locale } = useTranslation();
   const swipeRef = useRef<Swipeable>(null);
   const [editing, setEditing] = useState(false);
-  const [showBirthdayDetail, setShowBirthdayDetail] = useState(false);
   const [draftName, setDraftName] = useState(displayName);
   const [draftRelations, setDraftRelations] = useState<string[]>(() =>
     parseRelationTypes(relationType),
@@ -58,7 +56,6 @@ export function PersonProfileHeader({
   }, [displayName, relationType, birthday, editing]);
 
   const relationLabel = translateRelationType(relationType, locale);
-  const age = computeAgeFromBirthday(birthday, birthdayYearKnown);
 
   const startEdit = () => {
     swipeRef.current?.close();
@@ -66,7 +63,6 @@ export function PersonProfileHeader({
     setDraftRelations(parseRelationTypes(relationType));
     setDraftBirthday(birthday ?? "");
     setEditing(true);
-    setShowBirthdayDetail(false);
   };
 
   const cancelEdit = () => {
@@ -158,37 +154,8 @@ export function PersonProfileHeader({
   ) : (
     <View>
       <Text className="text-3xl leading-[36px] text-text1 font-heading">{displayName}</Text>
-      {relationLabel || birthday ? (
-        <View className="flex-row items-center justify-between mt-1 gap-3">
-          {relationLabel ? (
-            <Text className="text-sm text-text2 font-body flex-1 shrink">{relationLabel}</Text>
-          ) : (
-            <View className="flex-1" />
-          )}
-          {birthday ? (
-            <Pressable
-              onPress={() => {
-                triggerLight();
-                setShowBirthdayDetail((v) => !v);
-              }}
-              className="flex-row items-center gap-1.5 active:opacity-70"
-              accessibilityRole="button"
-              accessibilityLabel={t("people.birthdayA11y")}
-            >
-              {age !== null ? (
-                <Text className="text-sm text-text2 font-bodyMedium">
-                  {t("people.years", { count: age })}
-                </Text>
-              ) : null}
-              <Text className="text-base">🎂</Text>
-            </Pressable>
-          ) : null}
-        </View>
-      ) : null}
-      {showBirthdayDetail && birthday ? (
-        <Text className="text-sm text-text3 font-body mt-1">
-          {formatBirthdayLabel(birthday, birthdayYearKnown, locale)}
-        </Text>
+      {relationLabel ? (
+        <Text className="text-sm text-text2 font-body mt-1">{relationLabel}</Text>
       ) : null}
     </View>
   );

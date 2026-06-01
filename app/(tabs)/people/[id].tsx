@@ -33,6 +33,7 @@ import {
   type RedLetterDayInput,
   type RedLetterKind,
 } from "@/lib/red-letter-day";
+import { computeAgeFromBirthday } from "@/lib/birthdayForm";
 import { triggerLight, triggerMedium, triggerSelection } from "@/lib/haptics";
 import { AppShell } from "@/ui/AppShell";
 import { BottomSheet } from "@/ui/BottomSheet";
@@ -74,6 +75,54 @@ function mapRedLetterDays(bundle: NonNullable<ReturnType<typeof usePersonProfile
     yearKnown: d.yearKnown,
     recurring: d.recurring,
   }));
+}
+
+type MerkedagListItem = {
+  id?: string;
+  kind: RedLetterKind;
+  label: string | null;
+  eventDate: string;
+  yearKnown: boolean;
+  recurring: boolean;
+};
+
+function buildMerkedagerList(
+  bundle: NonNullable<ReturnType<typeof usePersonProfileData>["bundle"]>,
+): MerkedagListItem[] {
+  const birthdayRow = bundle.redLetterDays.find((d) => d.kind === "Birthday");
+  const others = bundle.redLetterDays.filter((d) => d.kind !== "Birthday");
+  const rows: MerkedagListItem[] = [];
+
+  if (birthdayRow) {
+    rows.push({
+      id: birthdayRow.id,
+      kind: "Birthday",
+      label: birthdayRow.label,
+      eventDate: birthdayRow.eventDate,
+      yearKnown: birthdayRow.yearKnown,
+      recurring: birthdayRow.recurring,
+    });
+  } else if (bundle.person.birthday) {
+    rows.push({
+      kind: "Birthday",
+      label: null,
+      eventDate: bundle.person.birthday,
+      yearKnown: bundle.person.birthdayYearKnown,
+      recurring: true,
+    });
+  }
+
+  for (const d of others) {
+    rows.push({
+      id: d.id,
+      kind: d.kind as RedLetterKind,
+      label: d.label,
+      eventDate: d.eventDate,
+      yearKnown: d.yearKnown,
+      recurring: d.recurring,
+    });
+  }
+  return rows;
 }
 
 function mergeBirthdayRedLetterDay(
@@ -138,6 +187,7 @@ export default function PersonDetailScreen() {
 
   const [showMerkedagComposer, setShowMerkedagComposer] = useState(false);
   const [merkedagEditInitial, setMerkedagEditInitial] = useState<RedLetterDayInput | undefined>();
+  const [composerBirthdayOnly, setComposerBirthdayOnly] = useState(false);
 
   const [showFactInput, setShowFactInput] = useState(false);
   const [factDraft, setFactDraft] = useState("");
@@ -213,40 +263,74 @@ export default function PersonDetailScreen() {
     ];
   }, [id, t]);
 
-  const merkedagerDisplay = useMemo(() => {
-    if (!bundle) return [];
-    return bundle.redLetterDays.filter((d) => d.kind !== "Birthday");
-  }, [bundle]);
-
-  const merkedagerUsedKinds = useMemo(
-    () => merkedagerDisplay.map((d) => d.kind as RedLetterKind),
-    [merkedagerDisplay],
+  const merkedagerList = useMemo(
+    () => (bundle ? buildMerkedagerList(bundle) : []),
+    [bundle],
   );
 
-  const canAddMerkedag = merkedagerUsedKinds.length < RED_LETTER_OTHER_KINDS.length;
+  const merkedagerOtherKinds = useMemo(
+    () => merkedagerList.filter((d) => d.kind !== "Birthday").map((d) => d.kind),
+    [merkedagerList],
+  );
+
+  const hasBirthday = merkedagerList.some((d) => d.kind === "Birthday");
+
+  const canAddMerkedag = merkedagerOtherKinds.length < RED_LETTER_OTHER_KINDS.length;
+
+  const openMerkedagComposer = (item?: MerkedagListItem, birthdayOnly = false) => {
+    setComposerBirthdayOnly(birthdayOnly);
+    if (item) {
+      setMerkedagEditInitial({
+        id: item.id,
+        kind: item.kind,
+        label: item.label,
+        eventDate: item.eventDate,
+        yearKnown: item.yearKnown,
+        recurring: item.recurring,
+      });
+    } else {
+      setMerkedagEditInitial(undefined);
+    }
+    setShowMerkedagComposer(true);
+  };
 
   const dismissMerkedagComposer = () => {
     setShowMerkedagComposer(false);
     setMerkedagEditInitial(undefined);
+    setComposerBirthdayOnly(false);
     Keyboard.dismiss();
   };
 
   const confirmMerkedag = async (day: RedLetterDayInput) => {
     if (!bundle) return;
-    const others = mapRedLetterDays(bundle).filter(
-      (d) => d.kind !== "Birthday" && d.kind !== day.kind,
-    );
-    await savePerson({ redLetterDays: [...others, day] });
+    const withoutKind = mapRedLetterDays(bundle).filter((d) => d.kind !== day.kind);
+    const nextDays = [...withoutKind, day];
+    if (day.kind === "Birthday") {
+      await savePerson({
+        birthday: day.eventDate,
+        birthdayYearKnown: day.yearKnown,
+        redLetterDays: nextDays,
+      });
+    } else {
+      await savePerson({ redLetterDays: nextDays });
+    }
     triggerMedium();
     dismissMerkedagComposer();
   };
 
-  const deleteMerkedagFromComposer = async () => {
-    if (!bundle || !merkedagEditInitial?.id) return;
-    const others = mapRedLetterDays(bundle).filter(
-      (d) => d.kind !== "Birthday" && d.id !== merkedagEditInitial.id,
-    );
-    await savePerson({ redLetterDays: others });
+  const deleteMerkedagItem = async (item: MerkedagListItem) => {
+    if (!bundle) return;
+    if (item.kind === "Birthday") {
+      await savePerson({
+        birthday: null,
+        redLetterDays: mapRedLetterDays(bundle).filter((d) => d.kind !== "Birthday"),
+      });
+    } else {
+      const next = mapRedLetterDays(bundle).filter(
+        (d) => d.kind !== "Birthday" && d.id !== item.id,
+      );
+      await savePerson({ redLetterDays: next });
+    }
     triggerMedium();
     dismissMerkedagComposer();
   };
@@ -427,70 +511,109 @@ export default function PersonDetailScreen() {
           {bundle ? (
             <>
               <SectionLabel>{t("people.redLetterDays")}</SectionLabel>
-              {merkedagerDisplay.map((item) => (
-                <Pressable
-                  key={item.id}
-                  onPress={() => {
-                    if (showMerkedagComposer) return;
-                    triggerLight();
-                    setMerkedagEditInitial({
-                      id: item.id,
-                      kind: item.kind as RedLetterKind,
-                      label: item.label,
-                      eventDate: item.eventDate,
-                      yearKnown: item.yearKnown,
-                      recurring: item.recurring,
-                    });
-                    setShowMerkedagComposer(true);
-                  }}
-                  className="mb-1 active:opacity-80"
-                >
-                  <Card style={{ marginBottom: 4 }}>
-                    <Text className="text-sm text-text1 font-bodyMedium">
-                      {redLetterKindIcon(item.kind)}{" "}
-                      {redLetterDisplayLabel(item.kind, item.label, locale)}
-                    </Text>
-                    <Text className="text-3xs text-text3 font-body mt-1">
-                      {formatDate(item.eventDate, locale)}
-                    </Text>
-                  </Card>
-                </Pressable>
-              ))}
-              {merkedagerDisplay.length === 0 && !showMerkedagComposer ? (
-                <Text className="text-body text-text3 font-body mb-2">
+              {merkedagerList.map((item) => {
+                const rowKey = item.id ?? `kind-${item.kind}`;
+                const age =
+                  item.kind === "Birthday"
+                    ? computeAgeFromBirthday(item.eventDate, item.yearKnown)
+                    : null;
+                return (
+                  <View
+                    key={rowKey}
+                    style={{ borderRadius: 12, overflow: "hidden", marginBottom: 8 }}
+                  >
+                    <Swipeable
+                      friction={1.5}
+                      overshootRight={false}
+                      rightThreshold={40}
+                      enabled={!showMerkedagComposer}
+                      renderRightActions={() => (
+                        <SwipeEditDeleteActions
+                          onEdit={() => {
+                            triggerSelection();
+                            openMerkedagComposer(item, item.kind === "Birthday");
+                          }}
+                          onDelete={() => void deleteMerkedagItem(item)}
+                        />
+                      )}
+                    >
+                      <View className="py-3 bg-bg">
+                        <Text className="text-sm text-text1 font-bodyMedium">
+                          {redLetterKindIcon(item.kind)}{" "}
+                          {redLetterDisplayLabel(item.kind, item.label, locale)}
+                          {age !== null ? (
+                            <Text className="text-sm text-text2 font-body">
+                              {" "}
+                              · {t("people.years", { count: age })}
+                            </Text>
+                          ) : null}
+                        </Text>
+                        <Text className="text-3xs text-text3 font-body mt-1">
+                          {formatDate(item.eventDate, locale)}
+                        </Text>
+                      </View>
+                    </Swipeable>
+                  </View>
+                );
+              })}
+              {merkedagerList.length === 0 && !showMerkedagComposer ? (
+                <Text className="text-body text-text3 font-body mb-3">
                   {t("people.noRedLetterDays")}
                 </Text>
               ) : null}
               {showMerkedagComposer ? (
-                <Card style={{ marginBottom: 12 }}>
+                <View className="mb-4">
                   <MerkedagComposer
                     initial={merkedagEditInitial}
-                    usedKinds={merkedagerUsedKinds.filter(
-                      (k) => k !== merkedagEditInitial?.kind,
-                    )}
+                    birthdayOnly={composerBirthdayOnly}
+                    usedKinds={merkedagerList
+                      .map((d) => d.kind)
+                      .filter((k) => k !== merkedagEditInitial?.kind)}
                     onConfirm={(day) => void confirmMerkedag(day)}
                     onDismiss={dismissMerkedagComposer}
                     onDelete={
-                      merkedagEditInitial?.id
-                        ? () => void deleteMerkedagFromComposer()
+                      merkedagEditInitial
+                        ? () =>
+                            void deleteMerkedagItem({
+                              id: merkedagEditInitial.id,
+                              kind: merkedagEditInitial.kind,
+                              label: merkedagEditInitial.label ?? null,
+                              eventDate: merkedagEditInitial.eventDate,
+                              yearKnown: merkedagEditInitial.yearKnown ?? true,
+                              recurring: merkedagEditInitial.recurring ?? true,
+                            })
                         : undefined
                     }
                   />
-                </Card>
-              ) : canAddMerkedag ? (
+                </View>
+              ) : null}
+              {!hasBirthday && !showMerkedagComposer ? (
                 <Pressable
                   onPress={() => {
                     triggerLight();
-                    setMerkedagEditInitial(undefined);
-                    setShowMerkedagComposer(true);
+                    openMerkedagComposer(undefined, true);
                   }}
-                  className="flex-row items-center gap-2 py-2 mb-3 active:opacity-60"
+                  className="flex-row items-center gap-2 py-2 mb-2 active:opacity-60"
+                >
+                  <Text className="text-xl text-accent font-body">+</Text>
+                  <Text className="text-body text-text3 font-body">
+                    {t("people.addBirthday")}
+                  </Text>
+                </Pressable>
+              ) : null}
+              {canAddMerkedag && !showMerkedagComposer ? (
+                <Pressable
+                  onPress={() => {
+                    triggerLight();
+                    openMerkedagComposer();
+                  }}
+                  className="flex-row items-center gap-2 py-2 mb-4 active:opacity-60"
                 >
                   <Text className="text-xl text-accent font-body">+</Text>
                   <Text className="text-body text-text3 font-body">{t("redLetter.add")}</Text>
                 </Pressable>
               ) : (
-                <View className="mb-3" />
+                <View className="mb-2" />
               )}
 
               <SectionLabel>{t("people.funFacts")}</SectionLabel>
@@ -499,7 +622,7 @@ export default function PersonDetailScreen() {
                 return (
                   <View
                     key={`${fact}-${i}`}
-                    style={{ borderRadius: 12, overflow: "hidden", marginBottom: 4 }}
+                    style={{ borderRadius: 12, overflow: "hidden", marginBottom: 8 }}
                   >
                     <Swipeable
                       friction={1.5}
@@ -516,7 +639,7 @@ export default function PersonDetailScreen() {
                         />
                       )}
                     >
-                      <Card>
+                      <View className="py-3 bg-bg">
                         {isEditing ? (
                           <TextInput
                             value={editingFactText}
@@ -534,13 +657,13 @@ export default function PersonDetailScreen() {
                             · {fact}
                           </Text>
                         )}
-                      </Card>
+                      </View>
                     </Swipeable>
                   </View>
                 );
               })}
               {(bundle.person.interests ?? []).length === 0 && !showFactInput ? (
-                <Text className="text-body text-text3 font-body mb-2">{t("people.noFunFacts")}</Text>
+                <Text className="text-body text-text3 font-body mb-4">{t("people.noFunFacts")}</Text>
               ) : null}
               {!showFactInput ? (
                 <Pressable
@@ -548,13 +671,13 @@ export default function PersonDetailScreen() {
                     triggerLight();
                     setShowFactInput(true);
                   }}
-                  className="flex-row items-center gap-2 py-3 mb-2 active:opacity-60"
+                  className="flex-row items-center gap-2 py-4 mt-2 mb-4 active:opacity-60"
                 >
                   <Text className="text-xl text-accent font-body">+</Text>
                   <Text className="text-body text-text3 font-body">{t("people.addFunFact")}</Text>
                 </Pressable>
               ) : (
-                <View className="flex-row items-start gap-2 mb-3">
+                <View className="flex-row items-start gap-3 mt-4 mb-8 py-2">
                   <TextInput
                     value={factDraft}
                     onChangeText={setFactDraft}
@@ -564,7 +687,7 @@ export default function PersonDetailScreen() {
                     returnKeyType="done"
                     onSubmitEditing={() => void submitFact()}
                     className="flex-1 bg-bg2 border border-border rounded-md px-3 text-sm text-text1 font-body"
-                    style={{ paddingVertical: 10, minHeight: 44 }}
+                    style={{ paddingVertical: 12, minHeight: 48 }}
                   />
                   <InputActionButtons
                     onConfirm={() => void submitFact()}
@@ -611,15 +734,14 @@ export default function PersonDetailScreen() {
                           triggerLight();
                           router.push(`/gather/${g.id}`);
                         }}
+                        className="py-3 bg-bg active:opacity-80"
                       >
-                        <Card>
-                          <Text className="text-sm text-text1 font-bodyMedium">{g.title}</Text>
-                          {g.scheduledAt ? (
-                            <Text className="text-3xs text-text3 font-body mt-1">
-                              {formatDate(g.scheduledAt.toISOString(), locale)}
-                            </Text>
-                          ) : null}
-                        </Card>
+                        <Text className="text-sm text-text1 font-bodyMedium">{g.title}</Text>
+                        {g.scheduledAt ? (
+                          <Text className="text-3xs text-text3 font-body mt-1">
+                            {formatDate(g.scheduledAt.toISOString(), locale)}
+                          </Text>
+                        ) : null}
                       </Pressable>
                     </Swipeable>
                   </View>
