@@ -4,6 +4,7 @@ import type { Locale } from "@/i18n/types";
 export interface HeadsupItem {
   day: string;
   text: string;
+  daysUntil: number;
 }
 
 /** Next occurrence of weekday (0=Sun … 6=Sat), label in long form; NO uses uppercase. */
@@ -20,14 +21,24 @@ function nextWeekdayLabel(weekday: number, locale: Locale): string {
   return label.charAt(0).toUpperCase() + label.slice(1);
 }
 
+function daysUntilWeekday(weekday: number): number {
+  const now = new Date();
+  const current = now.getDay();
+  let daysAhead = weekday - current;
+  if (daysAhead <= 0) daysAhead += 7;
+  return daysAhead;
+}
+
 export function getHeadsupItems(locale: Locale): HeadsupItem[] {
   return [
     {
       day: nextWeekdayLabel(2, locale),
+      daysUntil: daysUntilWeekday(2),
       text: translate(locale, "brief.headsup.items.doctor"),
     },
     {
       day: nextWeekdayLabel(5, locale),
+      daysUntil: daysUntilWeekday(5),
       text: translate(locale, "brief.headsup.items.dentist"),
     },
   ];

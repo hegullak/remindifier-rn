@@ -1,14 +1,11 @@
 import { Link } from "expo-router";
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { useAppAuth, useAppUser } from "@/features/auth/useAppAuth";
 import { useBriefData } from "@/features/brief/useBriefData";
 import { useTranslation } from "@/i18n";
-import { formatCalendarEventTiming } from "@/lib/brief/calendarEvents";
 import { isDateInCalendarWeek } from "@/lib/brief/calendarWeek";
 import { briefGreetingLine } from "@/lib/brief/greeting";
-import { briefSectionLabelKey } from "@/lib/brief/sectionLabels";
-import type { BriefSectionId } from "@/lib/brief/sections";
 import { briefGatheringHref } from "@/lib/gatherings/briefLinks";
 import { localizeGatheringTitle } from "@/lib/gatherings/localizeGathering";
 import { anniversaryMilestoneDetail } from "@/lib/milestones/anniversaries";
@@ -26,7 +23,6 @@ export default function BriefScreen() {
   const { userId } = useAppAuth();
   const {
     brief,
-    setSectionOrder,
     dateLine,
     headsupItems,
     trainingLines,
@@ -54,191 +50,195 @@ export default function BriefScreen() {
   const firstName = user?.firstName?.trim() || (locale === "no" ? "du" : "there");
   const { lead: greetingLead, name: greetingName } = briefGreetingLine(firstName, locale);
 
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
   const redLettersThisWeek = brief.redLetterDays.filter((item) => {
     const next = new Date();
     next.setHours(0, 0, 0, 0);
     next.setDate(next.getDate() + item.daysUntil);
     return isDateInCalendarWeek(next, weekBounds);
   });
-  const todayRedLetters = redLettersThisWeek.filter((d) => d.isToday);
-  const upcomingRedLetters = redLettersThisWeek.filter((d) => !d.isToday);
 
-  const renderSection = useCallback(
-    (sectionId: BriefSectionId) => {
-      switch (sectionId) {
-        case "weather":
-          return null;
-        case "schedule":
-          if (weekOffset !== 0) return null;
-          return (
-            <View>
-              <SectionLabel>{t(briefSectionLabelKey(sectionId))}</SectionLabel>
-              <BriefCard stripeColor="blue">
-                {brief.schedule.length === 0 ? (
-                  <Text className="text-body text-text3 font-body">
-                    {t("brief.scheduleEmpty")}
-                  </Text>
-                ) : (
-                  brief.schedule.map((item, i) => {
-                    const title = item.gatheringId
-                      ? localizeGatheringTitle(item.gatheringId, item.title, locale)
-                      : item.title;
-                    const row = (
-                      <View className={i < brief.schedule.length - 1 ? "mb-3" : ""}>
-                        <View className="flex-row items-center gap-2">
-                          <Text className="text-sm">🕐</Text>
-                          <Text className="text-xs text-text3 font-bodyMedium">{item.time}</Text>
-                        </View>
-                        <Text className="text-body-lg text-text1 font-bodyMedium mt-1 pl-6">
-                          {title}
-                        </Text>
-                        {item.note ? (
-                          <Text className="text-xs text-text3 font-body mt-1 pl-6">
-                            {item.note}
-                          </Text>
-                        ) : null}
-                      </View>
-                    );
-                    return (
-                      <Link
-                        key={item.id}
-                        href={briefGatheringHref(item.gatheringId, title)}
-                        asChild
-                      >
-                        <Pressable className="active:opacity-70">{row}</Pressable>
-                      </Link>
-                    );
-                  })
-                )}
-              </BriefCard>
+  const privateCalendarEvents = brief.calendarEvents.filter((e) => {
+    const name = (e.calendarName ?? "").toLowerCase();
+    return name.includes("privat") || name.includes("private") || name.includes("personal");
+  });
+
+  function briefDayLabel(daysUntil: number): string {
+    if (daysUntil === 0) return locale === "no" ? "I DAG" : "TODAY";
+    if (daysUntil === 1) return locale === "no" ? "I MORGEN" : "TOMORROW";
+    const d = new Date(today);
+    d.setDate(today.getDate() + daysUntil);
+    const label = d.toLocaleDateString(locale === "no" ? "nb-NO" : "en-GB", { weekday: "long" });
+    return locale === "no" ? label.toUpperCase() : label.charAt(0).toUpperCase() + label.slice(1);
+  }
+
+  function renderDagenMin() {
+    if (weekOffset !== 0) return null;
+    const hasSchedule = brief.schedule.length > 0;
+    const hasTraining = trainingLines.length > 0;
+    if (!hasSchedule && !hasTraining) return null;
+    return (
+      <View className="mb-1">
+        <SectionLabel>{locale === "no" ? "Dagen min" : "My day"}</SectionLabel>
+        <BriefCard stripeColor="blue">
+          {brief.schedule.map((item, i) => {
+            const title = item.gatheringId
+              ? localizeGatheringTitle(item.gatheringId, item.title, locale)
+              : item.title;
+            const row = (
+              <View className={i < brief.schedule.length - 1 ? "mb-3" : ""}>
+                <View className="flex-row items-center gap-2">
+                  <Text className="text-sm">🕐</Text>
+                  <Text className="text-xs text-text3 font-bodyMedium">{item.time}</Text>
+                </View>
+                <Text className="text-body-lg text-text1 font-bodyMedium mt-1 pl-6">{title}</Text>
+                {item.note ? (
+                  <Text className="text-xs text-text3 font-body mt-1 pl-6">{item.note}</Text>
+                ) : null}
+              </View>
+            );
+            return (
+              <Link key={item.id} href={briefGatheringHref(item.gatheringId, title)} asChild>
+                <Pressable className="active:opacity-70">{row}</Pressable>
+              </Link>
+            );
+          })}
+          {hasSchedule && hasTraining && <View className="h-px bg-border my-3" />}
+          {trainingLines.map((line, i) => (
+            <View key={line} className={`flex-row items-start gap-2${i < trainingLines.length - 1 ? " mb-3" : ""}`}>
+              <Text className="text-base">{i === 0 ? "🏋️" : "🏃"}</Text>
+              <Text className="text-body-lg text-text1 font-body flex-1">{line}</Text>
             </View>
-          );
-        case "calendar": {
-          const privateCalendarEvents = brief.calendarEvents.filter((e) => {
-            const name = (e.calendarName ?? "").toLowerCase();
-            // Only show explicitly private events — block work calendars
-            return name.includes("privat") || name.includes("private") || name.includes("personal");
+          ))}
+        </BriefCard>
+      </View>
+    );
+  }
+
+  function renderUkenMin() {
+    type UnifiedItem = {
+      id: string;
+      sortKey: number;
+      dayLabel: string;
+      icon: string;
+      primary: string;
+      secondary?: string;
+      href?: Parameters<typeof briefGatheringHref>[0] extends infer H ? H : string;
+      gatheringId?: string | null;
+      onPress?: () => void;
+    };
+
+    const items: UnifiedItem[] = [];
+
+    for (const event of privateCalendarEvents) {
+      const eventDay = new Date(event.startDate);
+      eventDay.setHours(0, 0, 0, 0);
+      const daysUntil = Math.round((eventDay.getTime() - today.getTime()) / 86400000);
+      const title = event.gatheringId
+        ? localizeGatheringTitle(event.gatheringId, event.title, locale)
+        : event.title;
+      const timeStr = event.allDay
+        ? undefined
+        : event.startDate.toLocaleTimeString(locale === "no" ? "nb-NO" : "en-GB", {
+            hour: "2-digit",
+            minute: "2-digit",
           });
-          if (privateCalendarEvents.length === 0) return null;
-          return (
-            <View>
-              <SectionLabel>{t(briefSectionLabelKey(sectionId))}</SectionLabel>
-              <BriefCard stripeColor="sage">
-                {privateCalendarEvents.map((event, i) => {
-                  const title = event.gatheringId
-                    ? localizeGatheringTitle(event.gatheringId, event.title, locale)
-                    : event.title;
-                  const row = (
-                    <View className={i < privateCalendarEvents.length - 1 ? "mb-3" : ""}>
-                      <Text className="text-3xs uppercase tracking-[1.2px] text-sage font-bodySemi">
-                        {formatCalendarEventTiming(event, weekOffset, locale, t)}
-                      </Text>
-                      <Text className="text-body-lg text-text1 font-bodyMedium mt-1">{title}</Text>
-                      {!event.allDay ? (
-                        <Text className="text-xs text-text3 font-body mt-0.5">
-                          {event.startDate.toLocaleTimeString(
-                            locale === "no" ? "nb-NO" : "en-GB",
-                            { hour: "2-digit", minute: "2-digit" },
-                          )}
-                        </Text>
-                      ) : null}
-                    </View>
-                  );
-                  return (
-                    <Link
-                      key={event.id}
-                      href={briefGatheringHref(event.gatheringId, title)}
-                      asChild
-                    >
-                      <Pressable className="active:opacity-70">{row}</Pressable>
-                    </Link>
-                  );
-                })}
-              </BriefCard>
-            </View>
-          );
-        }
-        case "headsup":
-          if (weekOffset !== 0) return null;
-          return (
-            <View>
-              <SectionLabel>{t(briefSectionLabelKey(sectionId))}</SectionLabel>
-              <BriefCard stripeColor="dusk">
-                {headsupItems.map((item, i) => (
-                  <View key={item.day} className={i < headsupItems.length - 1 ? "mb-3" : ""}>
-                    <Text className="text-3xs uppercase tracking-[1.2px] text-dusk font-bodySemi">
-                      {item.day}
-                    </Text>
-                    <Text className="text-sm text-text2 font-body mt-1">{item.text}</Text>
-                  </View>
-                ))}
-              </BriefCard>
-            </View>
-          );
-        case "training":
-          if (weekOffset !== 0) return null;
-          return (
-            <View>
-              <SectionLabel>{t(briefSectionLabelKey(sectionId))}</SectionLabel>
-              <BriefCard stripeColor="green">
-                {trainingLines.map((line, i) => (
-                  <View
-                    key={line}
-                    className={`flex-row items-start gap-2${i < trainingLines.length - 1 ? " mb-3" : ""}`}
-                  >
-                    <Text className="text-base">{i === 0 ? "🏋️" : "🏃"}</Text>
-                    <Text className="text-body-lg text-text1 font-body flex-1">{line}</Text>
-                  </View>
-                ))}
-              </BriefCard>
-            </View>
-          );
-        case "red_letter":
-          return (
-            <View>
-              <SectionLabel>{t(briefSectionLabelKey(sectionId))}</SectionLabel>
-              <BriefCard stripeColor="amber">
-                {redLettersThisWeek.length === 0 ? (
-                  <Text className="text-body text-text3 font-body">
-                    {t("brief.merkedagerEmpty")}
-                  </Text>
-                ) : (
-                  <>
-                    {todayRedLetters.map((item) => (
-                      <RedLetterRow
-                        key={item.id}
-                        item={item}
-                        onAnniversaryPress={setAnniversaryDetail}
-                      />
-                    ))}
-                    {upcomingRedLetters.map((item) => (
-                      <RedLetterRow
-                        key={item.id}
-                        item={item}
-                        onAnniversaryPress={setAnniversaryDetail}
-                      />
-                    ))}
-                  </>
-                )}
-              </BriefCard>
-            </View>
-          );
-        default:
-          return null;
+      items.push({
+        id: `cal-${event.id}`,
+        sortKey: daysUntil,
+        dayLabel: briefDayLabel(daysUntil),
+        icon: "🕐",
+        primary: title,
+        secondary: timeStr,
+        gatheringId: event.gatheringId,
+      });
+    }
+
+    for (const rld of redLettersThisWeek) {
+      items.push({
+        id: `rld-${rld.id}`,
+        sortKey: rld.daysUntil,
+        dayLabel: briefDayLabel(rld.daysUntil),
+        icon: rld.icon,
+        primary: rld.personName,
+        secondary: rld.headline,
+        href: rld.personId ? `/people/${rld.personId}` : undefined,
+        onPress: rld.kind === "Anniversary"
+          ? () => {
+              const m = anniversaryMilestoneDetail(rld.eventDate);
+              if (m) setAnniversaryDetail({ personName: rld.personName, years: m.years, norwegian: m.norwegian, english: m.english });
+            }
+          : undefined,
+      });
+    }
+
+    if (weekOffset === 0) {
+      for (const item of headsupItems) {
+        items.push({
+          id: `headsup-${item.day}`,
+          sortKey: item.daysUntil,
+          dayLabel: item.day,
+          icon: "💡",
+          primary: item.text,
+        });
       }
-    },
-    [
-      brief,
-      headsupItems,
-      redLettersThisWeek,
-      todayRedLetters,
-      trainingLines,
-      upcomingRedLetters,
-      weekOffset,
-      locale,
-      t,
-    ],
-  );
+    }
+
+    items.sort((a, b) => a.sortKey - b.sortKey);
+
+    if (items.length === 0) return null;
+
+    let lastDay = "";
+    return (
+      <View className="mb-1">
+        <SectionLabel>{locale === "no" ? "Uken min" : "My week"}</SectionLabel>
+        <BriefCard stripeColor="sage">
+          {items.map((item, i) => {
+            const showDayLabel = item.dayLabel !== lastDay;
+            lastDay = item.dayLabel;
+            const row = (
+              <View key={item.id} className={i < items.length - 1 ? "mb-3" : ""}>
+                {showDayLabel && (
+                  <Text className="text-3xs uppercase tracking-[1.2px] text-sage font-bodySemi mb-1">
+                    {item.dayLabel}
+                  </Text>
+                )}
+                <View className="flex-row items-start gap-2">
+                  <Text className="text-base mt-0.5">{item.icon}</Text>
+                  <View className="flex-1">
+                    <Text className="text-body-lg text-text1 font-bodyMedium">{item.primary}</Text>
+                    {item.secondary ? (
+                      <Text className="text-xs text-text3 font-body mt-0.5">{item.secondary}</Text>
+                    ) : null}
+                  </View>
+                </View>
+              </View>
+            );
+            if (item.gatheringId || item.href) {
+              const href = item.gatheringId
+                ? briefGatheringHref(item.gatheringId, item.primary)
+                : (item.href as string);
+              return (
+                <Link key={item.id} href={href} asChild>
+                  <Pressable className="active:opacity-70">{row}</Pressable>
+                </Link>
+              );
+            }
+            if (item.onPress) {
+              return (
+                <Pressable key={item.id} onPress={item.onPress} className="active:opacity-70">
+                  {row}
+                </Pressable>
+              );
+            }
+            return <View key={item.id}>{row}</View>;
+          })}
+        </BriefCard>
+      </View>
+    );
+  }
 
   const morningPillText = morningBrief.available
     ? morningBrief.isEmpty
@@ -361,11 +361,8 @@ export default function BriefScreen() {
         contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 130 }}
       >
         {listHeader}
-        {brief.sectionOrder.map((sectionId) => (
-          <View key={sectionId} className="mb-1">
-            {renderSection(sectionId)}
-          </View>
-        ))}
+        {renderDagenMin()}
+        {renderUkenMin()}
       </ScrollView>
 
       <BottomSheet
