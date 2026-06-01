@@ -37,9 +37,11 @@ function formatLabel(iso: string, locale: "en" | "no"): string {
 export function RedLetterDaysSection({
   items,
   onChange,
+  showSectionTitle = true,
 }: {
   items: RedLetterDayInput[];
   onChange: (next: RedLetterDayInput[]) => void;
+  showSectionTitle?: boolean;
 }) {
   const { t, locale } = useTranslation();
   const { isDark } = useAppTheme();
@@ -69,9 +71,11 @@ export function RedLetterDaysSection({
 
   return (
     <View className="gap-3">
-      <Text className="text-3xs uppercase tracking-[1.5px] text-text3 font-bodySemi">
-        {t("redLetter.title")}
-      </Text>
+      {showSectionTitle ? (
+        <Text className="text-3xs uppercase tracking-[1.5px] text-text3 font-bodySemi">
+          {t("redLetter.title")}
+        </Text>
+      ) : null}
       {items.map((day, i) => (
         <View
           key={day.id ?? `new-${i}`}

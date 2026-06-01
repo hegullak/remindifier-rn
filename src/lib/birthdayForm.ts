@@ -1,5 +1,23 @@
 import { BIRTHDAY_SENTINEL_YEAR } from "@/lib/red-letter-day";
 
+/** Full years since birthday; null when year unknown or missing. */
+export function computeAgeFromBirthday(iso: string | null | undefined, yearKnown: boolean): number | null {
+  if (!iso?.trim() || !yearKnown) return null;
+  const match = iso.trim().match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match) return null;
+  const birthYear = Number(match[1]);
+  if (birthYear === Number(BIRTHDAY_SENTINEL_YEAR)) return null;
+  const month = Number(match[2]) - 1;
+  const day = Number(match[3]);
+  const today = new Date();
+  let age = today.getFullYear() - birthYear;
+  const hadBirthday =
+    today.getMonth() > month ||
+    (today.getMonth() === month && today.getDate() >= day);
+  if (!hadBirthday) age -= 1;
+  return age >= 0 ? age : null;
+}
+
 const PICKER_DISPLAY_YEAR = 2000;
 
 export function isoToPickerDate(iso: string, yearKnown: boolean): Date {
