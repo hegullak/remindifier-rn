@@ -1,9 +1,9 @@
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useState } from "react";
-import { Platform, Pressable, Switch, Text, View } from "react-native";
+import { Platform, Pressable, Text } from "react-native";
 import { useTranslation } from "@/i18n/LanguageContext";
+import { useAppTheme } from "@/theme/ThemeProvider";
 import {
-  applyYearKnownToIso,
   formatBirthdayLabel,
   isoToPickerDate,
   pickerDateToIso,
@@ -11,27 +11,18 @@ import {
 
 type Props = {
   birthday: string;
-  birthdayYearKnown: boolean;
   onBirthdayChange: (iso: string) => void;
-  onBirthdayYearKnownChange: (known: boolean) => void;
   fieldClass: string;
 };
 
-export function BirthdayField({
-  birthday,
-  birthdayYearKnown,
-  onBirthdayChange,
-  onBirthdayYearKnownChange,
-  fieldClass,
-}: Props) {
+export function BirthdayField({ birthday, onBirthdayChange, fieldClass }: Props) {
   const { t, locale } = useTranslation();
+  const { isDark } = useAppTheme();
   const [showPicker, setShowPicker] = useState(false);
 
-  const pickerValue = birthday
-    ? isoToPickerDate(birthday, birthdayYearKnown)
-    : new Date(2000, 0, 1);
+  const pickerValue = birthday ? isoToPickerDate(birthday, true) : new Date(2000, 0, 1);
   const label = birthday
-    ? formatBirthdayLabel(birthday, birthdayYearKnown, locale)
+    ? formatBirthdayLabel(birthday, true, locale)
     : t("personForm.birthdayPlaceholder");
 
   return (
@@ -47,27 +38,18 @@ export function BirthdayField({
       </Pressable>
       {showPicker ? (
         <DateTimePicker
-          key={`${birthday}-${String(birthdayYearKnown)}`}
+          key={birthday}
           value={pickerValue}
           mode="date"
           display={Platform.OS === "ios" ? "spinner" : "default"}
+          themeVariant={isDark ? "dark" : "light"}
           onChange={(event, date) => {
             if (Platform.OS === "android") setShowPicker(false);
             if (event.type === "dismissed" || !date) return;
-            onBirthdayChange(pickerDateToIso(date, birthdayYearKnown));
+            onBirthdayChange(pickerDateToIso(date, true));
           }}
         />
       ) : null}
-      <View className="flex-row items-center justify-between mt-2">
-        <Text className="text-xs text-text2 font-body">{t("personForm.yearKnown")}</Text>
-        <Switch
-          value={birthdayYearKnown}
-          onValueChange={(known) => {
-            onBirthdayYearKnownChange(known);
-            if (birthday) onBirthdayChange(applyYearKnownToIso(birthday, known));
-          }}
-        />
-      </View>
     </>
   );
 }

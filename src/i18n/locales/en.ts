@@ -380,7 +380,7 @@ export const en = {
   personForm: {
     about: "About",
     fullName: "Full name",
-    relationType: "Relation type",
+    relationType: "How we know each other",
     birthday: "Birthday",
     birthdayPlaceholder: "Pick a date",
     yearKnown: "Year is known",

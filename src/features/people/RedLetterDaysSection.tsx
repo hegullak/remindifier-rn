@@ -1,4 +1,6 @@
-import { Pressable, Text, TextInput, View } from "react-native";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import { useState } from "react";
+import { Platform, Pressable, Text, TextInput, View } from "react-native";
 import { useTranslation } from "@/i18n/LanguageContext";
 import { redLetterKindIcon, redLetterKindLabel } from "@/i18n/redLetterKinds";
 import {
@@ -6,14 +8,30 @@ import {
   type RedLetterDayInput,
   type RedLetterKind,
 } from "@/lib/red-letter-day";
+import { useAppTheme } from "@/theme/ThemeProvider";
 
 const CURRENT_YEAR = new Date().getFullYear();
 
-function dateInputValue(eventDate: string, yearKnown: boolean): string {
-  if (!eventDate) return "";
-  if (yearKnown) return eventDate;
-  const m = /^\d{4}-(\d{2}-\d{2})$/.exec(eventDate);
-  return m ? `2000-${m[1]}` : eventDate;
+function parseIso(iso: string): Date {
+  const [y, m, d] = iso.split("-").map(Number);
+  if (!y || !m || !d) return new Date(CURRENT_YEAR, 0, 1);
+  return new Date(y, m - 1, d);
+}
+
+function toIso(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+function formatLabel(iso: string, locale: "en" | "no"): string {
+  const date = parseIso(iso);
+  return date.toLocaleDateString(locale === "no" ? "nb-NO" : "en-GB", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
 }
 
 export function RedLetterDaysSection({
@@ -24,6 +42,8 @@ export function RedLetterDaysSection({
   onChange: (next: RedLetterDayInput[]) => void;
 }) {
   const { t, locale } = useTranslation();
+  const { isDark } = useAppTheme();
+  const [pickerIndex, setPickerIndex] = useState<number | null>(null);
 
   const addDay = () => {
     onChange([
@@ -43,6 +63,7 @@ export function RedLetterDaysSection({
   };
 
   const removeDay = (index: number) => {
+    if (pickerIndex === index) setPickerIndex(null);
     onChange(items.filter((_, i) => i !== index));
   };
 
@@ -61,73 +82,62 @@ export function RedLetterDaysSection({
               {redLetterKindIcon(day.kind)} {redLetterKindLabel(day.kind, locale)}
               {day.kind === "Other" && day.label ? ` · ${day.label}` : ""}
             </Text>
-            <Pressable onPress={() => removeDay(i)}>
+            <Pressable onPress={() => removeDay(i)} hitSlop={8}>
               <Text className="text-xs text-red font-bodyMedium">{t("redLetter.remove")}</Text>
             </Pressable>
           </View>
 
-          <Text className="text-3xs uppercase tracking-[1px] text-text3 font-bodySemi mb-1">
-            {t("redLetter.type")}
-          </Text>
-          <View className="flex-row flex-wrap gap-2 mb-3">
-            {RED_LETTER_OTHER_KINDS.map((kind) => (
-              <Pressable
-                key={kind}
-                onPress={() => updateDay(i, { kind: kind as RedLetterKind })}
-                className={`flex-row items-center gap-1.5 rounded-full px-3 py-1.5 border ${
-                  day.kind === kind ? "bg-accent border-accent" : "bg-card border-border"
-                }`}
-              >
-                <Text className="text-sm">{redLetterKindIcon(kind)}</Text>
-                <Text
-                  className={`text-xs font-bodyMedium ${
-                    day.kind === kind ? "text-card" : "text-text2"
-                  }`}
+          {/* Kind — icon only */}
+          <View className="flex-row gap-4 mb-3">
+            {RED_LETTER_OTHER_KINDS.map((kind) => {
+              const selected = day.kind === kind;
+              return (
+                <Pressable
+                  key={kind}
+                  onPress={() => updateDay(i, { kind: kind as RedLetterKind })}
+                  hitSlop={8}
+                  className="items-center active:opacity-60"
+                  accessibilityLabel={redLetterKindLabel(kind, locale)}
                 >
-                  {redLetterKindLabel(kind, locale)}
-                </Text>
-              </Pressable>
-            ))}
+                  <Text style={{ fontSize: 24, opacity: selected ? 1 : 0.3 }}>
+                    {redLetterKindIcon(kind)}
+                  </Text>
+                  <View className={`w-1 h-1 rounded-full mt-1 ${selected ? "bg-accent" : ""}`} />
+                </Pressable>
+              );
+            })}
           </View>
 
           {day.kind === "Other" ? (
-            <>
-              <Text className="text-3xs uppercase tracking-[1px] text-text3 font-bodySemi mb-1">
-                {t("redLetter.label")}
-              </Text>
-              <TextInput
-                value={day.label ?? ""}
-                onChangeText={(label) => updateDay(i, { label: label || null })}
-                placeholder={t("redLetter.customLabel")}
-                placeholderTextColor="#7A8CAD"
-                className="bg-card border border-border rounded-md px-3 py-2.5 text-sm text-text1 font-body mb-3"
-              />
-            </>
+            <TextInput
+              value={day.label ?? ""}
+              onChangeText={(label) => updateDay(i, { label: label || null })}
+              placeholder={t("redLetter.customLabel")}
+              placeholderTextColor="#7A8CAD"
+              className="bg-card border border-border rounded-md px-3 py-2.5 text-sm text-text1 font-body mb-3"
+            />
           ) : null}
 
-          <Text className="text-3xs uppercase tracking-[1px] text-text3 font-bodySemi mb-1">
-            {t("redLetter.dateLabel")}
-          </Text>
-          <TextInput
-            value={dateInputValue(day.eventDate, day.yearKnown)}
-            onChangeText={(eventDate) => updateDay(i, { eventDate })}
-            placeholder="2020-06-14"
-            placeholderTextColor="#7A8CAD"
-            autoCapitalize="none"
-            className="bg-card border border-border rounded-md px-3 py-2.5 text-sm text-text1 font-body"
-          />
-
           <Pressable
-            onPress={() => updateDay(i, { yearKnown: !day.yearKnown })}
-            className="mt-3 flex-row items-center gap-2"
+            onPress={() => setPickerIndex(pickerIndex === i ? null : i)}
+            className="bg-card border border-border rounded-md px-3 py-2.5"
+            accessibilityRole="button"
           >
-            <View
-              className={`h-5 w-5 rounded border ${
-                day.yearKnown ? "bg-accent border-accent" : "border-border bg-card"
-              }`}
-            />
-            <Text className="text-body text-text2 font-body">{t("redLetter.yearKnown")}</Text>
+            <Text className="text-sm text-text1 font-body">{formatLabel(day.eventDate, locale)}</Text>
           </Pressable>
+          {pickerIndex === i ? (
+            <DateTimePicker
+              value={parseIso(day.eventDate)}
+              mode="date"
+              display={Platform.OS === "ios" ? "spinner" : "default"}
+              themeVariant={isDark ? "dark" : "light"}
+              onChange={(event, date) => {
+                if (Platform.OS === "android") setPickerIndex(null);
+                if (event.type === "dismissed" || !date) return;
+                updateDay(i, { eventDate: toIso(date) });
+              }}
+            />
+          ) : null}
         </View>
       ))}
 

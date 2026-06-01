@@ -382,7 +382,7 @@ export const no = {
   personForm: {
     about: "Om",
     fullName: "Fullt navn",
-    relationType: "Relasjonstype",
+    relationType: "Hvordan vi kjenner hverandre",
     birthday: "Bursdag",
     birthdayPlaceholder: "Velg dato",
     yearKnown: "Årstall er kjent",

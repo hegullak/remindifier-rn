@@ -1,5 +1,5 @@
 import { forwardRef, useImperativeHandle, useState } from "react";
-import { Pressable, Switch, Text, TextInput, View } from "react-native";
+import { Pressable, Text, TextInput, View } from "react-native";
 import type { UpsertPersonInput } from "@/db/repos/peopleRepo";
 import { BirthdayField } from "@/features/people/BirthdayField";
 import { RedLetterDaysSection } from "@/features/people/RedLetterDaysSection";
@@ -51,8 +51,7 @@ export const PersonForm = forwardRef<PersonFormHandle, PersonFormProps>(function
   const [displayName, setDisplayName] = useState(initial?.displayName ?? "");
   const [relationType, setRelationType] = useState(initial?.relationType ?? "");
   const [birthday, setBirthday] = useState(initial?.birthday ?? "");
-  const [birthdayYearKnown, setBirthdayYearKnown] = useState(initial?.birthdayYearKnown ?? true);
-  const [isSensitive, setIsSensitive] = useState(initial?.isSensitive ?? false);
+  const isSensitive = initial?.isSensitive ?? false;
   const [funFacts, setFunFacts] = useState<string[]>(initial?.funFacts ?? []);
   const [factDraft, setFactDraft] = useState("");
   const [redLetterDays, setRedLetterDays] = useState<RedLetterDayInput[]>(
@@ -77,7 +76,7 @@ export const PersonForm = forwardRef<PersonFormHandle, PersonFormProps>(function
         displayName,
         relationType: relationType.trim() || null,
         birthday: birthday.trim() || null,
-        birthdayYearKnown,
+        birthdayYearKnown: true,
         isSensitive,
         funFacts: allFacts,
         redLetterDays,
@@ -155,13 +154,7 @@ export const PersonForm = forwardRef<PersonFormHandle, PersonFormProps>(function
       <Text className="text-3xs uppercase tracking-[1.5px] text-text3 font-bodySemi mb-1">
         🎂 {t("personForm.birthday")}
       </Text>
-      <BirthdayField
-        birthday={birthday}
-        birthdayYearKnown={birthdayYearKnown}
-        onBirthdayChange={setBirthday}
-        onBirthdayYearKnownChange={setBirthdayYearKnown}
-        fieldClass={fieldClass}
-      />
+      <BirthdayField birthday={birthday} onBirthdayChange={setBirthday} fieldClass={fieldClass} />
       <View className="h-px bg-border my-4" />
       <RedLetterDaysSection items={redLetterDays} onChange={setRedLetterDays} />
     </>
@@ -210,10 +203,6 @@ export const PersonForm = forwardRef<PersonFormHandle, PersonFormProps>(function
         >
           <Text className="text-base text-card font-bodySemi">+</Text>
         </Pressable>
-      </View>
-      <View className="flex-row items-center justify-between mt-4">
-        <Text className="text-xs text-text2 font-body">{t("personForm.handleWithCare")}</Text>
-        <Switch value={isSensitive} onValueChange={setIsSensitive} />
       </View>
     </>
   );
