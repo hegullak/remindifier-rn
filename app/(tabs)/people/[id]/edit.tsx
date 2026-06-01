@@ -40,13 +40,7 @@ export default function EditPersonScreen() {
         </Link>
       }
     >
-      <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}>
-        <View className="pt-1 pb-2">
-          <Text className="text-3xl leading-[36px] text-text1 font-heading mt-2">
-            {t("people.editPersonTitle")}
-          </Text>
-        </View>
-
+      <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24, paddingTop: 8 }}>
         {loading ? (
           <Text className="text-body text-text3 font-body">{t("common.loading")}</Text>
         ) : null}
@@ -103,15 +97,6 @@ export default function EditPersonScreen() {
               >
                 <Text className="text-sm text-card font-bodySemi">
                   {saving ? t("personForm.saving") : t("people.saveChanges")}
-                </Text>
-              </Pressable>
-              <Pressable
-                onPress={() => formRef.current?.delete()}
-                disabled={saving}
-                className="py-3 px-4 items-center opacity-100 disabled:opacity-50"
-              >
-                <Text className="text-body text-red font-bodyMedium">
-                  {t("personForm.deletePerson")}
                 </Text>
               </Pressable>
             </View>

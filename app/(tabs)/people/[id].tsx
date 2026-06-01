@@ -23,6 +23,22 @@ function formatDate(iso: string, locale: Locale) {
   return date.toLocaleDateString(dateLocale, { day: "numeric", month: "short", year: "numeric" });
 }
 
+const MONOGRAM_COLORS = ["bg-accent", "bg-sage", "bg-amber", "bg-dusk", "bg-blue", "bg-green"];
+
+function monogramColor(name: string): string {
+  let h = 0;
+  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
+  return MONOGRAM_COLORS[h % MONOGRAM_COLORS.length];
+}
+
+function initials(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "?";
+  const first = parts[0][0] ?? "";
+  const last = parts.length > 1 ? parts[parts.length - 1][0] : "";
+  return (first + last).toUpperCase();
+}
+
 export default function PersonDetailScreen() {
   const { userId } = useAppAuth();
   const { t, locale } = useTranslation();
@@ -170,15 +186,26 @@ export default function PersonDetailScreen() {
         keyboardDismissMode="on-drag"
         contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}
       >
-        <View className="pt-1 pb-2">
-          <Text className="text-3xl leading-[36px] text-text1 font-heading">
-            {bundle?.person.displayName ?? t("people.personFallback")}
-          </Text>
-          {bundle?.person.relationType ? (
-            <Text className="text-3xs uppercase tracking-[1.5px] text-text3 font-bodySemi mt-1">
-              {translateRelationType(bundle.person.relationType, locale)}
-            </Text>
+        <View className="flex-row items-center gap-4 pt-2 pb-4">
+          {bundle ? (
+            <View
+              className={`w-16 h-16 rounded-full items-center justify-center ${monogramColor(bundle.person.displayName)}`}
+            >
+              <Text className="text-xl text-card font-heading">
+                {initials(bundle.person.displayName)}
+              </Text>
+            </View>
           ) : null}
+          <View className="flex-1">
+            <Text className="text-3xl leading-[36px] text-text1 font-heading">
+              {bundle?.person.displayName ?? t("people.personFallback")}
+            </Text>
+            {bundle?.person.relationType ? (
+              <Text className="text-3xs uppercase tracking-[1.5px] text-text3 font-bodySemi mt-1">
+                {translateRelationType(bundle.person.relationType, locale)}
+              </Text>
+            ) : null}
+          </View>
         </View>
 
         {loading ? (
@@ -323,10 +350,13 @@ export default function PersonDetailScreen() {
                     </View>
                   )}
                 >
-                  <View className="border-l-2 border-border pl-3 py-2 bg-bg">
-                    <Text className="text-2xs uppercase tracking-[1.2px] text-text3 font-bodyMedium">
-                      {formatDate(entry.occurredAt.toISOString(), locale)}
-                    </Text>
+                  <View className="border-l-2 border-accent pl-3 py-3 bg-bg">
+                    <View className="flex-row items-center gap-2">
+                      <Text className="text-sm">🔔</Text>
+                      <Text className="text-2xs uppercase tracking-[1.2px] text-text3 font-bodyMedium">
+                        {formatDate(entry.occurredAt.toISOString(), locale)}
+                      </Text>
+                    </View>
                     {isEditing ? (
                       <TextInput
                         value={editingEntryText}
@@ -336,11 +366,11 @@ export default function PersonDetailScreen() {
                         returnKeyType="done"
                         onBlur={() => void saveEntryEdit(entry.id)}
                         onSubmitEditing={() => void saveEntryEdit(entry.id)}
-                        className="text-sm text-text1 font-body mt-1 bg-transparent"
+                        className="text-body-lg text-text1 font-body mt-1 bg-transparent"
                         style={{ minHeight: 24 }}
                       />
                     ) : (
-                      <Text className="text-sm text-text2 font-body mt-1">{entry.body}</Text>
+                      <Text className="text-body-lg text-text1 font-body mt-1">{entry.body}</Text>
                     )}
                   </View>
                 </Swipeable>
