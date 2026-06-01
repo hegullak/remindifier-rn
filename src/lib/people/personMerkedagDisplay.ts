@@ -1,7 +1,6 @@
 import { redLetterDisplayLabel } from "@/i18n/redLetterKinds";
 import { translate } from "@/i18n/translate";
 import type { Locale } from "@/i18n/types";
-import { computeAgeFromBirthday } from "@/lib/birthdayForm";
 import { weddingAnniversaryName, weddingAnniversaryYears } from "@/lib/milestones/anniversaries";
 
 function parseYmd(date: string): Date {
@@ -125,10 +124,8 @@ export function formatPersonMerkedagLine(
 
   let middle: string | null = null;
   if (kind === "Birthday") {
-    const age = computeAgeFromBirthday(eventDate, yearKnown);
-    if (age !== null) {
-      middle = translate(locale, "people.years", { count: age });
-    }
+    // Age is already shown in the person header — keep the birthday row to just the date
+    middle = null;
   } else if (kind === "Anniversary") {
     middle = formatAnniversaryMiddle(eventDate, label, locale, asOf);
   } else if (kind === "Smoke-free") {

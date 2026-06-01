@@ -1,6 +1,5 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useState, type ReactNode } from "react";
 import { Pressable, Text, TextInput, View } from "react-native";
-import { Swipeable } from "react-native-gesture-handler";
 import { BirthdayField } from "@/features/people/BirthdayField";
 import { useTranslation } from "@/i18n/LanguageContext";
 import {
@@ -11,10 +10,14 @@ import {
   translateRelationType,
 } from "@/i18n/relationTypes";
 import { computeAgeFromBirthday } from "@/lib/birthdayForm";
-import { triggerLight, triggerMedium, triggerSelection } from "@/lib/haptics";
+import { triggerMedium, triggerSelection } from "@/lib/haptics";
 
 const fieldClass =
   "mt-2 bg-bg2 border border-border rounded-md px-3 py-3 text-sm text-text1 font-body";
+
+export type PersonProfileHeaderHandle = {
+  startEdit: () => void;
+};
 
 type Props = {
   displayName: string;
@@ -30,16 +33,12 @@ type Props = {
   }) => Promise<void>;
 };
 
-export function PersonProfileHeader({
-  displayName,
-  relationType,
-  birthday,
-  birthdayYearKnown,
-  monogram,
-  onSave,
-}: Props) {
+export const PersonProfileHeader = forwardRef<PersonProfileHeaderHandle, Props>(
+  function PersonProfileHeader(
+    { displayName, relationType, birthday, birthdayYearKnown, monogram, onSave },
+    ref,
+  ) {
   const { t, locale } = useTranslation();
-  const swipeRef = useRef<Swipeable>(null);
   const [editing, setEditing] = useState(false);
   const [draftName, setDraftName] = useState(displayName);
   const [draftRelations, setDraftRelations] = useState<string[]>(() =>
@@ -60,12 +59,13 @@ export function PersonProfileHeader({
   const age = computeAgeFromBirthday(birthday, birthdayYearKnown);
 
   const startEdit = () => {
-    swipeRef.current?.close();
     setDraftName(displayName);
     setDraftRelations(parseRelationTypes(relationType));
     setDraftBirthday(birthday ?? "");
     setEditing(true);
   };
+
+  useImperativeHandle(ref, () => ({ startEdit }));
 
   const cancelEdit = () => {
     setEditing(false);
@@ -169,30 +169,7 @@ export function PersonProfileHeader({
   return (
     <View className="flex-row items-start gap-4 pt-2 pb-2">
       {monogram}
-      <View className="flex-1" style={{ borderRadius: 12, overflow: "hidden" }}>
-        <Swipeable
-          ref={swipeRef}
-          friction={1.5}
-          overshootRight={false}
-          rightThreshold={40}
-          enabled={!editing}
-          renderRightActions={() => (
-            <Pressable
-              onPress={() => {
-                triggerSelection();
-                startEdit();
-              }}
-              className="bg-amber items-center justify-center px-5"
-            >
-              <Text className="text-xl" style={{ color: "#fff" }}>
-                ✎
-              </Text>
-            </Pressable>
-          )}
-        >
-          <View className="bg-bg pr-1">{headerBody}</View>
-        </Swipeable>
-      </View>
+      <View className="flex-1">{headerBody}</View>
     </View>
   );
-}
+});

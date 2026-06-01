@@ -22,7 +22,7 @@ import {
 } from "@/db/repos/peopleRepo";
 import { useAppAuth } from "@/features/auth/useAppAuth";
 import { MerkedagComposer } from "@/features/people/MerkedagComposer";
-import { PersonProfileHeader } from "@/features/people/PersonProfileHeader";
+import { PersonProfileHeader, type PersonProfileHeaderHandle } from "@/features/people/PersonProfileHeader";
 import { SwipeEditDeleteActions } from "@/features/people/SwipeEditDeleteActions";
 import { usePersonProfileData } from "@/features/people/usePersonProfileData";
 import { useTranslation } from "@/i18n/LanguageContext";
@@ -175,6 +175,7 @@ export default function PersonDetailScreen() {
   const colorScheme = useColorScheme();
   const mountedRef = useRef(true);
   const scrollViewRef = useRef<ScrollView>(null);
+  const headerRef = useRef<PersonProfileHeaderHandle>(null);
   useEffect(() => () => { mountedRef.current = false; }, []);
 
   const [entryBody, setEntryBody] = useState("");
@@ -250,6 +251,16 @@ export default function PersonDetailScreen() {
       {
         title: t("people.personMenuSection"),
         actions: [
+          {
+            icon: "✎",
+            bgClass: "bg-amber-light",
+            label: t("people.editPersonA11y"),
+            onPress: () => {
+              setTimeout(() => {
+                if (mountedRef.current) headerRef.current?.startEdit();
+              }, 300);
+            },
+          },
           {
             icon: "🗑",
             bgClass: "bg-red-light",
@@ -478,6 +489,7 @@ export default function PersonDetailScreen() {
         >
           {bundle ? (
             <PersonProfileHeader
+              ref={headerRef}
               displayName={bundle.person.displayName}
               relationType={bundle.person.relationType}
               birthday={bundle.person.birthday}
