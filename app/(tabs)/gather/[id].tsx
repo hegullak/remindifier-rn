@@ -76,6 +76,7 @@ export default function GatheringDetailScreen() {
   const [selectedKind, setSelectedKind] = useState<TalkingPointKind>("topic");
   const [newPointText, setNewPointText] = useState("");
   const pointInputRef = useRef<TextInput>(null);
+  const [showInputField, setShowInputField] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
   const [showPersonPicker, setShowPersonPicker] = useState(false);
   const [showCreatedBanner, setShowCreatedBanner] = useState(created === "1");
@@ -356,115 +357,136 @@ export default function GatheringDetailScreen() {
 
               <ScrollView
                 keyboardDismissMode="on-drag"
-                contentContainerStyle={{ paddingBottom: 8, flexGrow: 1 }}
+                contentContainerStyle={{ paddingBottom: 120 }}
                 style={{ flex: 1 }}
               >
                 {content.talkingPoints.length === 0 ? (
-                  <View className="mb-4">
-                    <Text className="text-sm text-text2 font-body">{t("gathering.noTalkingPoints")}</Text>
-                    <Text className="text-body text-text3 font-body mt-1">
-                      {t("gathering.noTalkingPointsSub")}
-                    </Text>
-                  </View>
+                  <Text className="text-body text-text3 font-body py-4">
+                    {t("gathering.noTalkingPoints")}
+                  </Text>
                 ) : (
-                  TALKING_POINT_KINDS.map((kind) => {
-                    const items = content.talkingPoints.filter((p) => p.kind === kind);
-                    if (items.length === 0) return null;
-                    const meta = talkingPointMeta(kind);
-                    return (
-                      <View key={kind} className="mb-3">
-                        <Text className="text-3xs uppercase tracking-wide text-text3 font-bodySemi mb-1">
-                          {meta.icon} {talkingPointLabel(kind, locale)}
-                        </Text>
-                        {items.map((point) => (
-                          <BriefCard key={point.id} stripeColor={meta.stripeColor}>
-                            <View className="flex-row items-start gap-2">
-                              <Pressable onPress={() => toggleDone(point.id)} className="flex-1">
-                                <Text
-                                  className={`text-body-lg text-text1 font-body ${
-                                    point.done ? "opacity-50 line-through" : ""
-                                  }`}
-                                >
-                                  {point.text}
-                                </Text>
-                              </Pressable>
-                              <Pressable onPress={() => removePoint(point.id)} hitSlop={8}>
-                                <Text className="text-sm text-text3 font-body">✕</Text>
-                              </Pressable>
-                            </View>
-                          </BriefCard>
-                        ))}
-                      </View>
-                    );
-                  })
-                )}
-              </ScrollView>
-
-              <View
-                className="border-t border-border bg-bg pt-3 -mx-4 px-4"
-                style={{ paddingBottom: 100 }}
-              >
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={{ gap: 8, paddingBottom: 10 }}
-                  className="mb-1"
-                >
-                  {COMPOSER_KIND_ORDER.map((kind) => {
-                    const meta = talkingPointMeta(kind);
-                    const selected = kind === selectedKind;
+                  content.talkingPoints.map((point) => {
+                    const meta = talkingPointMeta(point.kind);
                     return (
                       <Pressable
-                        key={kind}
-                        onPress={() => {
-                          triggerSelection();
-                          setSelectedKind(kind);
-                          pointInputRef.current?.focus();
-                        }}
-                        className={`flex-row items-center gap-1.5 rounded-full border px-3 py-2 ${
-                          selected ? "bg-accent border-accent" : "bg-bg2 border-border"
-                        }`}
+                        key={point.id}
+                        onPress={() => toggleDone(point.id)}
+                        onLongPress={() => { triggerMedium(); removePoint(point.id); }}
+                        delayLongPress={500}
+                        className="flex-row items-start gap-3 py-3 border-b border-border active:opacity-60"
                       >
-                        <Text className="text-sm">{meta.icon}</Text>
+                        <Text className="text-base mt-0.5">{meta.icon}</Text>
                         <Text
-                          className={`text-xs font-bodySemi ${
-                            selected ? "text-card" : "text-text2"
+                          className={`text-body-lg font-body flex-1 ${
+                            point.done ? "opacity-40 line-through text-text3" : "text-text1"
                           }`}
                         >
-                          {talkingPointLabel(kind, locale)}
+                          {point.text}
                         </Text>
                       </Pressable>
                     );
-                  })}
-                </ScrollView>
+                  })
+                )}
 
-                <Text className="text-3xs uppercase tracking-wide text-text3 font-bodySemi mb-2">
-                  {selectedMeta.icon} {talkingPointLabel(selectedKind, locale)}
-                </Text>
-                <TextInput
-                  ref={pointInputRef}
-                  value={newPointText}
-                  onChangeText={setNewPointText}
-                  placeholder={t("gathering.addPlaceholder")}
-                  placeholderTextColor={placeholderColor}
-                  returnKeyType="done"
-                  onSubmitEditing={() => void addPoint()}
-                  style={{
-                    color: inputTextColor,
-                    backgroundColor: inputBgColor,
-                    borderColor: inputBorderColor,
-                    borderWidth: 1,
-                    borderRadius: 8,
-                    paddingHorizontal: 12,
-                    paddingVertical: 10,
-                    fontSize: 17,
-                    minHeight: 44,
-                  }}
-                />
-                <Text className="text-xs text-text3 font-body mt-2">
-                  {t("gathering.composerKindHint")}
-                </Text>
-              </View>
+                {!showInputField ? (
+                  <Pressable
+                    onPress={() => {
+                      triggerLight();
+                      LayoutAnimation.configureNext({
+                        duration: 250,
+                        create: {
+                          type: LayoutAnimation.Types.easeInEaseOut,
+                          property: LayoutAnimation.Properties.opacity,
+                        },
+                      });
+                      setShowInputField(true);
+                      setTimeout(() => { if (mountedRef.current) pointInputRef.current?.focus(); }, 80);
+                    }}
+                    className="flex-row items-center gap-2 py-4 active:opacity-60"
+                  >
+                    <Text className="text-xl text-accent font-body">+</Text>
+                    <Text className="text-body text-text3 font-body">{t("gathering.addTalkingPoint")}</Text>
+                  </Pressable>
+                ) : null}
+              </ScrollView>
+
+              {showInputField ? (
+                <View
+                  className="border-t border-border bg-bg pt-3 -mx-4 px-4"
+                  style={{ paddingBottom: 100 }}
+                >
+                  <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={{ gap: 8, paddingBottom: 10 }}
+                  >
+                    {TALKING_POINT_KINDS.map((kind) => {
+                      const meta = talkingPointMeta(kind);
+                      const selected = kind === selectedKind;
+                      return (
+                        <Pressable
+                          key={kind}
+                          onPress={() => {
+                            triggerSelection();
+                            setSelectedKind(kind);
+                            pointInputRef.current?.focus();
+                          }}
+                          className={`flex-row items-center gap-1.5 rounded-full border px-3 py-1.5 ${
+                            selected ? "bg-accent border-accent" : "bg-bg2 border-border"
+                          }`}
+                        >
+                          <Text className="text-sm">{meta.icon}</Text>
+                          <Text className={`text-xs font-bodySemi ${selected ? "text-card" : "text-text2"}`}>
+                            {talkingPointLabel(kind, locale)}
+                          </Text>
+                        </Pressable>
+                      );
+                    })}
+                  </ScrollView>
+                  <View className="flex-row items-center gap-2">
+                    <TextInput
+                      ref={pointInputRef}
+                      value={newPointText}
+                      onChangeText={setNewPointText}
+                      placeholder={t("gathering.addPlaceholder")}
+                      placeholderTextColor={placeholderColor}
+                      returnKeyType="done"
+                      onSubmitEditing={() => void addPoint()}
+                      style={{
+                        flex: 1,
+                        color: inputTextColor,
+                        backgroundColor: inputBgColor,
+                        borderColor: inputBorderColor,
+                        borderWidth: 1,
+                        borderRadius: 8,
+                        paddingHorizontal: 12,
+                        paddingVertical: 10,
+                        fontSize: 15,
+                        minHeight: 44,
+                      }}
+                    />
+                    <Pressable
+                      onPress={() => {
+                        triggerLight();
+                        LayoutAnimation.configureNext({
+                          duration: 200,
+                          delete: {
+                            type: LayoutAnimation.Types.easeInEaseOut,
+                            property: LayoutAnimation.Properties.opacity,
+                          },
+                        });
+                        setShowInputField(false);
+                        setNewPointText("");
+                        Keyboard.dismiss();
+                      }}
+                      hitSlop={8}
+                      className="p-2"
+                    >
+                      <Text className="text-body-lg text-text3">✕</Text>
+                    </Pressable>
+                  </View>
+                </View>
+              ) : null}
             </>
           )}
         </View>
