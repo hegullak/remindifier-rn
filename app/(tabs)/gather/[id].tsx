@@ -64,7 +64,11 @@ export default function GatheringDetailScreen() {
   const { t, locale } = useTranslation();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
-  const { id, created } = useLocalSearchParams<{ id: string; created?: string }>();
+  const { id, created, returnTo } = useLocalSearchParams<{
+    id: string;
+    created?: string;
+    returnTo?: string;
+  }>();
   const mountedRef = useRef(true);
   const suppressCloseRef = useRef(false);
   useEffect(() => () => { mountedRef.current = false; }, []);
@@ -289,7 +293,12 @@ export default function GatheringDetailScreen() {
       addMenuSections={addMenuSections}
       headerLeft={
         <Pressable
-          onPress={() => { triggerLight(); Keyboard.dismiss(); router.back(); }}
+          onPress={() => {
+            triggerLight();
+            Keyboard.dismiss();
+            if (returnTo) router.replace(returnTo);
+            else router.back();
+          }}
           hitSlop={12}
           accessibilityLabel="Back"
         >

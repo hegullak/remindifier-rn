@@ -151,7 +151,7 @@ const ADD_ROW_CLASS = "flex-row items-center gap-2 py-1.5 active:opacity-60";
 
 function SectionAddHeader({ title, onAdd }: { title: string; onAdd: () => void }) {
   return (
-    <View className="flex-row items-center justify-between mt-3 mb-1">
+    <View className="flex-row items-center justify-between mt-3 mb-2 pb-2 border-b border-border">
       <Text className="text-3xs uppercase tracking-[1.92px] text-text3 font-bodySemi">{title}</Text>
       <Pressable
         onPress={() => {
@@ -513,14 +513,17 @@ export default function PersonDetailScreen() {
 
           {bundle ? (
             <>
-              <SectionLabel compact>{t("people.redLetterDays")}</SectionLabel>
-              <View className="border-t border-border">
+              <SectionLabel compact divider>
+                {t("people.redLetterDays")}
+              </SectionLabel>
+              <View>
                 {merkedagerList.map((item) => {
                   const rowKey = item.id ?? `kind-${item.kind}`;
                   const line = formatPersonMerkedagLine(
                     item.kind,
                     item.label,
                     item.eventDate,
+                    item.yearKnown,
                     locale,
                   );
                   return (
@@ -606,8 +609,10 @@ export default function PersonDetailScreen() {
                 </Pressable>
               ) : null}
 
-              <SectionLabel compact>{t("people.funFacts")}</SectionLabel>
-              <View className="border-t border-border">
+              <SectionLabel compact divider>
+                {t("people.funFacts")}
+              </SectionLabel>
+              <View>
                 {(bundle.person.interests ?? []).map((fact, i) => {
                   const isEditing = editingFactIndex === i;
                   return (
@@ -697,7 +702,7 @@ export default function PersonDetailScreen() {
               {bundle.gatherings.length === 0 ? (
                 <Text className="text-body text-text3 font-body mb-1">{t("people.noEvents")}</Text>
               ) : (
-                <View className="border-t border-border">
+                <View>
                   {bundle.gatherings.map((g) => {
                     const eventLine = g.scheduledAt
                       ? `${g.title} · ${formatDate(g.scheduledAt.toISOString(), locale)}`
@@ -712,7 +717,10 @@ export default function PersonDetailScreen() {
                             <SwipeEditDeleteActions
                               onEdit={() => {
                                 triggerSelection();
-                                router.push(`/gather/${g.id}`);
+                                router.push({
+                                  pathname: "/gather/[id]",
+                                  params: { id: g.id, returnTo: `/people/${id}` },
+                                });
                               }}
                               onDelete={() => setGatheringToDelete(g.id)}
                             />
@@ -721,7 +729,10 @@ export default function PersonDetailScreen() {
                           <Pressable
                             onPress={() => {
                               triggerLight();
-                              router.push(`/gather/${g.id}`);
+                              router.push({
+                                pathname: "/gather/[id]",
+                                params: { id: g.id, returnTo: `/people/${id}` },
+                              });
                             }}
                             className="active:opacity-80"
                           >
@@ -757,7 +768,9 @@ export default function PersonDetailScreen() {
                 </>
               ) : null}
 
-              <SectionLabel compact>{t("people.followUpsTitle")}</SectionLabel>
+              <SectionLabel compact divider>
+                {t("people.followUpsTitle")}
+              </SectionLabel>
               {bundle.timeline.map((entry) => {
                 const isEditing = editingEntryId === entry.id;
                 return (

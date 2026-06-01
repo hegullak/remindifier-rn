@@ -6,12 +6,16 @@ export interface SectionLabelProps {
   drag?: () => void;
   /** Tighter vertical rhythm (e.g. person detail). */
   compact?: boolean;
+  /** Bottom border under the section title only (not per list row). */
+  divider?: boolean;
 }
 
-export function SectionLabel({ children, style, drag, compact }: SectionLabelProps) {
+export function SectionLabel({ children, style, drag, compact, divider }: SectionLabelProps) {
   return (
     <View
-      className={`flex-row items-center justify-between ${compact ? "mt-3 mb-1" : "mt-5 mb-2"}`}
+      className={`flex-row items-center justify-between ${
+        compact ? "mt-3 mb-2" : "mt-5 mb-2"
+      } ${divider ? "pb-2 border-b border-border" : ""}`}
     >
       <Text
         className="text-3xs uppercase tracking-[1.92px] text-text3 font-bodySemi"

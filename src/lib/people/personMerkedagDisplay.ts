@@ -1,6 +1,7 @@
 import { redLetterDisplayLabel } from "@/i18n/redLetterKinds";
 import { translate } from "@/i18n/translate";
 import type { Locale } from "@/i18n/types";
+import { computeAgeFromBirthday } from "@/lib/birthdayForm";
 import { weddingAnniversaryName, weddingAnniversaryYears } from "@/lib/milestones/anniversaries";
 
 function parseYmd(date: string): Date {
@@ -56,24 +57,38 @@ function formatAnniversaryMiddle(
   locale: Locale,
   asOf: Date,
 ): string | null {
+  const elapsed = formatElapsedSinceStart(eventDate, asOf, locale);
+  if (!elapsed) return label?.trim() || null;
+
   const years = weddingAnniversaryYears(eventDate, asOf);
-  if (!years || years <= 0) {
-    return label?.trim() || null;
+  const milestoneName = years ? weddingAnniversaryName(years, locale) : null;
+  if (milestoneName) {
+    return translate(locale, "people.marriedSinceMilestone", { elapsed, milestone: milestoneName });
   }
-  const milestoneName = weddingAnniversaryName(years, locale);
-  const yearsLabel = translate(locale, "merkedager.headline.anniversaryYears", { count: years });
-  if (milestoneName) return `${yearsLabel} — ${milestoneName}`;
-  return yearsLabel;
+  return translate(locale, "people.marriedSince", { elapsed });
+}
+
+function formatSinceMiddle(
+  kind: "Smoke-free" | "Snus-free",
+  eventDate: string,
+  locale: Locale,
+  asOf: Date,
+): string | null {
+  const elapsed = formatElapsedSinceStart(eventDate, asOf, locale);
+  if (!elapsed) return null;
+  const key = kind === "Snus-free" ? "people.snusFreeSince" : "people.smokeFreeSince";
+  return translate(locale, key, { elapsed });
 }
 
 /**
  * One-line merkedag label for person detail, e.g.
- * «Bursdag · 12. sep. 1987» or «Røykfri · 17 år 3 måneder · 1. nov. 2008».
+ * «Bursdag · 38 år · 12. sep. 1987» or «Røykfri · røykfri siden 17 år 7 måneder · 1. nov. 2008».
  */
 export function formatPersonMerkedagLine(
   kind: string,
   label: string | null,
   eventDate: string,
+  yearKnown: boolean,
   locale: Locale,
   asOf: Date = new Date(),
 ): string {
@@ -81,12 +96,22 @@ export function formatPersonMerkedagLine(
   const datePart = formatMerkedagShortDate(eventDate, locale);
 
   let middle: string | null = null;
-  if (kind === "Anniversary") {
+  if (kind === "Birthday") {
+    const age = computeAgeFromBirthday(eventDate, yearKnown);
+    if (age !== null) {
+      middle = translate(locale, "people.years", { count: age });
+    }
+  } else if (kind === "Anniversary") {
     middle = formatAnniversaryMiddle(eventDate, label, locale, asOf);
-  } else if (kind === "Smoke-free" || kind === "Snus-free") {
-    middle = formatElapsedSinceStart(eventDate, asOf, locale);
+  } else if (kind === "Smoke-free") {
+    middle = formatSinceMiddle("Smoke-free", eventDate, locale, asOf);
+  } else if (kind === "Snus-free") {
+    middle = formatSinceMiddle("Snus-free", eventDate, locale, asOf);
   } else if (kind === "Other") {
-    middle = formatElapsedSinceStart(eventDate, asOf, locale);
+    const elapsed = formatElapsedSinceStart(eventDate, asOf, locale);
+    if (elapsed) {
+      middle = translate(locale, "people.sinceElapsed", { elapsed });
+    }
   }
 
   if (middle) return `${kindLabel} · ${middle} · ${datePart}`;
