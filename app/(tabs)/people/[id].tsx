@@ -32,7 +32,6 @@ export default function PersonDetailScreen() {
   const mountedRef = useRef(true);
   const scrollViewRef = useRef<ScrollView>(null);
   useEffect(() => () => { mountedRef.current = false; }, []);
-  const [entryType, setEntryType] = useState<"note" | "follow_up">("note");
   const [entryBody, setEntryBody] = useState("");
   const [entrySaving, setEntrySaving] = useState(false);
   const [entryError, setEntryError] = useState<string | null>(null);
@@ -93,7 +92,7 @@ export default function PersonDetailScreen() {
     setEntrySaving(true);
     setEntryError(null);
     try {
-      await createPersonEntry(userId, { personId: id, type: entryType, body });
+      await createPersonEntry(userId, { personId: id, type: "follow_up", body });
       triggerMedium();
       Keyboard.dismiss();
       setEntryBody("");
@@ -297,7 +296,7 @@ export default function PersonDetailScreen() {
               </>
             ) : null}
 
-            <SectionLabel>{t("people.timeline")}</SectionLabel>
+            <SectionLabel>{t("people.followUpsTitle")}</SectionLabel>
             {bundle.timeline.map((entry) => {
               const isEditing = editingEntryId === entry.id;
               return (
@@ -326,8 +325,7 @@ export default function PersonDetailScreen() {
                 >
                   <View className="border-l-2 border-border pl-3 py-2 bg-bg">
                     <Text className="text-2xs uppercase tracking-[1.2px] text-text3 font-bodyMedium">
-                      {formatDate(entry.occurredAt.toISOString(), locale)} ·{" "}
-                      {entry.entryType === "follow_up" ? t("people.followUp") : t("people.note")}
+                      {formatDate(entry.occurredAt.toISOString(), locale)}
                     </Text>
                     {isEditing ? (
                       <TextInput
@@ -349,8 +347,8 @@ export default function PersonDetailScreen() {
               </View>
               );
             })}
-            {bundle.timeline.length === 0 ? (
-              <Text className="text-body text-text3 font-body mb-2">{t("people.noNotes")}</Text>
+            {bundle.timeline.length === 0 && !showNoteInput ? (
+              <Text className="text-body text-text3 font-body mb-2">{t("people.noFollowUps")}</Text>
             ) : null}
 
             {!showNoteInput ? (
@@ -363,47 +361,30 @@ export default function PersonDetailScreen() {
                 className="flex-row items-center gap-2 py-3 active:opacity-60"
               >
                 <Text className="text-xl text-accent font-body">+</Text>
-                <Text className="text-body text-text3 font-body">{t("people.addNote")}</Text>
+                <Text className="text-body text-text3 font-body">{t("people.addFollowUp")}</Text>
               </Pressable>
             ) : (
             <Card style={{ marginBottom: 12 }}>
-              <View className="flex-row gap-2">
-                <View className="flex-row gap-2 flex-1">
+              <View className="flex-row items-center gap-2">
+                <TextInput
+                  value={entryBody}
+                  onChangeText={setEntryBody}
+                  placeholder={t("people.followUpPlaceholder")}
+                  placeholderTextColor={colorScheme === "dark" ? "#7A8CAD" : "#A89E90"}
+                  autoFocus
+                  returnKeyType="done"
+                  onSubmitEditing={submitEntry}
+                  className="flex-1 bg-bg2 border border-border rounded-md px-3 text-sm text-text1 font-body"
+                  style={{ paddingVertical: 10, minHeight: 44 }}
+                />
                 <Pressable
-                  onPress={() => {
-                    triggerSelection();
-                    setEntryType("note");
-                  }}
-                  className={`px-3 py-1.5 rounded-pill border ${
-                    entryType === "note" ? "bg-accent border-accent" : "bg-bg2 border-border"
-                  }`}
+                  onPress={submitEntry}
+                  hitSlop={8}
+                  disabled={entrySaving}
+                  className="w-10 h-10 rounded-full bg-accent items-center justify-center active:opacity-70"
                 >
-                  <Text
-                    className={`text-xs font-bodyMedium ${
-                      entryType === "note" ? "text-card" : "text-text2"
-                    }`}
-                  >
-                    {t("people.noteType")}
-                  </Text>
+                  <Text className="text-base text-card font-bodySemi">✓</Text>
                 </Pressable>
-                <Pressable
-                  onPress={() => {
-                    triggerSelection();
-                    setEntryType("follow_up");
-                  }}
-                  className={`px-3 py-1.5 rounded-pill border ${
-                    entryType === "follow_up" ? "bg-accent border-accent" : "bg-bg2 border-border"
-                  }`}
-                >
-                  <Text
-                    className={`text-xs font-bodyMedium ${
-                      entryType === "follow_up" ? "text-card" : "text-text2"
-                    }`}
-                  >
-                    {t("people.followUpType")}
-                  </Text>
-                </Pressable>
-                </View>
                 <Pressable
                   onPress={() => { triggerLight(); setShowNoteInput(false); setEntryBody(""); setEntryError(null); Keyboard.dismiss(); }}
                   hitSlop={8}
@@ -412,33 +393,9 @@ export default function PersonDetailScreen() {
                   <Text className="text-body-lg text-text3">✕</Text>
                 </Pressable>
               </View>
-
-              <TextInput
-                value={entryBody}
-                onChangeText={setEntryBody}
-                placeholder={t("people.notePlaceholder")}
-                placeholderTextColor={colorScheme === "dark" ? "#7A8CAD" : "#A89E90"}
-                multiline
-                numberOfLines={3}
-                autoFocus
-                className="mt-2 bg-bg2 border border-border rounded-md px-3 py-3 text-sm text-text1 font-body"
-                style={{ textAlignVertical: "top", minHeight: 90 }}
-              />
-
               {entryError ? (
                 <Text className="text-xs text-red font-body mt-2">{entryError}</Text>
               ) : null}
-
-              <View className="mt-3">
-                <Button
-                  variant="primary"
-                  onPress={submitEntry}
-                  loading={entrySaving}
-                  disabled={entrySaving}
-                >
-                  {t("people.addToTimeline")}
-                </Button>
-              </View>
             </Card>
             )}
           </>
