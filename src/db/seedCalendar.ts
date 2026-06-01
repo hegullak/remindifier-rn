@@ -196,6 +196,26 @@ const SEED_EVENTS: SeedEvent[] = [
   },
   // Today — Privat
   {
+    key: "today-kaffe-marte",
+    title: "Kaffe med Marte ☕",
+    notes: "Hun byttet jobb nylig — spør hvordan det går.",
+    allDay: false,
+    fixedHour: 14,
+    fixedMinute: 0,
+    durationMinutes: 60,
+    calendar: "Privat",
+  },
+  {
+    key: "today-tannlege",
+    title: "Tannlege 🦷",
+    notes: "Husk parkering bak bygget.",
+    allDay: false,
+    fixedHour: 16,
+    fixedMinute: 30,
+    durationMinutes: 45,
+    calendar: "Privat",
+  },
+  {
     key: "today-fotball",
     title: "Fotballtrening",
     notes: "",
