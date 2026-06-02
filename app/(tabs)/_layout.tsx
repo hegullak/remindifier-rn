@@ -58,7 +58,7 @@ function FloatingTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
         overflow: "hidden",
         flexDirection: "row",
         alignItems: "center",
-        backgroundColor: isExpoGo ? (isDark ? "rgba(34,40,56,0.92)" : "rgba(242,244,249,0.95)") : undefined,
+        backgroundColor: isExpoGo ? (isDark ? "rgba(34,40,56,0.92)" : "rgba(227,223,214,0.95)") : undefined,
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 6 },
         shadowOpacity: isDark ? 0.45 : 0.15,
@@ -70,14 +70,14 @@ function FloatingTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
         style={{
           position: "absolute",
           top: 0, left: 0, right: 0, bottom: 0,
-          backgroundColor: isDark ? "rgba(34,40,56,0.15)" : "rgba(242,244,249,0.15)",
+          backgroundColor: isDark ? "rgba(34,40,56,0.15)" : "rgba(227,223,214,0.18)",
         }}
       />
       {state.routes.map((route, index) => {
         const { options } = descriptors[route.key];
         const focused = state.index === index;
         const accentColor = isDark ? "#7EB8D4" : "#3E7FA6";
-        const inactiveColor = isDark ? "#7A8CAD" : "#8990A6";
+        const inactiveColor = isDark ? "#7A8CAD" : "#8C8578";
 
         const emojis: Record<string, string> = {
           brief: "☀️",

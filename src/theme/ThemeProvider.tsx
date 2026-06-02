@@ -8,7 +8,7 @@ const STORAGE_KEY = "remindifier-theme";
 
 const THEME_BG: Record<AppTheme, string> = {
   slate: "#1A1E26",
-  sand: "#E7EAF0",
+  sand: "#D7D3CA",
 };
 
 type ThemeContextValue = {
