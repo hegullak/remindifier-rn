@@ -8,7 +8,7 @@ const STORAGE_KEY = "remindifier-theme";
 
 const THEME_BG: Record<AppTheme, string> = {
   slate: "#1A1E26",
-  sand: "#EDE9E2",
+  sand: "#E7EAF0",
 };
 
 type ThemeContextValue = {
@@ -16,6 +16,8 @@ type ThemeContextValue = {
   setTheme: (theme: AppTheme) => void;
   toggleTheme: () => void;
   isDark: boolean;
+  /** Resolved background color for the active theme. */
+  bg: string;
 };
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
@@ -47,7 +49,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }, [setTheme, theme]);
 
   return (
-    <ThemeContext.Provider value={{ theme, setTheme, toggleTheme, isDark: theme === "slate" }}>
+    <ThemeContext.Provider
+      value={{ theme, setTheme, toggleTheme, isDark: theme === "slate", bg: THEME_BG[theme] }}
+    >
       <View
         style={{ flex: 1, backgroundColor: THEME_BG[theme] }}
         className={`flex-1 bg-bg ${theme === "slate" ? "dark" : ""}`}

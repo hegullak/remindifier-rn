@@ -2,32 +2,32 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Sand (light) — default */
+/* Daylight (light) — soft cool grey-blue, a lighter sibling of the dark theme */
 :root {
-  --bg: #ede9e2;
-  --bg2: #e5e0d8;
-  --card: #f7f4ef;
-  --card2: #efebe3;
-  --border: rgba(0, 0, 0, 0.07);
-  --text1: #1c1a16;
-  --text2: #6b6355;
-  --text3: #a89e90;
-  --accent: #c4784a;
-  --accent-light: #f5e5d8;
-  --green: #4a7460;
-  --green-light: #dff0e8;
-  --amber: #b8882a;
-  --amber-light: #f5edda;
-  --red: #a84040;
-  --red-light: #f5e0e0;
-  --sage: #4e6e58;
-  --sage-light: #e0ebe4;
-  --dusk: #5a5070;
-  --dusk-light: #e8e5f0;
-  --blue: #3a6b8a;
-  --blue-light: #dde9f2;
-  --gold: #b89a4a;
-  --gold-light: #f5edda;
+  --bg: #e7eaf0;
+  --bg2: #dce0ea;
+  --card: #f2f4f9;
+  --card2: #e9ecf3;
+  --border: rgba(0, 0, 0, 0.08);
+  --text1: #23283a;
+  --text2: #565f78;
+  --text3: #8990a6;
+  --accent: #3e7fa6;
+  --accent-light: #dceaf4;
+  --green: #3e7a5e;
+  --green-light: #dcede4;
+  --amber: #9a7420;
+  --amber-light: #f0e8d4;
+  --red: #a84848;
+  --red-light: #f2dede;
+  --sage: #466b55;
+  --sage-light: #deeae2;
+  --dusk: #5a5078;
+  --dusk-light: #e6e2f0;
+  --blue: #356b8c;
+  --blue-light: #dbe8f2;
+  --gold: #9a8230;
+  --gold-light: #f0e8d4;
 }
 
 /* Slate (dark) — preferred */

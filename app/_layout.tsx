@@ -16,7 +16,7 @@ import { installGlobalErrorLogger } from "@/lib/globalErrorHandler";
 import { logger } from "@/lib/logger";
 import "../global.css";
 import { LanguageProvider, useTranslation } from "@/i18n";
-import { ThemeProvider } from "@/theme/ThemeProvider";
+import { ThemeProvider, useAppTheme } from "@/theme/ThemeProvider";
 import { LoadingScreen } from "@/ui/StartupScreens";
 
 SplashScreen.preventAutoHideAsync().catch(() => {
@@ -47,6 +47,7 @@ export default function RootLayout() {
 
 function RootStack() {
   const { t } = useTranslation();
+  const { bg } = useAppTheme();
   const { isLoaded: clerkLoaded } = useAuth();
   const [fontsLoaded, fontError] = useFonts({
     Lora_400Regular,
@@ -92,7 +93,7 @@ function RootStack() {
     <Stack
       screenOptions={{
         headerShown: false,
-        contentStyle: { backgroundColor: "#1A1E26" },
+        contentStyle: { backgroundColor: bg },
       }}
     />
   );

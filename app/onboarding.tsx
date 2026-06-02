@@ -17,6 +17,7 @@ import { draftToFormInitial } from "@/features/people/naturalIntake";
 import { ParsedPersonPreviewCard } from "@/features/people/ParsedPersonPreviewCard";
 import { PersonForm } from "@/features/people/PersonForm";
 import { useTranslation } from "@/i18n/LanguageContext";
+import { useAppTheme } from "@/theme/ThemeProvider";
 import {
   type ParsedPersonDraft,
   parseNaturalPersonInput,
@@ -35,6 +36,7 @@ function OnboardingContent({
   getToken: () => Promise<string | null>;
 }) {
   const { t } = useTranslation();
+  const { bg } = useAppTheme();
   const insets = useSafeAreaInsets();
   const migrationState = useMigrations(db, migrations);
   const { ready } = useBootstrapApp(userId, migrationState.success);
@@ -89,7 +91,7 @@ function OnboardingContent({
       className="flex-1 bg-bg"
       style={{
         flex: 1,
-        backgroundColor: "#1A1E26",
+        backgroundColor: bg,
         paddingTop: insets.top + 24,
         paddingBottom: insets.bottom + 24,
       }}
