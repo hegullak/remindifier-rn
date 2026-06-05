@@ -150,10 +150,16 @@ describe("upcomingRedLetterDays", () => {
     ]).toContain(result[0].timing);
   });
 
-  it("uses Norwegian birthday headline", () => {
-    const row = makeRow({ eventDate: "1990-05-01", yearKnown: true });
+  it("builds smoke-free timing with started date", () => {
+    const row = makeRow({ kind: "Smoke-free", eventDate: "2020-05-10" });
     const result = upcomingRedLetterDays([row], TODAY, WINDOW, NO);
-    expect(result[0].headline).toBe("Fyller 34 år");
+    expect(result[0].timing).toMatch(/startet|siden/i);
+  });
+
+  it("uses Other kind label in headline when provided", () => {
+    const row = makeRow({ kind: "Other", label: "Named day", eventDate: "2020-05-10" });
+    const result = upcomingRedLetterDays([row], TODAY, WINDOW, EN);
+    expect(result[0].headline).toContain("Named day");
   });
 });
 

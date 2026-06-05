@@ -5,6 +5,7 @@ import { Swipeable } from "react-native-gesture-handler";
 import { deletePerson, type PersonSummary } from "@/db/repos/peopleRepo";
 import { useAppAuth } from "@/features/auth/useAppAuth";
 import { usePeopleData } from "@/features/people/usePeopleData";
+import { SWIPE_EDIT_ICON } from "@/features/people/SwipeEditDeleteActions";
 import { useTranslation } from "@/i18n/LanguageContext";
 import { translateRelationType } from "@/i18n/relationTypes";
 import { triggerLight, triggerMedium, triggerSelection } from "@/lib/haptics";
@@ -138,7 +139,7 @@ export default function PeopleListScreen() {
                       onPress={() => { triggerSelection(); router.push(`/people/${person.id}/edit`); }}
                       className="bg-amber items-center justify-center px-5"
                     >
-                      <Text className="text-xl" style={{ color: "#fff" }}>✎</Text>
+                      <Text style={SWIPE_EDIT_ICON}>✎</Text>
                     </Pressable>
                     <Pressable
                       onPress={() => { triggerLight(); setDeleteId(person.id); }}

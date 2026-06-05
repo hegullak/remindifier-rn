@@ -1,17 +1,41 @@
 name: ci
 
+# Budget-conscious: one job (single npm ci), cancel superseded runs, skip doc-only
+# changes and commits tagged [skip ci]. Maestro stays local — not billed here.
 on:
-  push:
-    branches: [develop, master]
   pull_request:
-    branches: [develop, master]
+    branches: [sandbox, develop, master]
+    paths-ignore:
+      - "**/*.md"
+      - "coverage/**"
+      - ".cursor/**"
+      - "claude-*.md"
+      - "expo-output.log"
+      - ".maestro/**"
+  push:
+    branches: [sandbox, develop, master]
+    paths-ignore:
+      - "**/*.md"
+      - "coverage/**"
+      - ".cursor/**"
+      - "claude-*.md"
+      - "expo-output.log"
+      - ".maestro/**"
   workflow_dispatch:
 
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  # ── 1. Lint ────────────────────────────────────────────────────────────────
-  lint:
-    name: Lint
+  check:
+    name: Lint · typecheck · test
     runs-on: ubuntu-latest
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'pull_request' ||
+      (github.event_name == 'push' &&
+       !contains(github.event.head_commit.message, '[skip ci]'))
     steps:
       - uses: actions/checkout@v4
 
@@ -26,40 +50,10 @@ jobs:
       - name: Biome check
         run: npx biome ci .
 
-  # ── 2. Typecheck ───────────────────────────────────────────────────────────
-  typecheck:
-    name: Typecheck
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci --legacy-peer-deps
-
       - name: TypeScript
         run: npm run typecheck
 
-  # ── 3. Unit tests + coverage ───────────────────────────────────────────────
-  test:
-    name: Test (coverage)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci --legacy-peer-deps
-
-      - name: Run tests with coverage
+      - name: Tests with coverage
         run: npm run test:coverage
 
       - name: Upload coverage report
@@ -68,4 +62,4 @@ jobs:
         with:
           name: coverage-report
           path: coverage/lcov.info
-          retention-days: 14
+          retention-days: 7

@@ -39,6 +39,7 @@ function analyseEvents(
   events: CalendarBriefEvent[],
   weekEvents: CalendarBriefEvent[],
   locale: "en" | "no",
+  today: Date,
 ): MorningSignals {
   const timed = events.filter((e) => !e.allDay);
 
@@ -74,7 +75,7 @@ function analyseEvents(
     .map((e) => e.title);
 
   // Weekend: only mention if there ARE events OR it's Friday
-  const todayDow = new Date().getDay();
+  const todayDow = today.getDay();
   const isFriday = todayDow === 5;
   const saturday = weekEvents.filter((e) => getDayOfWeek(e.startDate) === 6 && !isAllDay(e));
   const sunday = weekEvents.filter((e) => getDayOfWeek(e.startDate) === 0 && !isAllDay(e));
@@ -304,7 +305,7 @@ export function buildMorningBrief(
   locale: "en" | "no",
   today = new Date(),
 ): MorningBriefSummary {
-  const signals = analyseEvents(todayEvents, weekEvents, locale);
+  const signals = analyseEvents(todayEvents, weekEvents, locale, today);
   const holiday = getUpcomingHoliday(today, locale, 21);
   return locale === "no" ? buildNorwegian(signals, holiday) : buildEnglish(signals, holiday);
 }

@@ -36,14 +36,9 @@ export default function BriefScreen() {
   } = useBriefData(userId);
   const morningBrief = buildMorningBrief(brief.todayEvents ?? [], brief.weekEvents ?? [], locale);
   const windDown = buildEveningWindDown(brief.tomorrowEvents ?? [], brief.weekEvents ?? [], locale);
-  const [showWeatherSheet, setShowWeatherSheet] = useState(false);
   const [showMorningBrief, setShowMorningBrief] = useState(false);
   const [showEveningWindDown, setShowEveningWindDown] = useState(false);
   const [weekExpanded, setWeekExpanded] = useState(false);
-  const rainDetail = brief.weather.details.find((d) => d.kind === "rain");
-  const rainText = rainDetail?.value ?? "0 mm";
-  const windDetail = brief.weather.details.find((d) => d.kind === "wind");
-  const windText = windDetail?.value ?? null;
   const [anniversaryDetail, setAnniversaryDetail] = useState<{
     personName: string;
     years: number;
@@ -242,7 +237,7 @@ export default function BriefScreen() {
     return (
       <View className="mb-1">
         <SectionLabel>{locale === "no" ? "Dagen min" : "My day"}</SectionLabel>
-        <BriefCard stripeColor="blue">
+        <BriefCard stripeColor="gold">
           {dayCombined.map((item, i) => {
             // Dim events whose time has already passed today (winding-down feel)
             const dimmed = item.sortMinutes !== undefined && item.sortMinutes < nowMinutes;
@@ -409,25 +404,9 @@ export default function BriefScreen() {
   );
 
   return (
-    <AppShell
-      headerLeft={
-        <Pressable
-          onPress={() => setShowWeatherSheet(true)}
-          className="flex-row items-center active:opacity-70"
-          accessibilityRole="button"
-          hitSlop={8}
-        >
-          <Text className="text-2xl mr-1">{brief.weather.icon}</Text>
-          <Text className="text-base text-text2 font-bodyMedium">{brief.weather.temp}</Text>
-          <Text className="text-body-lg text-text3 font-body">  🌧️ {rainText}</Text>
-          {windText ? (
-            <Text className="text-body-lg text-text3 font-body">  💨 {windText}</Text>
-          ) : null}
-          <Text className="text-body text-text3 font-body ml-1">›</Text>
-        </Pressable>
-      }
-    >
+    <AppShell>
       <ScrollView
+        testID="brief-screen"
         contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 130 }}
       >
         {listHeader}
@@ -461,43 +440,6 @@ export default function BriefScreen() {
             {sentence}
           </Text>
         ))}
-      </BottomSheet>
-
-      <BottomSheet
-        visible={showWeatherSheet}
-        onDismiss={() => setShowWeatherSheet(false)}
-        title={`${brief.weather.icon} ${brief.weather.locationLabel}`}
-        large
-      >
-        <View className="flex-row items-end gap-3 mb-4">
-          <Text className="text-[48px] leading-[52px] text-text1 font-heading">
-            {brief.weather.temp}
-          </Text>
-          <Text className="text-body-lg text-text2 font-body mb-2 flex-1">
-            {brief.weather.description}
-          </Text>
-        </View>
-        {brief.weather.goodForRun ? (
-          <View className="flex-row items-center gap-2 mb-4">
-            <Text className="text-base">🏃</Text>
-            <Text className="text-body text-green font-bodyMedium flex-1">
-              {t("brief.goodForRun")}
-            </Text>
-          </View>
-        ) : null}
-        <View className="flex-row flex-wrap gap-x-4 gap-y-4">
-          {brief.weather.details.map((d) => (
-            <View key={`${d.icon}-${d.label}`} className="w-[46%] min-w-[140px]">
-              <View className="flex-row items-center gap-1.5 mb-0.5">
-                <Text className="text-body-lg">{d.icon}</Text>
-                <Text className="text-3xs text-text3 font-bodySemi uppercase tracking-wide">
-                  {d.label}
-                </Text>
-              </View>
-              <Text className="text-body-lg text-text1 font-bodyMedium pl-5">{d.value}</Text>
-            </View>
-          ))}
-        </View>
       </BottomSheet>
 
       <BottomSheet

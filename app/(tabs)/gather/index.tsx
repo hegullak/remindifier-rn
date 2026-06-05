@@ -6,6 +6,7 @@ import { triggerLight, triggerMedium, triggerSelection } from "@/lib/haptics";
 import { listGatheringsForUser, getGatheringTalkingPointCount, deleteGathering } from "@/db/repos/gatheringsRepo";
 import type { GatheringListItem } from "@/db/repos/gatheringsRepo";
 import { useAppAuth } from "@/features/auth/useAppAuth";
+import { SWIPE_EDIT_ICON } from "@/features/people/SwipeEditDeleteActions";
 import { localizeGatheringTitle } from "@/lib/gatherings/localizeGathering";
 import { useTranslation } from "@/i18n";
 import type { Locale } from "@/i18n/types";
@@ -123,7 +124,7 @@ export default function GatherListScreen() {
                         onPress={() => { triggerSelection(); router.push(`/gather/${item.id}`); }}
                         className="bg-amber items-center justify-center px-5"
                       >
-                        <Text className="text-xl" style={{ color: "#fff" }}>✎</Text>
+                        <Text style={SWIPE_EDIT_ICON}>✎</Text>
                       </Pressable>
                       <Pressable
                         onPress={() => { triggerLight(); setDeleteId(item.id); }}

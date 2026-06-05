@@ -1,4 +1,4 @@
-﻿import { BIRTHDAY_SENTINEL_YEAR } from "@/lib/red-letter-day";
+import { BIRTHDAY_SENTINEL_YEAR } from "@/lib/red-letter-day";
 import type { ParsedPersonDraft } from "@/lib/people/naturalLanguageParser.types";
 
 const MONTH_BY_NAME: Record<string, number> = {

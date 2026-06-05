@@ -24,7 +24,6 @@
     "expo-haptics": "~15.0.8",
     "expo-image": "~3.0.11",
     "expo-linking": "~8.0.12",
-    "expo-location": "~19.0.8",
     "expo-router": "~6.0.24",
     "expo-secure-store": "~15.0.8",
     "expo-sharing": "~14.0.8",
@@ -70,6 +69,8 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
+    "test:integration": "jest tests/integration",
+    "check": "npm run lint && npm run typecheck && npm run test:coverage",
     "db:generate": "drizzle-kit generate"
   },
   "private": true

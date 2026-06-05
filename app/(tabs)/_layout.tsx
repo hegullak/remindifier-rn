@@ -19,6 +19,7 @@ import { useAppAuth } from "@/features/auth/useAppAuth";
 import { useTranslation } from "@/i18n";
 import { logger } from "@/lib/logger";
 import { useAppTheme } from "@/theme/ThemeProvider";
+import { TAB_BAR_UI } from "@/theme/tokens";
 import { FatalScreen, LoadingScreen } from "@/ui/StartupScreens";
 
 const isExpoGo = Constants.appOwnership === "expo";
@@ -43,7 +44,9 @@ function TabBarContainer({
 }
 
 function FloatingTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
-  const { isDark } = useAppTheme();
+  const { theme } = useAppTheme();
+  const tabUi = TAB_BAR_UI[theme];
+  const isDark = theme !== "sand";
 
   return (
     <TabBarContainer
@@ -58,7 +61,7 @@ function FloatingTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
         overflow: "hidden",
         flexDirection: "row",
         alignItems: "center",
-        backgroundColor: isExpoGo ? (isDark ? "rgba(34,40,56,0.92)" : "rgba(227,223,214,0.95)") : undefined,
+        backgroundColor: isExpoGo ? tabUi.bg : undefined,
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 6 },
         shadowOpacity: isDark ? 0.45 : 0.15,
@@ -70,14 +73,14 @@ function FloatingTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
         style={{
           position: "absolute",
           top: 0, left: 0, right: 0, bottom: 0,
-          backgroundColor: isDark ? "rgba(34,40,56,0.15)" : "rgba(227,223,214,0.18)",
+          backgroundColor: tabUi.overlay,
         }}
       />
       {state.routes.map((route, index) => {
         const { options } = descriptors[route.key];
         const focused = state.index === index;
-        const accentColor = isDark ? "#7EB8D4" : "#3E7FA6";
-        const inactiveColor = isDark ? "#7A8CAD" : "#8C8578";
+        const accentColor = tabUi.accent;
+        const inactiveColor = tabUi.inactive;
 
         const emojis: Record<string, string> = {
           brief: "☀️",

@@ -24,6 +24,7 @@ import {
 } from "@/db/repos/gatheringsRepo";
 import { listPeopleSummaries } from "@/db/repos/peopleRepo";
 import { useAppAuth } from "@/features/auth/useAppAuth";
+import { SWIPE_EDIT_ICON } from "@/features/people/SwipeEditDeleteActions";
 import { useTranslation } from "@/i18n";
 import type { Locale } from "@/i18n/types";
 import { localizeGatheringTitle } from "@/lib/gatherings/localizeGathering";
@@ -416,7 +417,7 @@ export default function GatheringDetailScreen() {
                               onPress={() => { triggerSelection(); startEdit(point.id); }}
                               className="bg-amber items-center justify-center px-5"
                             >
-                              <Text className="text-xl" style={{ color: "#fff" }}>✎</Text>
+                              <Text style={SWIPE_EDIT_ICON}>✎</Text>
                             </Pressable>
                             <Pressable
                               onPress={() => { triggerMedium(); removePoint(point.id); }}

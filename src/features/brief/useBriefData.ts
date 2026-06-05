@@ -22,14 +22,11 @@ import {
 } from "@/lib/gatherings/briefLinks";
 import type { BriefSectionId } from "@/lib/brief/sections";
 import { DEFAULT_BRIEF_SECTION_ORDER } from "@/lib/brief/sections";
-import type { BriefWeatherData } from "@/lib/brief/weather";
-import { fetchBriefWeather } from "@/lib/brief/weather";
 import { subscribeBriefReload } from "@/lib/brief/briefRefresh";
 import { logger } from "@/lib/logger";
 import type { UpcomingRedLetterDay } from "@/lib/timeline/red-letter-days";
 
 interface BriefState {
-  weather: BriefWeatherData;
   schedule: {
     id: string;
     time: string;
@@ -45,17 +42,7 @@ interface BriefState {
   sectionOrder: BriefSectionId[];
 }
 
-const initialWeather: BriefWeatherData = {
-  temp: "13°",
-  description: "…",
-  goodForRun: true,
-  icon: "⛅",
-  locationLabel: "",
-  details: [],
-};
-
 const initialState: BriefState = {
-  weather: initialWeather,
   schedule: [],
   calendarEvents: [],
   todayEvents: [],
@@ -94,12 +81,11 @@ export function useBriefData(userId: string | null | undefined) {
       setBrief(initialState);
       return;
     }
-    const [scheduleRaw, redLetterDays, sectionOrder, weather, calendarEvents, gatherings] =
+    const [scheduleRaw, redLetterDays, sectionOrder, calendarEvents, gatherings] =
       await Promise.all([
       listBriefSchedule(userId),
       listUpcomingRedLetterDays(userId, 60, locale),
       getBriefSectionOrder(userId),
-      fetchBriefWeather(locale),
       fetchCalendarBriefEvents(weekBounds),
       listGatheringsForUser(userId),
     ]);
@@ -130,7 +116,6 @@ export function useBriefData(userId: string | null | undefined) {
       weekEvents: calendarEvents,
       redLetterDays,
       sectionOrder,
-      weather,
     }));
   }, [userId, locale, weekBounds]);
 

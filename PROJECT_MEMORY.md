@@ -31,7 +31,7 @@ A contextual memory and heads-up assistant for the people in your life — not a
 
 | Route | Purpose |
 |-------|---------|
-| `app/(tabs)/brief.tsx` | Home — weather topline, greeting, pill cards, draggable sections |
+| `app/(tabs)/brief.tsx` | Home — greeting, pill cards, Dagen min / Uken min |
 | `app/intake.tsx` | Semantic voice/text capture — parse → preview → confirm/inbox |
 | `app/(tabs)/gather/` | Events — list, create (AI prep), detail, talking points |
 | `app/(tabs)/people/` | People list, detail, new, edit |
@@ -40,7 +40,7 @@ A contextual memory and heads-up assistant for the people in your life — not a
 | `app/sign-in.tsx` | Auth gate |
 | `app/me-scan.tsx` | QR scanner → prefill new person |
 
-**Header** (`src/ui/AppShell.tsx`): 🇳🇴/🇬🇧 `LanguagePicker` left; theme + avatar (→ `/settings`) right. No ⋯ menu.
+**Header** (`src/ui/AppShell.tsx`): 🇳🇴/🇬🇧 `LanguagePicker` left; + menu and avatar (→ profile BottomSheet: settings + **Gitar-tema**) right.
 
 **Tabs**: `brief`, `gather`, `people`, `myself` (not “me” / “meg” as route name).
 
@@ -58,14 +58,10 @@ A contextual memory and heads-up assistant for the people in your life — not a
 - **Demo schedule** (seed id `s1`): localized in `src/features/brief/briefContent.ts` → `localizeScheduleItem`
 - **Do not** hardcode user-visible strings in components; extend `en.ts` + `no.ts` together
 
-## Brief / weather
+## Brief
 
 - Data hook: `src/features/brief/useBriefData.ts` — reloads on `locale` change
-- **Layout (top → bottom):** compact weather topline → date nav → greeting (`text-5xl`) → pill cards (I DAG / KVELDEN) → draggable sections
-- **Weather topline** (centered, tappable → BottomSheet): icon + temp + rain + wind + `›` — weather section in `sectionOrder` returns `null`
-- Weather data: `src/lib/brief/weather.ts` + `weatherLocation.ts`
-  - GPS via `expo-location` → else `EXPO_PUBLIC_BRIEF_WEATHER_LAT/LON` → default Hagavik
-  - Open-Meteo forecast; BottomSheet shows full details grid
+- **Layout (top → bottom):** date nav → greeting (`text-5xl`) → pill cards (I DAG / KVELDEN) → Dagen min / Uken min cards
 - **Body text:** use `"\n"` as sentence separator in brief bodies; renderer splits on `"\n"` — never `". "` (breaks «kl. 09:00»)
 - Static demo content: `getHeadsupItems(locale)`, `getFallbackTraining(locale)` in `briefContent.ts`
 - **Push-Pull-Legs:** session names stay English in all locales; active day highlighted via `PplSessionLabel` (`src/ui/PplSessionLabel.tsx`) — never translate to e.g. «Trekk»
@@ -132,7 +128,8 @@ A contextual memory and heads-up assistant for the people in your life — not a
 
 - **Lint/format**: Biome (`npm run lint:fix`)
 - **Types**: `npm run typecheck`
-- **Tests**: Jest (`npm test`) — lib tests under `src/lib/__tests__/`
+- **Tests**: Jest — `npm run check` before merge (lint + typecheck + coverage); unit tests in `src/lib/__tests__/`; integration in `tests/integration/` (`npm run test:integration`); Maestro smoke locally in `.maestro/` (not CI)
+- **CI (GitHub Actions)**: runs on PR/push to `sandbox` (and `develop`/`master`); single job; skips `*.md`-only changes and commits with `[skip ci]`; use **Actions → ci → Run workflow** for manual runs; Maestro is never billed on GitHub
 - **Styling**: NativeWind preset classes (not arbitrary `text-[Xpx]`); pair critical layout (`flex: 1`, bg) with inline `style` fallback on shell screens; fonts Lora (headings) + DM Sans (body)
 - **Commits**: end each agent session with a commit if there are code changes; never commit `.env`, `expo-output.log`, `coverage/`, `node_modules/`
 - **Session git**: start with `git pull --rebase origin sandbox`; end with commit + `git push origin sandbox`
@@ -144,20 +141,18 @@ A contextual memory and heads-up assistant for the people in your life — not a
 |----------|---------|
 | `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk (required) |
 | `EXPO_PUBLIC_PARSE_API_URL` | Cloudflare Worker base URL for GPT parsing (`POST /api/parse`); omit for local-only heuristics |
-| `EXPO_PUBLIC_BRIEF_WEATHER_LAT` / `LON` | Weather fallback coordinates |
-| `EXPO_PUBLIC_BRIEF_WEATHER_PLACE` | Place label if geocoding fails |
 
 ## Common pitfalls
 
 1. Adding `as const` to `en.ts` breaks `no.ts` typing — use plain object + `satisfies Translations` on `no`
-2. Forgetting `locale` in `upcomingRedLetterDays` / `fetchBriefWeather` / `formatBriefDateLine`
+2. Forgetting `locale` in `upcomingRedLetterDays` / `formatBriefDateLine`
 3. Translating DB-stored user content (names, notes) — only system/chrome strings
 4. Expo SDK/API changes — verify v56 docs, not old blog posts
 5. **`expo-haptics`** must match SDK 54 (`~15.0.8`) — v56 package breaks Expo Go
 6. **Bootstrap** must not `await seedDevCalendar()` — calendar permission can hang UI in Expo Go
 7. **RN StyleSheet** — do not use CSS `var(--token)` for `backgroundColor`; use hex or theme hook
 8. **`ClerkLoaded`** renders nothing while Clerk loads — use explicit `LoadingScreen` + `useAuth().isLoaded`
-9. **`ThemeProvider`** must not block children on SecureStore; apply stored theme async with default slate + style fallback
+9. **`ThemeProvider`** must not block children on SecureStore; apply stored theme async with default slate + style fallback. Themes: `sand` | `slate` | `guitar` (echonote amber via NativeWind `vars()` on root + modals; toggle via HG profile menu).
 10. **Rules of Hooks** — never place `useEffect` after conditional `return` in layout components (caused Expo Go black screen when bootstrap completed)
 11. **`FatalScreen` / `LoadingScreen`** — use `StyleSheet` for guaranteed visibility; do not rely on NativeWind alone for error UI
 12. **SecureStore** — `getItemAsync` / `setItemAsync` must use **identical options** (e.g. `keychainService`); mismatch causes «failed to persist database key» on iOS

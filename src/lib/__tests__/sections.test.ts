@@ -10,14 +10,7 @@ describe("normalizeBriefSectionOrder", () => {
   });
 
   it("preserves a valid custom order", () => {
-    const custom = [
-      "red_letter",
-      "schedule",
-      "calendar",
-      "weather",
-      "headsup",
-      "training",
-    ];
+    const custom = ["red_letter", "schedule", "calendar", "headsup", "training"];
     expect(normalizeBriefSectionOrder(custom)).toEqual(custom);
   });
 
@@ -25,25 +18,23 @@ describe("normalizeBriefSectionOrder", () => {
     const input = ["weather", "unknown_section", "schedule"];
     const result = normalizeBriefSectionOrder(input);
     expect(result).not.toContain("unknown_section");
-    expect(result).toContain("weather");
+    expect(result).not.toContain("weather");
     expect(result).toContain("schedule");
   });
 
   it("deduplicates repeated section IDs", () => {
-    const input = ["weather", "weather", "schedule"];
+    const input = ["schedule", "schedule", "calendar"];
     const result = normalizeBriefSectionOrder(input);
-    expect(result.filter((s) => s === "weather")).toHaveLength(1);
+    expect(result.filter((s) => s === "schedule")).toHaveLength(1);
   });
 
   it("appends missing sections at the end in default order", () => {
-    const result = normalizeBriefSectionOrder(["weather"]);
-    expect(result[0]).toBe("weather");
-    // Remaining sections appended
+    const result = normalizeBriefSectionOrder(["calendar"]);
+    expect(result[0]).toBe("calendar");
     expect(result).toHaveLength(DEFAULT_BRIEF_SECTION_ORDER.length);
-    // Appended sections follow default order
     const appended = result.slice(1);
-    const defaultWithoutWeather = DEFAULT_BRIEF_SECTION_ORDER.filter((s) => s !== "weather");
-    expect(appended).toEqual(defaultWithoutWeather);
+    const defaultWithoutCalendar = DEFAULT_BRIEF_SECTION_ORDER.filter((s) => s !== "calendar");
+    expect(appended).toEqual(defaultWithoutCalendar);
   });
 
   it("always returns all sections", () => {

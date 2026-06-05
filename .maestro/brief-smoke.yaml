@@ -1,0 +1,24 @@
+# Local smoke only — not run on GitHub Actions (saves runner minutes).
+#
+# Prerequisites (dev client):
+#   EXPO_PUBLIC_DEV_BYPASS_AUTH=true in .env
+#   App built/launched on simulator or device
+#
+# Run: maestro test .maestro/brief-smoke.yaml
+
+appId: com.hegullak.remindifier
+---
+- launchApp:
+    clearState: true
+
+- tapOn:
+    text: "Skip for now"
+    optional: true
+
+- extendedWaitUntil:
+    visible:
+      id: brief-screen
+    timeout: 90000
+
+- assertVisible:
+    id: brief-screen

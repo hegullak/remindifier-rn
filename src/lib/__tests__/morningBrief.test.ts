@@ -4,6 +4,9 @@ import {
 } from "@/lib/brief/morningBrief";
 import type { CalendarBriefEvent } from "@/lib/brief/calendarEvents";
 
+/** Fixed Monday so weekend pill logic does not depend on the day tests run. */
+const MONDAY = new Date(2026, 5, 1);
+
 function makeEvent(
   id: string,
   hour: number,
@@ -47,7 +50,7 @@ function makeWeekendEvent(
 describe("buildMorningBrief", () => {
   describe("empty events", () => {
     it("returns isEmpty: true and correct pillText for empty array (no)", () => {
-      const result = buildMorningBrief([], [], "no");
+      const result = buildMorningBrief([], [], "no", MONDAY);
       expect(result.available).toBe(true);
       expect(result.isEmpty).toBe(true);
       expect(result.pillText).toBe("Åpen dag · fri helg");
@@ -55,12 +58,12 @@ describe("buildMorningBrief", () => {
     });
 
     it("returns isEmpty: true with free weekend pill (no)", () => {
-      const result = buildMorningBrief([], [], "no");
+      const result = buildMorningBrief([], [], "no", MONDAY);
       expect(result.pillText).toContain("fri helg");
     });
 
     it("returns isEmpty: true and correct pillText for empty array (en)", () => {
-      const result = buildMorningBrief([], [], "en");
+      const result = buildMorningBrief([], [], "en", MONDAY);
       expect(result.available).toBe(true);
       expect(result.isEmpty).toBe(true);
       expect(result.pillText).toContain("Open day");
@@ -69,7 +72,7 @@ describe("buildMorningBrief", () => {
 
     it("open day with weekend events — pillText does NOT include free weekend (no)", () => {
       const weekEvents = [makeWeekendEvent("s1", 6, 13, 0, "Fotballkamp")];
-      const result = buildMorningBrief([], weekEvents, "no");
+      const result = buildMorningBrief([], weekEvents, "no", MONDAY);
       expect(result.pillText).toBe("Åpen dag");
     });
   });
@@ -255,13 +258,13 @@ describe("buildMorningBrief", () => {
     });
 
     it("free weekend → 'Fri helg' in pillText for open day (no)", () => {
-      const result = buildMorningBrief([], [], "no");
+      const result = buildMorningBrief([], [], "no", MONDAY);
       expect(result.pillText).toContain("fri helg");
     });
 
     it("weekend events detected → weekendSummary NOT in empty pillText (no)", () => {
       const weekEvents = [makeWeekendEvent("s1", 6, 13, 0, "Middag")];
-      const result = buildMorningBrief([], weekEvents, "no");
+      const result = buildMorningBrief([], weekEvents, "no", MONDAY);
       // open day but has weekend events → pill is just "Åpen dag"
       expect(result.pillText).toBe("Åpen dag");
       // but body contains weekend info

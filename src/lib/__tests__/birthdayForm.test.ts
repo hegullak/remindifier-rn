@@ -1,5 +1,6 @@
 import {
   applyYearKnownToIso,
+  computeAgeFromBirthday,
   formatBirthdayLabel,
   isoToPickerDate,
   pickerDateToIso,
@@ -31,5 +32,19 @@ describe("birthdayForm", () => {
   it("handles invalid iso strings safely", () => {
     expect(formatBirthdayLabel("invalid", true, "en")).toBe("");
     expect(isoToPickerDate("invalid", true).getFullYear()).toBe(2000);
+  });
+
+  it("computes age from birthday with known year", () => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date(2026, 5, 1));
+    expect(computeAgeFromBirthday("1990-05-01", true)).toBe(36);
+    expect(computeAgeFromBirthday("1990-12-01", true)).toBe(35);
+    expect(computeAgeFromBirthday(null, true)).toBeNull();
+    expect(computeAgeFromBirthday("0001-03-14", false)).toBeNull();
+    jest.useRealTimers();
+  });
+
+  it("formats full birthday label with year", () => {
+    expect(formatBirthdayLabel("1976-03-12", true, "no")).toMatch(/1976/);
   });
 });

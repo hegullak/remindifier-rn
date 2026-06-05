@@ -19,7 +19,7 @@ The threat model prioritises protecting sensitive data about third parties
 
 ## External API calls
 - No PII (names, birthdays, relation data, entry text) may be included in any external API request body.
-- The only approved external calls are: Clerk auth, open-meteo weather (coordinates only), and future explicitly approved AI calls.
+- The only approved external calls are: Clerk auth and future explicitly approved AI calls.
 - No external API call may fire automatically on app startup or in the background without explicit user action.
 - Any new external API integration must be documented with what data is sent and why.
 

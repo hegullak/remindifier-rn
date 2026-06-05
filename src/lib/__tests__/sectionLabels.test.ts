@@ -6,7 +6,7 @@ describe("briefSectionLabelKey", () => {
   });
 
   it("maps other section ids to brief.sections.<id>", () => {
-    expect(briefSectionLabelKey("weather")).toBe("brief.sections.weather");
+    expect(briefSectionLabelKey("calendar")).toBe("brief.sections.calendar");
     expect(briefSectionLabelKey("training")).toBe("brief.sections.training");
   });
 

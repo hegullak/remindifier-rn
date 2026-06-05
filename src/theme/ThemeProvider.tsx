@@ -1,21 +1,36 @@
 import * as SecureStore from "expo-secure-store";
-import { createContext, useCallback, useContext, useEffect, useState } from "react";
+import { vars } from "nativewind";
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
+import type { StyleProp, ViewStyle } from "react-native";
 import { View } from "react-native";
+import { GUITAR_CSS_VARS } from "@/theme/tokens";
+import { themeClassFor } from "@/theme/themeClass";
 
-export type AppTheme = "sand" | "slate";
+export type AppTheme = "sand" | "slate" | "guitar";
 
 const STORAGE_KEY = "remindifier-theme";
+const guitarVarsStyle = vars(GUITAR_CSS_VARS);
 
 const THEME_BG: Record<AppTheme, string> = {
   slate: "#1A1E26",
   sand: "#D7D3CA",
+  guitar: "#0e0c0a",
 };
+
+function isStoredTheme(value: string | null): value is AppTheme {
+  return value === "sand" || value === "slate" || value === "guitar";
+}
 
 type ThemeContextValue = {
   theme: AppTheme;
   setTheme: (theme: AppTheme) => void;
   toggleTheme: () => void;
+  toggleGuitarTheme: () => void;
   isDark: boolean;
+  /** NativeWind class for CSS token set (`dark` when not sand). */
+  themeClass: string;
+  /** Runtime CSS vars for guitar palette (NativeWind `vars()`). */
+  themeVarsStyle?: StyleProp<ViewStyle>;
   /** Resolved background color for the active theme. */
   bg: string;
 };
@@ -24,11 +39,12 @@ const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<AppTheme>("slate");
+  const previousNonGuitar = useRef<"sand" | "slate">("slate");
 
   useEffect(() => {
     SecureStore.getItemAsync(STORAGE_KEY)
       .then((stored) => {
-        if (stored === "sand" || stored === "slate") {
+        if (isStoredTheme(stored)) {
           setThemeState(stored);
         }
       })
@@ -37,24 +53,57 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       });
   }, []);
 
-  const setTheme = useCallback((next: AppTheme) => {
-    setThemeState(next);
+  const persistTheme = useCallback((next: AppTheme) => {
     SecureStore.setItemAsync(STORAGE_KEY, next).catch(() => {
       // no-op
     });
   }, []);
 
+  const setTheme = useCallback(
+    (next: AppTheme) => {
+      setThemeState(next);
+      persistTheme(next);
+    },
+    [persistTheme],
+  );
+
   const toggleTheme = useCallback(() => {
-    setTheme(theme === "slate" ? "sand" : "slate");
+    setTheme(theme === "sand" ? "slate" : "sand");
   }, [setTheme, theme]);
+
+  const toggleGuitarTheme = useCallback(() => {
+    setThemeState((current) => {
+      const next =
+        current === "guitar"
+          ? previousNonGuitar.current
+          : (() => {
+              previousNonGuitar.current = current === "sand" ? "sand" : "slate";
+              return "guitar" as const;
+            })();
+      persistTheme(next);
+      return next;
+    });
+  }, [persistTheme]);
+
+  const themeClass = themeClassFor(theme);
+  const themeVarsStyle = theme === "guitar" ? guitarVarsStyle : undefined;
 
   return (
     <ThemeContext.Provider
-      value={{ theme, setTheme, toggleTheme, isDark: theme === "slate", bg: THEME_BG[theme] }}
+      value={{
+        theme,
+        setTheme,
+        toggleTheme,
+        toggleGuitarTheme,
+        isDark: theme !== "sand",
+        themeClass,
+        themeVarsStyle,
+        bg: THEME_BG[theme],
+      }}
     >
       <View
-        style={{ flex: 1, backgroundColor: THEME_BG[theme] }}
-        className={`flex-1 bg-bg ${theme === "slate" ? "dark" : ""}`}
+        style={[{ flex: 1, backgroundColor: THEME_BG[theme] }, themeVarsStyle]}
+        className={`flex-1 bg-bg ${themeClass}`.trim()}
       >
         {children}
       </View>

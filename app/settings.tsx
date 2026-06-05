@@ -28,7 +28,7 @@ const PRIVACY_KEYS = ["privacy.p1", "privacy.p2", "privacy.p3"] as const;
 export default function SettingsScreen() {
   const { t, locale } = useTranslation();
   const { userId, signOut } = useAppAuth();
-  const { isDark, toggleTheme } = useAppTheme();
+  const { theme, setTheme } = useAppTheme();
   const { db, loading: dbLoading } = useUserDrizzleDb(userId);
   const [exporting, setExporting] = useState(false);
   const [deletingAll, setDeletingAll] = useState(false);
@@ -37,6 +37,15 @@ export default function SettingsScreen() {
 
   const appVersion = Constants.expoConfig?.version ?? "—";
   const dateLocale = locale === "no" ? "nb-NO" : "en-GB";
+  const isDark = theme !== "sand";
+
+  function handleDarkModeToggle(dark: boolean) {
+    if (dark) {
+      setTheme(theme === "sand" ? "slate" : theme);
+    } else {
+      setTheme("sand");
+    }
+  }
 
   useEffect(() => {
     getLastErrorTimestamp().then(setLastError);
@@ -132,8 +141,8 @@ export default function SettingsScreen() {
             </Text>
             <Switch
               value={isDark}
-              onValueChange={toggleTheme}
-              trackColor={{ false: "#A89E90", true: "#7EB8D4" }}
+              onValueChange={handleDarkModeToggle}
+              trackColor={{ false: "#A89E90", true: theme === "guitar" ? "#F59E0B" : "#7EB8D4" }}
               thumbColor={isDark ? "#EEF0F5" : "#F7F4EF"}
             />
           </View>

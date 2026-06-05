@@ -15,9 +15,9 @@ alwaysApply: true
 - NO: **Merkedager**; EN: **Red-letter days**; section titles include “denne uken” / “this week”
 - Tabs: `brief` | `gather` (events) | `people` | `myself`; settings at `/settings` (avatar)
 - Local encrypted SQLite (Drizzle); Clerk = auth only
-- Weather: GPS → env lat/lon → Hagavik; Open-Meteo + `expo-location`
-- Pass `locale` to `upcomingRedLetterDays`, `fetchBriefWeather`, `formatBriefDateLine`
+- Pass `locale` to `upcomingRedLetterDays`, `formatBriefDateLine`
 - Biome + Jest; branch `sandbox`; don’t commit `.env` / logs / coverage
+- Pre-merge locally: `npm run check`; CI on `sandbox` PRs (doc-only + `[skip ci]` skipped; Maestro local only)
 
 ## Git workflow (each agent session)
 
