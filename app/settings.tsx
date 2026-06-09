@@ -61,7 +61,7 @@ export default function SettingsScreen() {
       const payload = await exportAllData(db);
       const json = JSON.stringify(payload, null, 2);
       const date = new Date().toISOString().slice(0, 10);
-      const filePath = `${FileSystem.cacheDirectory}remindifier-export-${date}.json`;
+      const filePath = `${FileSystem.cacheDirectory}echoflow-export-${date}.json`;
       await FileSystem.writeAsStringAsync(filePath, json, {
         encoding: FileSystem.EncodingType.UTF8,
       });
@@ -225,7 +225,7 @@ export default function SettingsScreen() {
                 onPress={async () => {
                   await deleteSeedCalendar();
                   notifyBriefReload();
-                  Alert.alert("Seed calendar", "Deleted remindifier (test) calendar.");
+                  Alert.alert("Seed calendar", "Deleted echoflow (test) calendar.");
                 }}
               >
                 Delete seed calendar

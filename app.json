@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "remindifier-rn",
+    "name": "echoflow",
     "slug": "remindifier-rn",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "automatic",
     "ios": {
       "bundleIdentifier": "com.hegullak.remindifier",
       "supportsTablet": true
@@ -27,7 +27,7 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "Allow Remindifier to scan QR codes to add people."
+          "cameraPermission": "Allow echoflow to scan QR codes to add people."
         }
       ],
       [
@@ -39,7 +39,7 @@
       [
         "expo-calendar",
         {
-          "calendarPermission": "Allow remindifier to create a test calendar with seed events for development."
+          "calendarPermission": "Allow echoflow to create a test calendar with seed events for development."
         }
       ]
     ],

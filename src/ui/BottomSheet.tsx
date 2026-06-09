@@ -65,13 +65,13 @@ function SheetChrome({
  * Use large={true} for brief summary sheets that need more vertical space.
  */
 export function BottomSheet({ visible, onDismiss, children, title, large }: BottomSheetProps) {
-  const { themeClass, themeVarsStyle } = useAppTheme();
+  const { themeClass } = useAppTheme();
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onDismiss}>
       {/* Re-apply theme class: Modal renders in a separate portal outside the
           ThemeProvider tree, so NativeWind color vars (text-text1, bg-card…)
           would otherwise fall back to light theme. */}
-      <View className={`${themeClass} flex-1`.trim()} style={themeVarsStyle}>
+      <View className={`${themeClass} flex-1`.trim()}>
         <Pressable className="flex-1 bg-black/40 justify-end" onPress={onDismiss}>
           <Pressable onPress={(e) => e.stopPropagation()}>
             <SheetChrome title={title} onDismiss={onDismiss} large={large}>

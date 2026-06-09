@@ -1,6 +1,8 @@
 import {
+  formatBriefHeaderDate,
   formatCalendarWeekRange,
   getCalendarWeekBounds,
+  getISOWeek,
   isDateInCalendarWeek,
 } from "@/lib/brief/calendarWeek";
 
@@ -34,5 +36,17 @@ describe("calendarWeek", () => {
     expect(isDateInCalendarWeek(new Date(2024, 3, 29), bounds)).toBe(true);
     expect(isDateInCalendarWeek(new Date(2024, 4, 5), bounds)).toBe(true);
     expect(isDateInCalendarWeek(new Date(2024, 4, 6), bounds)).toBe(false);
+  });
+
+  it("returns ISO week number", () => {
+    expect(getISOWeek(new Date(2024, 4, 1))).toBe(18);
+  });
+
+  it("formats header date with week and time", () => {
+    const now = new Date(2024, 4, 1, 21, 30, 0, 0);
+    const header = formatBriefHeaderDate("no", now);
+    expect(header.dateLine).toMatch(/1\. mai/i);
+    expect(header.week).toBe(18);
+    expect(header.timeLine).toMatch(/21:30/);
   });
 });

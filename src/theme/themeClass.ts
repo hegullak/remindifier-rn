@@ -1,7 +1,8 @@
 import type { AppTheme } from "@/theme/ThemeProvider";
 
-/** NativeWind token class on the root (`dark` for all dark themes; guitar colors via `vars()`). */
+/** NativeWind token classes on the root (`dark` + optional `guitar` override in global.css). */
 export function themeClassFor(theme: AppTheme): string {
   if (theme === "sand") return "";
+  if (theme === "guitar") return "dark guitar";
   return "dark";
 }

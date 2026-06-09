@@ -5,6 +5,8 @@ alwaysApply: true
 
 # remindifier-rn context
 
+**Product name:** echoflow (UI). Repo/package/bundle still `remindifier-rn` until Phase C.
+
 **Session start:** read `claude-current-remindifier-state.md` then `PROJECT_MEMORY.md`.  
 **Session end:** update state file only when user requests **SESSION HANDOFF** — see `.cursor/rules/session-handoff.mdc`.
 
@@ -13,7 +15,8 @@ alwaysApply: true
 - Expo 54 + expo-router; **Expo v56 docs** before coding (`AGENTS.md`)
 - **All UI strings** via `useTranslation()` / `src/i18n/locales/{en,no}.ts` — code in English
 - NO: **Merkedager**; EN: **Red-letter days**; section titles include “denne uken” / “this week”
-- Tabs: `brief` | `gather` (events) | `people` | `myself`; settings at `/settings` (avatar)
+- Tabs: `brief` | `gather` (events) | `people` | `myself`; settings at `/settings` (avatar); header **echoflow** mark top-left (`AppBrand`)
+- Brief: greeting → date+uke → Dagen min → I morgen → Uken min; past events in dropdown; dev tomorrow stubs in `__DEV__`
 - Local encrypted SQLite (Drizzle); Clerk = auth only
 - Pass `locale` to `upcomingRedLetterDays`, `formatBriefDateLine`
 - Biome + Jest; branch `sandbox`; don’t commit `.env` / logs / coverage

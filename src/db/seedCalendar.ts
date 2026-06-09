@@ -273,6 +273,28 @@ const SEED_EVENTS: SeedEvent[] = [
   },
   // Tomorrow — Privat
   {
+    key: "tomorrow-frokost",
+    title: "Frokost med mor ☕",
+    notes: "Hun vil gjerne høre om jobben.",
+    allDay: false,
+    offsetDays: 1,
+    fixedHour: 8,
+    fixedMinute: 0,
+    durationMinutes: 60,
+    calendar: "Privat",
+  },
+  {
+    key: "tomorrow-tannlege",
+    title: "Tannlegesjekk",
+    notes: "Åsane tannlegesenter.",
+    allDay: false,
+    offsetDays: 1,
+    fixedHour: 10,
+    fixedMinute: 30,
+    durationMinutes: 45,
+    calendar: "Privat",
+  },
+  {
     key: "tomorrow-fotball",
     title: "Fotballtrening",
     notes: "",

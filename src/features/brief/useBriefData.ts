@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { getCalendarWeekBounds, formatCalendarWeekRange } from "@/lib/brief/calendarWeek";
+import { getCalendarWeekBounds, formatCalendarWeekRange, getISOWeek } from "@/lib/brief/calendarWeek";
 import { listBriefSchedule, listUpcomingRedLetterDays } from "@/db/repos/briefRepo";
 import { listGatheringsForUser } from "@/db/repos/gatheringsRepo";
 import { getBriefSectionOrder, setBriefSectionOrder } from "@/db/repos/userRepo";
@@ -51,14 +51,6 @@ const initialState: BriefState = {
   redLetterDays: [],
   sectionOrder: DEFAULT_BRIEF_SECTION_ORDER,
 };
-
-function getISOWeek(date: Date): number {
-  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-  const dayNum = d.getUTCDay() || 7;
-  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-  return Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
-}
 
 export function formatBriefDateLine(locale: Locale, weekBounds: { start: Date; end: Date }) {
   const week = getISOWeek(weekBounds.start);

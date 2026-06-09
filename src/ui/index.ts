@@ -1,3 +1,4 @@
+export { AppBrand } from "./AppBrand";
 export { AppShell } from "./AppShell";
 export { GlobalAddButton, type AddMenuAction, type AddMenuSection } from "./GlobalAddButton";
 export { PersonDetailListRow } from "./PersonDetailListRow";

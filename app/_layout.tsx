@@ -9,6 +9,7 @@ import { Lora_400Regular } from "@expo-google-fonts/lora";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
+import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { tokenCache } from "@/features/auth/clerk/tokenCache";
@@ -47,7 +48,7 @@ export default function RootLayout() {
 
 function RootStack() {
   const { t } = useTranslation();
-  const { bg } = useAppTheme();
+  const { bg, isDark } = useAppTheme();
   const { isLoaded: clerkLoaded } = useAuth();
   const [fontsLoaded, fontError] = useFonts({
     Lora_400Regular,
@@ -90,11 +91,14 @@ function RootStack() {
   }
 
   return (
-    <Stack
-      screenOptions={{
-        headerShown: false,
-        contentStyle: { backgroundColor: bg },
-      }}
-    />
+    <>
+      <StatusBar style={isDark ? "light" : "dark"} />
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          contentStyle: { backgroundColor: bg },
+        }}
+      />
+    </>
   );
 }

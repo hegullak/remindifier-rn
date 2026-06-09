@@ -1,7 +1,15 @@
 # remindifier-rn — project memory
 
 Living context for AI agents. **Update this file** when architecture, UX, or conventions change.
-Last updated: 2026-05-31.
+Last updated: 2026-06-09.
+
+## Branding
+
+- **Product name (UI):** **echoflow** (always lowercase in user-facing copy — use `t("common.appName")`)
+- **Repo / package / bundle ID:** still `remindifier-rn` / `com.hegullak.remindifier` until Phase C rebrand
+- **QR wire format:** still `{ remindifier: 1, … }` until Phase B dual-protocol
+- Rebrand phases: A = UI+i18n + header mark (done) · B = code names + QR dual support · C = bundle ID, scheme, Clerk redirects
+- **Header mark:** `AppBrand` — `EchoflowMark` (concentric rings, theme accent) + lowercase `echoflow` (`src/ui/AppBrand.tsx`, `EchoflowMark.tsx`); echonote reference PNG in `assets/echonote-reference.png`
 
 ## Session handoff (read every time)
 
@@ -17,7 +25,7 @@ Hooks: `.cursor/hooks/session-start.js` (inject memory) · `session-stop.js` doe
 
 **Samvittighet-as-a-Service. Gets opened every morning.**
 
-A contextual memory and heads-up assistant for the people in your life — not a CRM, not a social network, not a guilt machine. remindifier surfaces the right context at the right moment so you show up better for the people who matter, without any maintenance burden.
+A contextual memory and heads-up assistant for the people in your life — not a CRM, not a social network, not a guilt machine. **echoflow** surfaces the right context at the right moment so you show up better for the people who matter, without any maintenance burden.
 
 - **Event-driven, not form-driven.** Person profiles build up naturally through events and interactions. You never sit down to "fill in" a profile.
 - **Opportunity, not failure.** Never "you haven't spoken to Lars in 47 days." Always "Lars has a birthday Thursday — good moment to reach out."
@@ -40,7 +48,7 @@ A contextual memory and heads-up assistant for the people in your life — not a
 | `app/sign-in.tsx` | Auth gate |
 | `app/me-scan.tsx` | QR scanner → prefill new person |
 
-**Header** (`src/ui/AppShell.tsx`): 🇳🇴/🇬🇧 `LanguagePicker` left; + menu and avatar (→ profile BottomSheet: settings + **Gitar-tema**) right.
+**Header** (`src/ui/AppShell.tsx`): **echoflow** mark top-left (`AppBrand` default); sub-screens pass `headerLeft` (back). Right: + menu and avatar (→ profile BottomSheet: settings + **Gitar-tema**). **Status bar:** `expo-status-bar` in `app/_layout.tsx` — `light` on dark themes, `dark` on sand; `app.json` `userInterfaceStyle: automatic`.
 
 **Tabs**: `brief`, `gather`, `people`, `myself` (not “me” / “meg” as route name).
 
@@ -61,7 +69,12 @@ A contextual memory and heads-up assistant for the people in your life — not a
 ## Brief
 
 - Data hook: `src/features/brief/useBriefData.ts` — reloads on `locale` change
-- **Layout (top → bottom):** date nav → greeting (`text-5xl`) → pill cards (I DAG / KVELDEN) → Dagen min / Uken min cards
+- **Layout (top → bottom):** greeting (`text-5xl`) → date line (`BriefDateHeader`: «fredag 30. mai · UKE 22», white `text-3xs`) → ambient wind-down/morning (20:30+ / 06–09) → **Dagen min** → **I morgen** → **Uken min**
+- **Week picker** (← date range →) hidden for now; `weekOffset` still in hook for later
+- **Dagen min:** upcoming today + training; passed timed events in collapsible dropdown (non-navigable in Brief; still in Events tab)
+- **I morgen:** always shown when `tomorrowItems.length > 0` (not evening-only)
+- **Uken min:** collapsed card for rest-of-week (`sortKey >= 2`); tomorrow excluded (lives in I morgen)
+- **Dev calendar stubs:** `src/lib/brief/devCalendarStubs.ts` — injects 3 Privat tomorrow events in `__DEV__` when real calendar lacks Privat tomorrow; seed mirror in `seedCalendar.ts`
 - **Body text:** use `"\n"` as sentence separator in brief bodies; renderer splits on `"\n"` — never `". "` (breaks «kl. 09:00»)
 - Static demo content: `getHeadsupItems(locale)`, `getFallbackTraining(locale)` in `briefContent.ts`
 - **Push-Pull-Legs:** session names stay English in all locales; active day highlighted via `PplSessionLabel` (`src/ui/PplSessionLabel.tsx`) — never translate to e.g. «Trekk»
@@ -152,7 +165,7 @@ A contextual memory and heads-up assistant for the people in your life — not a
 6. **Bootstrap** must not `await seedDevCalendar()` — calendar permission can hang UI in Expo Go
 7. **RN StyleSheet** — do not use CSS `var(--token)` for `backgroundColor`; use hex or theme hook
 8. **`ClerkLoaded`** renders nothing while Clerk loads — use explicit `LoadingScreen` + `useAuth().isLoaded`
-9. **`ThemeProvider`** must not block children on SecureStore; apply stored theme async with default slate + style fallback. Themes: `sand` | `slate` | `guitar` (echonote amber via NativeWind `vars()` on root + modals; toggle via HG profile menu).
+9. **`ThemeProvider`** must not block children on SecureStore; apply stored theme async with default slate + style fallback. Themes: `sand` | `slate` | `guitar` — guitar uses `.guitar` CSS class in `global.css` (overrides `.dark` tokens); `themeClassFor("guitar")` → `"dark guitar"`; toggle via HG profile menu. Do **not** use dynamic NativeWind `vars()` on modals (causes remount warnings).
 10. **Rules of Hooks** — never place `useEffect` after conditional `return` in layout components (caused Expo Go black screen when bootstrap completed)
 11. **`FatalScreen` / `LoadingScreen`** — use `StyleSheet` for guaranteed visibility; do not rely on NativeWind alone for error UI
 12. **SecureStore** — `getItemAsync` / `setItemAsync` must use **identical options** (e.g. `keychainService`); mismatch causes «failed to persist database key» on iOS
@@ -166,5 +179,7 @@ src/i18n/               LanguageProvider, locales, translate, redLetterKinds
 src/lib/                pure logic (brief, timeline, milestones, me/qr, logger, parse/)
 workers/parse-api/      Cloudflare Worker — OpenAI proxy + Clerk JWT
 src/db/                 schema, repos, drizzle, seed
-src/ui/                 shared UI (AppShell, cards, sheets, LanguagePicker)
+src/ui/                 shared UI (AppShell, AppBrand, EchoflowMark, cards, sheets)
+src/features/brief/     BriefDateHeader, useBriefData
+src/lib/brief/          calendarEvents, devCalendarStubs, calendarWeek
 ```

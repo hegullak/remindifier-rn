@@ -9,7 +9,7 @@ describe("themeClassFor", () => {
     expect(themeClassFor("slate")).toBe("dark");
   });
 
-  it("maps guitar to dark (colors via vars())", () => {
-    expect(themeClassFor("guitar")).toBe("dark");
+  it("maps guitar to dark + guitar class", () => {
+    expect(themeClassFor("guitar")).toBe("dark guitar");
   });
 });

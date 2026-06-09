@@ -1,6 +1,6 @@
 # Clerk — native (iOS & Android)
 
-remindifier-rn uses `@clerk/clerk-expo` with flows that work in **Expo Go** today and the same code paths in **EAS dev/production builds**.
+remindifier-rn (product: **echoflow**) uses `@clerk/clerk-expo` with flows that work in **Expo Go** today and the same code paths in **EAS dev/production builds**.
 
 ## What is implemented
 

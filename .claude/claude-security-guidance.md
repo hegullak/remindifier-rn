@@ -1,6 +1,6 @@
 # Security guidance for remindifier-rn
 
-remindifier is a privacy-first, local-first relationship memory app.
+remindifier-rn (product: **echoflow**) is a privacy-first, local-first relationship memory app.
 All personal data is stored encrypted on-device with SQLCipher.
 The threat model prioritises protecting sensitive data about third parties
 (people the user adds) who have not consented to being in the app.
@@ -38,4 +38,4 @@ The threat model prioritises protecting sensitive data about third parties
 
 ## General
 - No external SDKs for crash reporting, analytics, or tracking (no Sentry, Bugsnag, Amplitude, etc.).
-- Never write "Remindifier" — always "remindifier".
+- Never write "Echoflow" capitalized in UI — always **echoflow** (see `common.appName`).

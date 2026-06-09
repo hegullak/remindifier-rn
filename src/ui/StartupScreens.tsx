@@ -3,10 +3,11 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useTranslation } from "@/i18n/LanguageContext";
 
 export function LoadingScreen({ message }: { message: string }) {
+  const { t } = useTranslation();
   return (
     <View style={loadingStyles.container}>
       <ActivityIndicator size="large" color="#C4784A" />
-      <Text style={loadingStyles.title}>remindifier</Text>
+      <Text style={loadingStyles.title}>{t("common.appName")}</Text>
       <Text style={loadingStyles.message}>{message}</Text>
     </View>
   );

@@ -2,6 +2,10 @@ import type { Event } from "expo-calendar";
 import * as Calendar from "expo-calendar";
 import type { Locale } from "@/i18n/types";
 import { getCalendarWeekBounds, type CalendarWeekBounds } from "@/lib/brief/calendarWeek";
+import {
+  buildDevCalendarStubs,
+  hasPrivatTomorrowEvents,
+} from "@/lib/brief/devCalendarStubs";
 import { logger } from "@/lib/logger";
 
 export type CalendarBriefEvent = {
@@ -70,31 +74,47 @@ export function formatCalendarEventTiming(
 export async function fetchCalendarBriefEvents(
   weekBounds: CalendarWeekBounds = getCalendarWeekBounds(),
 ): Promise<CalendarBriefEvent[]> {
+  let events: CalendarBriefEvent[] = [];
+
   try {
     const { status } = await Calendar.requestCalendarPermissionsAsync();
-    if (status !== "granted") return [];
+    if (status !== "granted") {
+      events = [];
+    } else {
+      const primaryCalendarName = getRemindifierCalendarName();
+      const calendarNames = [primaryCalendarName, "Jobb", "Privat"];
+      const calendars = await Calendar.getCalendarsAsync(Calendar.EntityTypes.EVENT);
+      const matches = calendars.filter((c) => calendarNames.includes(c.title));
 
-    const primaryCalendarName = getRemindifierCalendarName();
-    const calendarNames = [primaryCalendarName, "Jobb", "Privat"];
-    const calendars = await Calendar.getCalendarsAsync(Calendar.EntityTypes.EVENT);
-    const matches = calendars.filter((c) => calendarNames.includes(c.title));
-    if (matches.length === 0) return [];
-
-    const todayStart = startOfToday();
-    const calendarIdToName = new Map(matches.map((c) => [c.id, c.title]));
-    const events = await Calendar.getEventsAsync(
-      matches.map((c) => c.id),
-      weekBounds.start,
-      weekBounds.end,
-    );
-    return events
-      .map((event) => mapToCalendarBriefEvent(event, todayStart, calendarIdToName.get(event.calendarId)))
-      .filter((event) => event.startDate >= weekBounds.start && event.startDate <= weekBounds.end)
-      .sort((a, b) => a.startDate.getTime() - b.startDate.getTime());
+      if (matches.length > 0) {
+        const todayStart = startOfToday();
+        const calendarIdToName = new Map(matches.map((c) => [c.id, c.title]));
+        const raw = await Calendar.getEventsAsync(
+          matches.map((c) => c.id),
+          weekBounds.start,
+          weekBounds.end,
+        );
+        events = raw
+          .map((event) =>
+            mapToCalendarBriefEvent(event, todayStart, calendarIdToName.get(event.calendarId)),
+          )
+          .filter(
+            (event) => event.startDate >= weekBounds.start && event.startDate <= weekBounds.end,
+          )
+          .sort((a, b) => a.startDate.getTime() - b.startDate.getTime());
+      }
+    }
   } catch (err) {
     logger.warn("calendar_brief_fetch_failed", {
       error: err instanceof Error ? err.name : "unknown",
     });
-    return [];
+    events = [];
   }
+
+  if (__DEV__ && !hasPrivatTomorrowEvents(events)) {
+    const stubs = buildDevCalendarStubs(weekBounds);
+    events = [...events, ...stubs].sort((a, b) => a.startDate.getTime() - b.startDate.getTime());
+  }
+
+  return events;
 }

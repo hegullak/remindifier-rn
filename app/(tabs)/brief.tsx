@@ -2,6 +2,7 @@ import { Link } from "expo-router";
 import { useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { useAppAuth, useAppUser } from "@/features/auth/useAppAuth";
+import { BriefDateHeader } from "@/features/brief/BriefDateHeader";
 import { useBriefData } from "@/features/brief/useBriefData";
 import { useTranslation } from "@/i18n";
 import { isDateInCalendarWeek } from "@/lib/brief/calendarWeek";
@@ -26,19 +27,17 @@ export default function BriefScreen() {
   const { userId } = useAppAuth();
   const {
     brief,
-    dateLine,
     headsupItems,
     trainingLines,
     weekOffset,
     weekBounds,
-    shiftWeek,
-    resetWeek,
   } = useBriefData(userId);
   const morningBrief = buildMorningBrief(brief.todayEvents ?? [], brief.weekEvents ?? [], locale);
   const windDown = buildEveningWindDown(brief.tomorrowEvents ?? [], brief.weekEvents ?? [], locale);
   const [showMorningBrief, setShowMorningBrief] = useState(false);
   const [showEveningWindDown, setShowEveningWindDown] = useState(false);
   const [weekExpanded, setWeekExpanded] = useState(false);
+  const [pastExpanded, setPastExpanded] = useState(false);
   const [anniversaryDetail, setAnniversaryDetail] = useState<{
     personName: string;
     years: number;
@@ -154,20 +153,22 @@ export default function BriefScreen() {
 
   weekItems.sort((a, b) => a.sortKey - b.sortKey);
   const todayItems = weekItems.filter((i) => i.sortKey === 0);
-  const restItems = weekItems.filter((i) => i.sortKey > 0);
+  const tomorrowItems = weekItems.filter((i) => i.sortKey === 1);
+  const laterWeekItems = weekItems.filter((i) => i.sortKey >= 2);
+  const restItems = laterWeekItems;
 
   function renderUnifiedRow(
     item: UnifiedItem,
     i: number,
     arr: UnifiedItem[],
     showDay: boolean,
-    dimmed = false,
+    allowNavigation = true,
   ) {
     const prevDay = i > 0 ? arr[i - 1].dayLabel : "";
     const showDayLabel = showDay && item.dayLabel !== prevDay;
-    const navigable = Boolean(item.gatheringId || item.href || item.onPress);
+    const navigable = allowNavigation && Boolean(item.gatheringId || item.href || item.onPress);
     const row = (
-      <View className={i < arr.length - 1 ? "mb-3" : ""} style={dimmed ? { opacity: 0.45 } : undefined}>
+      <View className={i < arr.length - 1 ? "mb-3" : ""}>
         {showDayLabel && (
           <Text className="text-3xs uppercase tracking-[1.2px] text-sage font-bodySemi mb-1">
             {item.dayLabel}
@@ -202,6 +203,53 @@ export default function BriefScreen() {
     return <View key={item.id}>{row}</View>;
   }
 
+  function renderPastDropdown(pastItems: UnifiedItem[]) {
+    if (pastItems.length === 0) return null;
+    const label =
+      pastItems.length === 1
+        ? t("brief.pastEventsOne")
+        : t("brief.pastEvents", { count: pastItems.length });
+
+    return (
+      <View>
+        <Pressable
+          onPress={() => setPastExpanded((open) => !open)}
+          accessibilityRole="button"
+          accessibilityState={{ expanded: pastExpanded }}
+          className="active:opacity-70"
+        >
+          <View className="flex-row items-center justify-between py-2">
+            <Text className="text-body text-text3 font-bodyMedium">{label}</Text>
+            <Text className="text-lg text-text3 font-bodySemi">{pastExpanded ? "▴" : "▾"}</Text>
+          </View>
+        </Pressable>
+        {pastExpanded ? (
+          <View className="pt-1">
+            {pastItems.map((item, i) => renderUnifiedRow(item, i, pastItems, false, false))}
+          </View>
+        ) : null}
+      </View>
+    );
+  }
+
+  function renderIMorgen() {
+    if (weekOffset !== 0) return null;
+    if (tomorrowItems.length === 0) return null;
+
+    const sorted = [...tomorrowItems].sort(
+      (a, b) => (a.sortMinutes ?? -1) - (b.sortMinutes ?? -1),
+    );
+
+    return (
+      <View className="mb-1">
+        <SectionLabel>{t("brief.tomorrowSection")}</SectionLabel>
+        <BriefCard stripeColor="amber">
+          {sorted.map((item, i) => renderUnifiedRow(item, i, sorted, false))}
+        </BriefCard>
+      </View>
+    );
+  }
+
   function renderDagenMin() {
     if (weekOffset !== 0) return null;
 
@@ -229,20 +277,25 @@ export default function BriefScreen() {
       (a, b) => (a.sortMinutes ?? -1) - (b.sortMinutes ?? -1),
     );
 
-    const hasDay = dayCombined.length > 0;
+    const upcomingToday = dayCombined.filter(
+      (item) => item.sortMinutes === undefined || item.sortMinutes >= nowMinutes,
+    );
+    const pastToday = dayCombined.filter(
+      (item) => item.sortMinutes !== undefined && item.sortMinutes < nowMinutes,
+    );
+
+    const hasUpcoming = upcomingToday.length > 0;
+    const hasPast = pastToday.length > 0;
     const hasTraining = trainingLines.length > 0;
-    if (!hasDay && !hasTraining) return null;
-    const needDivider1 = hasDay && hasTraining;
+    if (!hasUpcoming && !hasPast && !hasTraining) return null;
+    const needDivider1 = hasUpcoming && hasTraining;
+    const needDivider2 = (hasUpcoming || hasTraining) && hasPast;
 
     return (
       <View className="mb-1">
         <SectionLabel>{locale === "no" ? "Dagen min" : "My day"}</SectionLabel>
         <BriefCard stripeColor="gold">
-          {dayCombined.map((item, i) => {
-            // Dim events whose time has already passed today (winding-down feel)
-            const dimmed = item.sortMinutes !== undefined && item.sortMinutes < nowMinutes;
-            return renderUnifiedRow(item, i, dayCombined, false, dimmed);
-          })}
+          {upcomingToday.map((item, i) => renderUnifiedRow(item, i, upcomingToday, false))}
           {needDivider1 && <View className="h-px bg-border my-3" />}
           {trainingLines.map((line, i) => (
             <View
@@ -257,6 +310,8 @@ export default function BriefScreen() {
               )}
             </View>
           ))}
+          {needDivider2 && <View className="h-px bg-border my-3" />}
+          {renderPastDropdown(pastToday)}
         </BriefCard>
       </View>
     );
@@ -338,13 +393,15 @@ export default function BriefScreen() {
   const listHeader = (
     <View className="pb-2">
       {/* Hilsen — visuelt anker */}
-      <View style={{ paddingTop: 32, paddingBottom: ambientHeadline ? 6 : 16 }}>
+      <View style={{ paddingTop: 16, paddingBottom: 4 }}>
         <Text className="text-5xl leading-tight text-text1 font-heading">
           {greetingLead}
           {"\n"}
           <Text className="text-accent">{greetingName}</Text>
         </Text>
       </View>
+
+      <BriefDateHeader />
 
       {/* Ambient — kun morgen 06–09 eller kveld 20:30+ */}
       {ambientHeadline ? (
@@ -364,42 +421,6 @@ export default function BriefScreen() {
           ))}
         </Pressable>
       ) : null}
-
-      {/* Datovelger */}
-      <View className="flex-row items-center gap-3 mb-4">
-        <Pressable
-          onPress={() => shiftWeek(-1)}
-          accessibilityRole="button"
-          accessibilityLabel={t("brief.weekPrev")}
-          hitSlop={16}
-          className="active:opacity-60"
-        >
-          <Text className="text-xl text-accent font-body">←</Text>
-        </Pressable>
-        <Pressable
-          onPress={resetWeek}
-          disabled={weekOffset === 0}
-          accessibilityRole="button"
-          accessibilityLabel={t("brief.weekThis")}
-          hitSlop={8}
-          className="active:opacity-70"
-        >
-          <Text
-            className={`text-base font-bodySemi ${weekOffset === 0 ? "text-text3" : "text-accent"}`}
-          >
-            {dateLine}
-          </Text>
-        </Pressable>
-        <Pressable
-          onPress={() => shiftWeek(1)}
-          accessibilityRole="button"
-          accessibilityLabel={t("brief.weekNext")}
-          hitSlop={16}
-          className="active:opacity-60"
-        >
-          <Text className="text-xl text-accent font-body">→</Text>
-        </Pressable>
-      </View>
     </View>
   );
 
@@ -411,6 +432,7 @@ export default function BriefScreen() {
       >
         {listHeader}
         {renderDagenMin()}
+        {renderIMorgen()}
         {renderUkenMin()}
       </ScrollView>
 

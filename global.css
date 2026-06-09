@@ -57,3 +57,31 @@
   --gold: #d4ba7a;
   --gold-light: #3a2a16;
 }
+
+/* Guitar (dark) — warm amber palette from echonote; overrides .dark when both are set */
+.guitar {
+  --bg: #0e0c0a;
+  --bg2: #0b0906;
+  --card: #181410;
+  --card2: #221e18;
+  --border: rgba(255, 220, 140, 0.1);
+  --text1: #f5f0e8;
+  --text2: #b8a882;
+  --text3: #6e5e40;
+  --accent: #f59e0b;
+  --accent-light: rgba(245, 158, 11, 0.14);
+  --green: #84cc16;
+  --green-light: rgba(132, 204, 22, 0.14);
+  --amber: #fbbf24;
+  --amber-light: rgba(251, 191, 36, 0.14);
+  --red: #f87171;
+  --red-light: rgba(248, 113, 113, 0.14);
+  --sage: #a3a352;
+  --sage-light: rgba(163, 163, 82, 0.14);
+  --dusk: #c4a882;
+  --dusk-light: rgba(196, 168, 130, 0.14);
+  --blue: #60a5fa;
+  --blue-light: rgba(96, 165, 250, 0.12);
+  --gold: #f59e0b;
+  --gold-light: rgba(245, 158, 11, 0.14);
+}

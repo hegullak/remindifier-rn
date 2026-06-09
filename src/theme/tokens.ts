@@ -1,4 +1,4 @@
-/** echonote «guitar» palette — applied at runtime via NativeWind `vars()`. */
+/** echonote «guitar» palette — mirrored in global.css `.guitar` (keep in sync). */
 export const GUITAR_CSS_VARS = {
   bg: "#0e0c0a",
   bg2: "#0b0906",
@@ -53,7 +53,7 @@ export const BRIEF_STRIPE_COLORS: Record<
   },
   guitar: {
     blue: "#60A5FA",
-    amber: "#FBF24",
+    amber: "#FBBF24",
     gold: "#F59E0B",
     green: "#84CC16",
     dusk: "#C4A882",

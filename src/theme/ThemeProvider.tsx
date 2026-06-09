@@ -1,15 +1,11 @@
 import * as SecureStore from "expo-secure-store";
-import { vars } from "nativewind";
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
-import type { StyleProp, ViewStyle } from "react-native";
 import { View } from "react-native";
-import { GUITAR_CSS_VARS } from "@/theme/tokens";
 import { themeClassFor } from "@/theme/themeClass";
 
 export type AppTheme = "sand" | "slate" | "guitar";
 
 const STORAGE_KEY = "remindifier-theme";
-const guitarVarsStyle = vars(GUITAR_CSS_VARS);
 
 const THEME_BG: Record<AppTheme, string> = {
   slate: "#1A1E26",
@@ -27,10 +23,8 @@ type ThemeContextValue = {
   toggleTheme: () => void;
   toggleGuitarTheme: () => void;
   isDark: boolean;
-  /** NativeWind class for CSS token set (`dark` when not sand). */
+  /** NativeWind class for CSS token set (`dark`, or `dark guitar`). */
   themeClass: string;
-  /** Runtime CSS vars for guitar palette (NativeWind `vars()`). */
-  themeVarsStyle?: StyleProp<ViewStyle>;
   /** Resolved background color for the active theme. */
   bg: string;
 };
@@ -86,7 +80,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }, [persistTheme]);
 
   const themeClass = themeClassFor(theme);
-  const themeVarsStyle = theme === "guitar" ? guitarVarsStyle : undefined;
 
   return (
     <ThemeContext.Provider
@@ -97,12 +90,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         toggleGuitarTheme,
         isDark: theme !== "sand",
         themeClass,
-        themeVarsStyle,
         bg: THEME_BG[theme],
       }}
     >
       <View
-        style={[{ flex: 1, backgroundColor: THEME_BG[theme] }, themeVarsStyle]}
+        style={{ flex: 1, backgroundColor: THEME_BG[theme] }}
         className={`flex-1 bg-bg ${themeClass}`.trim()}
       >
         {children}

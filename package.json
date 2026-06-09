@@ -59,6 +59,8 @@
   },
   "scripts": {
     "start": "expo start",
+    "start:clean": "expo start --lan --clear",
+    "start:lan": "expo start --lan",
     "start:lan:log": "powershell -NoProfile -Command \"npx expo start --lan --clear *>&1 | Tee-Object -FilePath expo-output.log\"",
     "android": "expo start --android",
     "ios": "expo start --ios",

@@ -1,5 +1,27 @@
 export type CalendarWeekBounds = { start: Date; end: Date };
 
+/** ISO week number (Monday-based). */
+export function getISOWeek(date: Date): number {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const dayNum = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  return Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
+}
+
+export function formatBriefHeaderDate(locale: "en" | "no", now = new Date()) {
+  const dateLocale = locale === "no" ? "nb-NO" : "en-GB";
+  const rawDate = now.toLocaleDateString(dateLocale, {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  });
+  const dateLine = rawDate.charAt(0).toUpperCase() + rawDate.slice(1);
+  const week = getISOWeek(now);
+  const timeLine = now.toLocaleTimeString(dateLocale, { hour: "2-digit", minute: "2-digit" });
+  return { dateLine, week, timeLine };
+}
+
 /** Monday 00:00 through Sunday 23:59:59 for the week containing `ref`, shifted by `weekOffset`. */
 export function getCalendarWeekBounds(ref = new Date(), weekOffset = 0): CalendarWeekBounds {
   const anchor = new Date(ref);
