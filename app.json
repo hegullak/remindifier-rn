@@ -5,6 +5,11 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#1A1E26"
+    },
     "userInterfaceStyle": "automatic",
     "ios": {
       "bundleIdentifier": "com.hegullak.remindifier",
@@ -13,15 +18,22 @@
     "android": {
       "package": "com.hegullak.remindifier",
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#1A1E26",
         "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false
     },
     "scheme": "remindifier-rn",
     "plugins": [
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#1A1E26",
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 160
+        }
+      ],
       "expo-router",
       "expo-secure-store",
       [

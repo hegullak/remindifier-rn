@@ -1,13 +1,13 @@
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTranslation } from "@/i18n/LanguageContext";
+import { EchoflowMark } from "@/ui/EchoflowMark";
 
 export function LoadingScreen({ message }: { message: string }) {
-  const { t } = useTranslation();
   return (
     <View style={loadingStyles.container}>
-      <ActivityIndicator size="large" color="#C4784A" />
-      <Text style={loadingStyles.title}>{t("common.appName")}</Text>
+      <EchoflowMark size={72} color="#7EB8D4" />
+      <ActivityIndicator size="small" color="#7EB8D4" style={{ marginTop: 24 }} />
       <Text style={loadingStyles.message}>{message}</Text>
     </View>
   );
@@ -22,15 +22,11 @@ const loadingStyles = StyleSheet.create({
     paddingHorizontal: 24,
     gap: 12,
   },
-  title: {
-    fontSize: 28,
-    color: "#EEF0F5",
-    marginTop: 8,
-  },
   message: {
     fontSize: 15,
     color: "#8E97AD",
     textAlign: "center",
+    marginTop: 12,
   },
 });
 

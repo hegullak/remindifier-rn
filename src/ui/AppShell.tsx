@@ -3,7 +3,6 @@ import { View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ProfileHeaderLink } from "@/features/auth/ProfileHeaderLink";
 import { useAppTheme } from "@/theme/ThemeProvider";
-import { AppBrand } from "@/ui/AppBrand";
 import { GlobalAddButton, type AddMenuAction, type AddMenuSection } from "@/ui/GlobalAddButton";
 
 export function AppShell({
@@ -34,7 +33,7 @@ export function AppShell({
   return (
     <SafeAreaView className="flex-1 bg-bg" style={{ flex: 1, backgroundColor: bg }} edges={["top"]}>
       <View className="flex-row items-center px-4 pt-1 pb-1 min-h-[44px]">
-        <View className="flex-1 min-w-0 items-start justify-center">{headerLeft ?? <AppBrand />}</View>
+        <View className="flex-1 min-w-0 items-start justify-center">{headerLeft ?? null}</View>
         <View className="flex-row items-center gap-3">
           {headerRight ?? null}
           {showAddButton ? (

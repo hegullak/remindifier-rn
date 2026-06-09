@@ -9,7 +9,7 @@ Last updated: 2026-06-09.
 - **Repo / package / bundle ID:** still `remindifier-rn` / `com.hegullak.remindifier` until Phase C rebrand
 - **QR wire format:** still `{ remindifier: 1, … }` until Phase B dual-protocol
 - Rebrand phases: A = UI+i18n + header mark (done) · B = code names + QR dual support · C = bundle ID, scheme, Clerk redirects
-- **Header mark:** `AppBrand` — `EchoflowMark` (concentric rings, theme accent) + lowercase `echoflow` (`src/ui/AppBrand.tsx`, `EchoflowMark.tsx`); echonote reference PNG in `assets/echonote-reference.png`
+- **Mark:** `EchoflowMark` — concentric echo rings (slate accent `#7EB8D4`); used on **splash** (`app.json` + `expo-splash-screen`), **app icon** (`assets/icon.png`), and **LoadingScreen**; not shown in tab header. Source reference: `assets/echonote-reference.png`, master PNG `assets/echoflow-icon-1024.png`
 
 ## Session handoff (read every time)
 
@@ -48,7 +48,7 @@ A contextual memory and heads-up assistant for the people in your life — not a
 | `app/sign-in.tsx` | Auth gate |
 | `app/me-scan.tsx` | QR scanner → prefill new person |
 
-**Header** (`src/ui/AppShell.tsx`): **echoflow** mark top-left (`AppBrand` default); sub-screens pass `headerLeft` (back). Right: + menu and avatar (→ profile BottomSheet: settings + **Gitar-tema**). **Status bar:** `expo-status-bar` in `app/_layout.tsx` — `light` on dark themes, `dark` on sand; `app.json` `userInterfaceStyle: automatic`.
+**Header** (`src/ui/AppShell.tsx`): left empty on tab roots; sub-screens pass `headerLeft` (back). Right: + menu and avatar (→ profile BottomSheet: settings + **Gitar-tema**). **Status bar:** `expo-status-bar` in `app/_layout.tsx` — `light` on dark themes, `dark` on sand; `app.json` `userInterfaceStyle: automatic`.
 
 **Tabs**: `brief`, `gather`, `people`, `myself` (not “me” / “meg” as route name).
 
