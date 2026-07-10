@@ -485,8 +485,7 @@ async function findOrCreateNamedCalendar(
   if (existing) return existing.id;
 
   const defaultSource =
-    allCalendars.find((c) => c.source?.name === "Default")?.source ??
-    allCalendars[0]?.source;
+    allCalendars.find((c) => c.source?.name === "Default")?.source ?? allCalendars[0]?.source;
 
   return Calendar.createCalendarAsync({
     title,
@@ -511,10 +510,7 @@ async function clearSeedEventsForCalendar(calendarId: string): Promise<number> {
   return events.length;
 }
 
-async function createSeedEvents(
-  jobbCalendarId: string,
-  privatCalendarId: string,
-) {
+async function createSeedEvents(jobbCalendarId: string, privatCalendarId: string) {
   for (const event of SEED_EVENTS) {
     let startDate: Date;
 

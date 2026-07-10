@@ -72,7 +72,10 @@ export async function listGatheringsForUser(userId: string): Promise<GatheringLi
     .from(gatheringParticipants)
     .innerJoin(persons, eq(gatheringParticipants.personId, persons.id))
     .where(
-      and(eq(gatheringParticipants.userId, userId), inArray(gatheringParticipants.gatheringId, ids)),
+      and(
+        eq(gatheringParticipants.userId, userId),
+        inArray(gatheringParticipants.gatheringId, ids),
+      ),
     );
 
   const namesByGathering = new Map<string, string[]>();

@@ -49,9 +49,7 @@ export function ParsedPersonPreviewCard({ draft }: Props) {
 function PreviewRow({ label, value }: { label: string; value: string }) {
   return (
     <View>
-      <Text className="text-3xs uppercase tracking-[1.2px] text-text3 font-bodySemi">
-        {label}
-      </Text>
+      <Text className="text-3xs uppercase tracking-[1.2px] text-text3 font-bodySemi">{label}</Text>
       <Text className="text-body-lg text-text1 font-bodyMedium mt-0.5">{value}</Text>
     </View>
   );

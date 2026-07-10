@@ -39,14 +39,7 @@ describe("merkedager brief pipeline", () => {
     expect(thisWeek[0].personName).toBe("Ida");
     expect(thisWeek[0].headline).toMatch(/36|Fyller/i);
 
-    const detailLine = formatPersonMerkedagLine(
-      "Birthday",
-      null,
-      "1990-05-03",
-      true,
-      "no",
-      TODAY,
-    );
+    const detailLine = formatPersonMerkedagLine("Birthday", null, "1990-05-03", true, "no", TODAY);
     expect(detailLine).toMatch(/1990/);
     expect(detailLine).not.toContain("Bursdag");
   });

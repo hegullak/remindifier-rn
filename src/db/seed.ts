@@ -26,10 +26,7 @@ export async function patchDevMilestoneSeed(userId: string) {
   if (!__DEV__) return;
   const db = await getDrizzleDbForUser(userId);
 
-  await db
-    .update(persons)
-    .set({ birthdayYearKnown: true })
-    .where(eq(persons.id, "p-trond"));
+  await db.update(persons).set({ birthdayYearKnown: true }).where(eq(persons.id, "p-trond"));
 
   await db
     .insert(personRedLetterDays)
@@ -67,7 +64,12 @@ export async function ensureDemoGathering(userId: string) {
       location: "St. Hanshaugen",
       description: JSON.stringify({
         talkingPoints: [
-          { id: "tp-1", kind: "topic", text: "Ask about the Copenhagen apartment offer", done: false },
+          {
+            id: "tp-1",
+            kind: "topic",
+            text: "Ask about the Copenhagen apartment offer",
+            done: false,
+          },
           { id: "tp-2", kind: "topic", text: "Bring flowers", done: false },
         ],
       }),

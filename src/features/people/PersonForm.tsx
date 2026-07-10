@@ -233,9 +233,7 @@ export const PersonForm = forwardRef<PersonFormHandle, PersonFormProps>(function
           disabled={saving}
           className="mt-2 border border-red/40 rounded-lg py-3 px-4 items-center"
         >
-          <Text className="text-body text-red font-bodyMedium">
-            {t("personForm.deletePerson")}
-          </Text>
+          <Text className="text-body text-red font-bodyMedium">{t("personForm.deletePerson")}</Text>
         </Pressable>
       ) : null}
     </>

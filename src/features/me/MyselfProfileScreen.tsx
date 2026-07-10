@@ -101,9 +101,7 @@ export function MyselfProfileScreen() {
   return (
     <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40 }}>
       <View className="flex-row items-start justify-between pt-1 pb-3">
-        <Text className="text-3xl leading-[36px] text-text1 font-heading">
-          {t("myself.title")}
-        </Text>
+        <Text className="text-3xl leading-[36px] text-text1 font-heading">{t("myself.title")}</Text>
         {!editing ? (
           <Pressable onPress={() => setEditing(true)} className="py-2">
             <Text className="text-xs text-accent font-bodyMedium">{t("common.edit")}</Text>

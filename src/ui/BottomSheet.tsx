@@ -1,5 +1,14 @@
 import { useCallback, useState } from "react";
-import { Dimensions, Modal, Pressable, ScrollView, type StyleProp, Text, View, type ViewStyle } from "react-native";
+import {
+  Dimensions,
+  Modal,
+  Pressable,
+  ScrollView,
+  type StyleProp,
+  Text,
+  View,
+  type ViewStyle,
+} from "react-native";
 import { useAppTheme } from "@/theme/ThemeProvider";
 
 export interface BottomSheetProps {
@@ -40,9 +49,7 @@ function SheetChrome({
       style={[contentStyle, sheetH ? { minHeight: sheetH, maxHeight: sheetH } : undefined]}
     >
       <View className="w-10 h-1 rounded-pill bg-border self-center mb-4" />
-      {title ? (
-        <Text className="text-lg text-text1 font-heading mb-3">{title}</Text>
-      ) : null}
+      {title ? <Text className="text-lg text-text1 font-heading mb-3">{title}</Text> : null}
       {large ? (
         <ScrollView
           showsVerticalScrollIndicator={false}

@@ -1,12 +1,12 @@
 import { logger } from "@/lib/logger";
+import { extractCompletionContent } from "@/lib/parse/openaiTypes";
+import { fetchParseCompletion } from "@/lib/parse/parseApiClient";
 import { parseNaturalPersonInputFromCompletion } from "@/lib/people/naturalLanguageParser.api";
 import { parseNaturalPersonInputLocal } from "@/lib/people/naturalLanguageParser.local";
 import {
   EMPTY_PARSED_PERSON_DRAFT,
   type ParsedPersonDraft,
 } from "@/lib/people/naturalLanguageParser.types";
-import { fetchParseCompletion } from "@/lib/parse/parseApiClient";
-import { extractCompletionContent } from "@/lib/parse/openaiTypes";
 
 export type { ParsedPersonDraft } from "@/lib/people/naturalLanguageParser.types";
 

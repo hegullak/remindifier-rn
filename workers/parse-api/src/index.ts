@@ -58,8 +58,7 @@ export default {
       body && typeof body === "object" && typeof (body as { input?: unknown }).input === "string"
         ? (body as { input: string }).input.trim()
         : "";
-    const mode =
-      body && typeof body === "object" ? (body as { mode?: unknown }).mode : undefined;
+    const mode = body && typeof body === "object" ? (body as { mode?: unknown }).mode : undefined;
 
     if (!input || !isParseMode(mode)) {
       return jsonResponse({ error: "invalid_request" }, 400);

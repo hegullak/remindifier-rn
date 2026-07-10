@@ -2,8 +2,8 @@
  * Integration: demo schedule → gathering links → morning brief copy.
  */
 import { localizeScheduleItem } from "@/features/brief/briefContent";
-import { buildMorningBrief } from "@/lib/brief/morningBrief";
 import { iconAndTitle } from "@/lib/brief/eventIcon";
+import { buildMorningBrief } from "@/lib/brief/morningBrief";
 import { enrichScheduleWithGatheringIds } from "@/lib/gatherings/briefLinks";
 import { localizeGatheringTitle } from "@/lib/gatherings/localizeGathering";
 

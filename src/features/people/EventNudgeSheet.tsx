@@ -42,11 +42,7 @@ export function EventNudgeSheet({
   }
 
   return (
-    <BottomSheet
-      visible={visible}
-      onDismiss={onDismiss}
-      title={t("eventNudge.title")}
-    >
+    <BottomSheet visible={visible} onDismiss={onDismiss} title={t("eventNudge.title")}>
       <Text className="text-sm text-text2 font-body mb-4 leading-[21px]">
         {t("eventNudge.body", { name: personName })}
       </Text>
@@ -68,9 +64,7 @@ export function EventNudgeSheet({
           {saving ? (
             <ActivityIndicator color="#F7F4EF" />
           ) : (
-            <Text className="text-body-lg text-card font-bodySemi">
-              {t("eventNudge.create")}
-            </Text>
+            <Text className="text-body-lg text-card font-bodySemi">{t("eventNudge.create")}</Text>
           )}
         </Pressable>
         <Pressable onPress={onDismiss} disabled={saving} className="py-3 items-center">

@@ -44,11 +44,11 @@ module.exports = {
         bodySemi: ["DMSans_600SemiBold"],
       },
       fontSize: {
-        "2xs": "10px",   // tiny labels, uppercase tracking
-        "3xs": "11px",   // section labels, pill labels
-        body: "13px",    // default body text
+        "2xs": "10px", // tiny labels, uppercase tracking
+        "3xs": "11px", // section labels, pill labels
+        body: "13px", // default body text
         "body-lg": "15px", // primary body / list items
-        nav: "22px",     // navigation arrows ← →
+        nav: "22px", // navigation arrows ← →
       },
     },
   },

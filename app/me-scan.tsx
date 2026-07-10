@@ -94,9 +94,7 @@ export default function MeScanScreen() {
           </Pressable>
         </View>
         <View className="absolute bottom-0 left-0 right-0 px-6 pb-10 items-center">
-          <Text className="text-sm text-card font-body text-center mb-2">
-            {t("scan.holdQr")}
-          </Text>
+          <Text className="text-sm text-card font-body text-center mb-2">{t("scan.holdQr")}</Text>
           {errorMessage ? (
             <View className="bg-card rounded-xl px-4 py-3 w-full">
               <Text className="text-sm text-red font-body text-center">{errorMessage}</Text>
@@ -107,9 +105,7 @@ export default function MeScanScreen() {
                 }}
                 className="mt-2 self-center"
               >
-                <Text className="text-body text-accent font-bodyMedium">
-                  {t("scan.tryAgain")}
-                </Text>
+                <Text className="text-body text-accent font-bodyMedium">{t("scan.tryAgain")}</Text>
               </Pressable>
             </View>
           ) : null}

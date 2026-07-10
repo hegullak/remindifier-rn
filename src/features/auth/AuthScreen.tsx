@@ -39,7 +39,9 @@ export function AuthScreen() {
           <View className="flex-row justify-end mb-2">
             <LanguagePicker />
           </View>
-          <Text className="text-[34px] leading-[40px] text-text1 font-heading">{t("common.appName")}</Text>
+          <Text className="text-[34px] leading-[40px] text-text1 font-heading">
+            {t("common.appName")}
+          </Text>
           <Text className="text-[17px] leading-[24px] text-text2 font-body mt-4 max-w-[340px]">
             {mode === "signIn" ? t("auth.taglineSignIn") : t("auth.taglineSignUp")}
           </Text>

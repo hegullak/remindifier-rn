@@ -99,7 +99,9 @@ describe("normalizeIntakeApiPayload", () => {
       "no",
     );
     expect(
-      result?.followUps.some((f) => /\btar med hva\b/i.test(f.text) && /\bgifter seg\b/i.test(f.text)),
+      result?.followUps.some(
+        (f) => /\btar med hva\b/i.test(f.text) && /\bgifter seg\b/i.test(f.text),
+      ),
     ).toBe(false);
   });
 
@@ -126,9 +128,9 @@ describe("normalizeIntakeApiPayload", () => {
     );
 
     expect(result?.followUps.some((f) => isGratulereOnly(f.text))).toBe(false);
-    expect(result?.followUps.some((f) => /gifter seg/i.test(f.text) && /gratulere/i.test(f.text))).toBe(
-      true,
-    );
+    expect(
+      result?.followUps.some((f) => /gifter seg/i.test(f.text) && /gratulere/i.test(f.text)),
+    ).toBe(true);
     expect(result?.followUps).toHaveLength(3);
   });
 });
@@ -169,12 +171,7 @@ describe("enrichIntakeWithLocalSchedule", () => {
     expect(apiOnly).not.toBeNull();
     expect(apiOnly?.followUps.some((f) => /hyttetur/i.test(f.text))).toBe(false);
 
-    const enriched = enrichIntakeWithLocalSchedule(
-      apiOnly!,
-      MARTE_JONAS_INPUT,
-      WEDNESDAY,
-      "no",
-    );
+    const enriched = enrichIntakeWithLocalSchedule(apiOnly!, MARTE_JONAS_INPUT, WEDNESDAY, "no");
 
     expect(enriched.followUps.some((f) => /hyttetur/i.test(f.text))).toBe(true);
     expect(enriched.followUps.some((f) => /tar med hva|hvem som/i.test(f.text))).toBe(true);

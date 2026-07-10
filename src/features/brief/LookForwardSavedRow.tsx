@@ -15,9 +15,7 @@ export function LookForwardSavedRow({ text, onEdit, onDelete }: LookForwardSaved
         friction={1.5}
         overshootRight={false}
         rightThreshold={40}
-        renderRightActions={() => (
-          <SwipeEditDeleteActions onEdit={onEdit} onDelete={onDelete} />
-        )}
+        renderRightActions={() => <SwipeEditDeleteActions onEdit={onEdit} onDelete={onDelete} />}
       >
         <View className="flex-row items-start gap-2 py-0.5">
           <Text className="text-base mt-0.5">✨</Text>

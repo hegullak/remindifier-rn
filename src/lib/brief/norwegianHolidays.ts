@@ -43,18 +43,18 @@ function midnight(d: Date): Date {
 export function getNorwegianHolidays(year: number): NorwegianHoliday[] {
   const easter = easterSunday(year);
   return [
-    { date: midnight(new Date(year, 0, 1)),  name: "New Year's Day",       nameNo: "Nyttårsdag" },
-    { date: midnight(addDays(easter, -3)),    name: "Maundy Thursday",      nameNo: "Skjærtorsdag" },
-    { date: midnight(addDays(easter, -2)),    name: "Good Friday",          nameNo: "Langfredag" },
-    { date: midnight(easter),                 name: "Easter Sunday",        nameNo: "1. påskedag" },
-    { date: midnight(addDays(easter, 1)),     name: "Easter Monday",        nameNo: "2. påskedag" },
-    { date: midnight(new Date(year, 4, 1)),   name: "Labour Day",           nameNo: "1. mai" },
-    { date: midnight(new Date(year, 4, 17)),  name: "Constitution Day",     nameNo: "17. mai" },
-    { date: midnight(addDays(easter, 39)),    name: "Ascension Day",        nameNo: "Kristi himmelfartsdag" },
-    { date: midnight(addDays(easter, 49)),    name: "Whit Sunday",          nameNo: "1. pinsedag" },
-    { date: midnight(addDays(easter, 50)),    name: "Whit Monday",          nameNo: "2. pinsedag" },
-    { date: midnight(new Date(year, 11, 25)), name: "Christmas Day",        nameNo: "1. juledag" },
-    { date: midnight(new Date(year, 11, 26)), name: "Boxing Day",           nameNo: "2. juledag" },
+    { date: midnight(new Date(year, 0, 1)), name: "New Year's Day", nameNo: "Nyttårsdag" },
+    { date: midnight(addDays(easter, -3)), name: "Maundy Thursday", nameNo: "Skjærtorsdag" },
+    { date: midnight(addDays(easter, -2)), name: "Good Friday", nameNo: "Langfredag" },
+    { date: midnight(easter), name: "Easter Sunday", nameNo: "1. påskedag" },
+    { date: midnight(addDays(easter, 1)), name: "Easter Monday", nameNo: "2. påskedag" },
+    { date: midnight(new Date(year, 4, 1)), name: "Labour Day", nameNo: "1. mai" },
+    { date: midnight(new Date(year, 4, 17)), name: "Constitution Day", nameNo: "17. mai" },
+    { date: midnight(addDays(easter, 39)), name: "Ascension Day", nameNo: "Kristi himmelfartsdag" },
+    { date: midnight(addDays(easter, 49)), name: "Whit Sunday", nameNo: "1. pinsedag" },
+    { date: midnight(addDays(easter, 50)), name: "Whit Monday", nameNo: "2. pinsedag" },
+    { date: midnight(new Date(year, 11, 25)), name: "Christmas Day", nameNo: "1. juledag" },
+    { date: midnight(new Date(year, 11, 26)), name: "Boxing Day", nameNo: "2. juledag" },
   ];
 }
 
@@ -78,10 +78,7 @@ export function getUpcomingHoliday(
   const windowEnd = todayMs + windowDays * 86400000;
 
   const year = today.getFullYear();
-  const holidays = [
-    ...getNorwegianHolidays(year),
-    ...getNorwegianHolidays(year + 1),
-  ];
+  const holidays = [...getNorwegianHolidays(year), ...getNorwegianHolidays(year + 1)];
 
   const upcoming = holidays
     .filter((h) => h.date.getTime() >= todayMs && h.date.getTime() <= windowEnd)

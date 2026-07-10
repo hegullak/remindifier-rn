@@ -1,10 +1,11 @@
 /**
  * Integration: semantic intake parse → confirm (repos mocked).
  */
-import { confirmSemanticIntake } from "@/lib/intake/confirmSemanticIntake";
-import { parseSemanticIntakeLocal } from "@/lib/intake/semanticIntakeParser";
+
 import { createGathering } from "@/db/repos/gatheringsRepo";
 import { listPeopleSummaries } from "@/db/repos/peopleRepo";
+import { confirmSemanticIntake } from "@/lib/intake/confirmSemanticIntake";
+import { parseSemanticIntakeLocal } from "@/lib/intake/semanticIntakeParser";
 
 jest.mock("@/db/repos/gatheringsRepo");
 jest.mock("@/db/repos/peopleRepo");
@@ -14,9 +15,7 @@ const WEDNESDAY = new Date("2026-05-27T12:00:00");
 
 describe("semantic intake flow", () => {
   beforeEach(() => {
-    (listPeopleSummaries as jest.Mock).mockResolvedValue([
-      { id: "p-ida", displayName: "Ida" },
-    ]);
+    (listPeopleSummaries as jest.Mock).mockResolvedValue([{ id: "p-ida", displayName: "Ida" }]);
     (createGathering as jest.Mock).mockResolvedValue("g-created");
   });
 

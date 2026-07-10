@@ -1,8 +1,5 @@
-import {
-  buildMorningBrief,
-  buildMorningBriefUnavailable,
-} from "@/lib/brief/morningBrief";
 import type { CalendarBriefEvent } from "@/lib/brief/calendarEvents";
+import { buildMorningBrief, buildMorningBriefUnavailable } from "@/lib/brief/morningBrief";
 
 /** Fixed Monday so weekend pill logic does not depend on the day tests run. */
 const MONDAY = new Date(2026, 5, 1);
@@ -35,7 +32,10 @@ function makeWeekendEvent(
 ): CalendarBriefEvent {
   // Find next Saturday or Sunday from a fixed date
   const base = new Date(2026, 5, 6, hour, minute, 0, 0); // 2026-06-06 is a Saturday
-  const date = dayOfWeek === 6 ? new Date(2026, 5, 6, hour, minute, 0, 0) : new Date(2026, 5, 7, hour, minute, 0, 0);
+  const date =
+    dayOfWeek === 6
+      ? new Date(2026, 5, 6, hour, minute, 0, 0)
+      : new Date(2026, 5, 7, hour, minute, 0, 0);
   return {
     id,
     title: title ?? `Weekend ${id}`,
@@ -119,22 +119,14 @@ describe("buildMorningBrief", () => {
     });
 
     it("detects busy morning for 3+ events before 12:00 (en)", () => {
-      const events = [
-        makeEvent("e1", 8, 0),
-        makeEvent("e2", 9, 0),
-        makeEvent("e3", 10, 30),
-      ];
+      const events = [makeEvent("e1", 8, 0), makeEvent("e2", 9, 0), makeEvent("e3", 10, 30)];
       const result = buildMorningBrief(events, [], "en");
       expect(result.headline).toContain("Busy morning");
       expect(result.body).toContain("morning is packed");
     });
 
     it("pillText prefixed with 'Travel dag' for busy morning (no)", () => {
-      const events = [
-        makeEvent("e1", 8, 0),
-        makeEvent("e2", 9, 0),
-        makeEvent("e3", 10, 0),
-      ];
+      const events = [makeEvent("e1", 8, 0), makeEvent("e2", 9, 0), makeEvent("e3", 10, 0)];
       const result = buildMorningBrief(events, [], "no");
       expect(result.pillText).toMatch(/^Travel dag/);
     });

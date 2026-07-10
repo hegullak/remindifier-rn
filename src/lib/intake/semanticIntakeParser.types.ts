@@ -17,7 +17,11 @@ export type SemanticIntakeParseResult = {
   event: { title: string; confidence: IntakeConfidence } | null;
   scheduledAt: { label: string; date: Date | null; confidence: IntakeConfidence } | null;
   scheduledAtOptions?: ScheduledAtOption[];
-  followUps: { text: string; confidence: IntakeConfidence; talkingPointKind?: "question" | "topic" | "headsup" }[];
+  followUps: {
+    text: string;
+    confidence: IntakeConfidence;
+    talkingPointKind?: "question" | "topic" | "headsup";
+  }[];
   freeFormNote: string | null;
 };
 

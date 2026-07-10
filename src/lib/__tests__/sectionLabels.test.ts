@@ -9,5 +9,4 @@ describe("briefSectionLabelKey", () => {
     expect(briefSectionLabelKey("calendar")).toBe("brief.sections.calendar");
     expect(briefSectionLabelKey("training")).toBe("brief.sections.training");
   });
-
 });

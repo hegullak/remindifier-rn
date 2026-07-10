@@ -41,7 +41,8 @@ export async function getDrizzleDbForUser(userId: string) {
 
   const sqliteDb = await SQLite.openDatabaseAsync(`remindifier-${safeUser}.db`);
   const key = await getOrCreateDbKey(safeUser);
-  if (!key) throw new Error("remindifier: database key is empty — refusing to open without encryption");
+  if (!key)
+    throw new Error("remindifier: database key is empty — refusing to open without encryption");
   await sqliteDb.execAsync(`PRAGMA key='${escapeSqlLiteral(key)}';`);
 
   const db = drizzle(sqliteDb, { schema });

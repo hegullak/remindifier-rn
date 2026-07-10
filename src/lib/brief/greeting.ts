@@ -21,7 +21,11 @@ function greetingLead(locale: Locale, period: DayPeriod): string {
   return translate(locale, key);
 }
 
-export function briefGreetingLine(firstName: string, locale: Locale, date = new Date()): GreetingParts {
+export function briefGreetingLine(
+  firstName: string,
+  locale: Locale,
+  date = new Date(),
+): GreetingParts {
   const period = dayPeriod(date);
   const name = firstName.trim() || (locale === "no" ? "du" : "there");
   return { lead: `${greetingLead(locale, period)},`, name: `${name}.` };

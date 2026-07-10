@@ -1,15 +1,15 @@
-import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { type ReactNode, useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, Linking, Pressable, Switch, Text, View } from "react-native";
 import { getSelectedCalendarIds, setSelectedCalendarIds } from "@/db/repos/userRepo";
 import { useTranslation } from "@/i18n";
+import { notifyBriefReload } from "@/lib/brief/briefRefresh";
 import type { CalendarAccessStatus } from "@/lib/brief/calendarEvents";
 import {
   isCalendarEnabled,
-  toggleCalendarId,
   type SavedCalendarSelection,
+  toggleCalendarId,
 } from "@/lib/brief/calendarSelection";
-import { listDeviceCalendars, type DeviceCalendarSummary } from "@/lib/brief/listDeviceCalendars";
-import { notifyBriefReload } from "@/lib/brief/briefRefresh";
+import { type DeviceCalendarSummary, listDeviceCalendars } from "@/lib/brief/listDeviceCalendars";
 
 type Props = {
   userId: string | null | undefined;
@@ -77,18 +77,29 @@ export function CalendarSelectionSection({ userId }: Props) {
         <Text className="text-sm text-text3 font-body">{t("brief.calendarAccess.expoGoBody")}</Text>
       ) : access === "denied" || access === "error" ? (
         <View className="gap-2">
-          <Text className="text-sm text-text2 font-body">{t("settings.calendar.permissionNeeded")}</Text>
+          <Text className="text-sm text-text2 font-body">
+            {t("settings.calendar.permissionNeeded")}
+          </Text>
           <Pressable
-            onPress={() => void listDeviceCalendars().then((r) => {
-              setAccess(r.access);
-              setCalendars(r.calendars);
-            })}
+            onPress={() =>
+              void listDeviceCalendars().then((r) => {
+                setAccess(r.access);
+                setCalendars(r.calendars);
+              })
+            }
             className="self-start active:opacity-70"
           >
-            <Text className="text-sm text-accent font-bodySemi">{t("settings.calendar.grantAccess")}</Text>
+            <Text className="text-sm text-accent font-bodySemi">
+              {t("settings.calendar.grantAccess")}
+            </Text>
           </Pressable>
-          <Pressable onPress={() => void Linking.openSettings()} className="self-start active:opacity-70">
-            <Text className="text-sm text-text3 font-body">{t("brief.calendarAccess.openSettings")}</Text>
+          <Pressable
+            onPress={() => void Linking.openSettings()}
+            className="self-start active:opacity-70"
+          >
+            <Text className="text-sm text-text3 font-body">
+              {t("brief.calendarAccess.openSettings")}
+            </Text>
           </Pressable>
         </View>
       ) : calendars.length === 0 ? (
@@ -108,7 +119,9 @@ export function CalendarSelectionSection({ userId }: Props) {
                     style={{ backgroundColor: calendar.color || "#7EB8D4" }}
                   />
                   <View className="flex-1">
-                    <Text className="text-body-lg text-text1 font-bodyMedium">{calendar.title}</Text>
+                    <Text className="text-body-lg text-text1 font-bodyMedium">
+                      {calendar.title}
+                    </Text>
                     {calendar.sourceName ? (
                       <Text className="text-xs text-text3 font-body">{calendar.sourceName}</Text>
                     ) : null}
@@ -125,7 +138,9 @@ export function CalendarSelectionSection({ userId }: Props) {
             );
           })}
           {selectedIds !== undefined && selectedIds.length === 0 ? (
-            <Text className="text-xs text-amber font-body mt-2">{t("settings.calendar.noneSelected")}</Text>
+            <Text className="text-xs text-amber font-body mt-2">
+              {t("settings.calendar.noneSelected")}
+            </Text>
           ) : null}
         </View>
       )}

@@ -26,7 +26,9 @@ export function CalendarAccessNotice({ access, hasDevStubs }: Props) {
       <Text className="text-body font-bodySemi text-text1 mb-1">{title}</Text>
       <Text className="text-sm text-text2 font-body leading-[20px]">{body}</Text>
       {hasDevStubs ? (
-        <Text className="text-xs text-text3 font-body mt-2">{t("brief.calendarAccess.devStubsNote")}</Text>
+        <Text className="text-xs text-text3 font-body mt-2">
+          {t("brief.calendarAccess.devStubsNote")}
+        </Text>
       ) : null}
       {showSettings ? (
         <Pressable
@@ -34,7 +36,9 @@ export function CalendarAccessNotice({ access, hasDevStubs }: Props) {
           className="mt-3 self-start active:opacity-70"
           accessibilityRole="button"
         >
-          <Text className="text-sm text-accent font-bodySemi">{t("brief.calendarAccess.openSettings")}</Text>
+          <Text className="text-sm text-accent font-bodySemi">
+            {t("brief.calendarAccess.openSettings")}
+          </Text>
         </Pressable>
       ) : null}
     </View>

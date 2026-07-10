@@ -1,8 +1,8 @@
 import * as Crypto from "expo-crypto";
-import { logger } from "@/lib/logger";
 import type { TalkingPointKind } from "@/lib/gatherings/talkingPoints";
-import { fetchParseCompletion } from "@/lib/parse/parseApiClient";
+import { logger } from "@/lib/logger";
 import { extractCompletionContent } from "@/lib/parse/openaiTypes";
+import { fetchParseCompletion } from "@/lib/parse/parseApiClient";
 
 export type ParsedEventDraft = {
   title: string | null;
@@ -53,10 +53,7 @@ function normalizeApiPayload(payload: unknown, rawInput: string): ParsedEventDra
       const text = asNullableString(row.text);
       if (!text) return null;
       const validKind =
-        kind === "question" ||
-        kind === "topic" ||
-        kind === "smalltalk" ||
-        kind === "headsup"
+        kind === "question" || kind === "topic" || kind === "smalltalk" || kind === "headsup"
           ? kind
           : "topic";
       return {

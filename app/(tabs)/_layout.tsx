@@ -1,14 +1,13 @@
 import { getClerkInstance } from "@clerk/clerk-expo";
+import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
+import { StackActions } from "@react-navigation/native";
 import type { ExpoSQLiteDatabase } from "drizzle-orm/expo-sqlite";
 import { useMigrations } from "drizzle-orm/expo-sqlite/migrator";
 import { BlurView } from "expo-blur";
 import Constants from "expo-constants";
 import { Redirect, Tabs } from "expo-router";
-import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
-import { StackActions } from "@react-navigation/native";
 import { useEffect, useState } from "react";
 import { Pressable, Text, View, type ViewProps } from "react-native";
-import { triggerSelection } from "@/lib/haptics";
 import { useBootstrapApp } from "@/bootstrap/useBootstrapApp";
 import migrations from "@/db/drizzle/migrations";
 import { hasCompletedOnboarding } from "@/db/repos/userRepo";
@@ -17,6 +16,7 @@ import { useUserDrizzleDb } from "@/db/useUserDrizzleDb";
 import { DEV_BYPASS_AUTH, DEV_USER_ID } from "@/features/auth/devBypass";
 import { useAppAuth } from "@/features/auth/useAppAuth";
 import { useTranslation } from "@/i18n";
+import { triggerSelection } from "@/lib/haptics";
 import { logger } from "@/lib/logger";
 import { useAppTheme } from "@/theme/ThemeProvider";
 import { TAB_BAR_UI } from "@/theme/tokens";
@@ -72,7 +72,10 @@ function FloatingTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
       <View
         style={{
           position: "absolute",
-          top: 0, left: 0, right: 0, bottom: 0,
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
           backgroundColor: tabUi.overlay,
         }}
       />
@@ -84,15 +87,13 @@ function FloatingTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
 
         const emojis: Record<string, string> = {
           brief: "☀️",
-          gather: "🌿",
-          people: "👤",
-          myself: "🪪",
+          day: "📅",
+          week: "📊",
         };
         const labels: Record<string, string> = {
           brief: options.title ?? "brief",
-          gather: options.title ?? "events",
-          people: options.title ?? "people",
-          myself: options.title ?? "myself",
+          day: options.title ?? "day",
+          week: options.title ?? "week",
         };
 
         return (
@@ -123,11 +124,13 @@ function FloatingTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
             <Text style={{ fontSize: 20, opacity: focused ? 1 : 0.4, lineHeight: 24 }}>
               {emojis[route.name] ?? "●"}
             </Text>
-            <Text style={{
-              fontSize: 10,
-              fontFamily: "DMSans_600SemiBold",
-              color: focused ? accentColor : inactiveColor,
-            }}>
+            <Text
+              style={{
+                fontSize: 10,
+                fontFamily: "DMSans_600SemiBold",
+                color: focused ? accentColor : inactiveColor,
+              }}
+            >
               {labels[route.name]}
             </Text>
           </Pressable>
@@ -226,14 +229,10 @@ function TabsWithBootstrap({
   }
 
   return (
-    <Tabs
-      tabBar={(props) => <FloatingTabBar {...props} />}
-      screenOptions={{ headerShown: false }}
-    >
+    <Tabs tabBar={(props) => <FloatingTabBar {...props} />} screenOptions={{ headerShown: false }}>
       <Tabs.Screen name="brief" options={{ title: t("tabs.brief") }} />
-      <Tabs.Screen name="gather" options={{ title: t("tabs.gather") }} />
-      <Tabs.Screen name="people" options={{ title: t("tabs.people") }} />
-      <Tabs.Screen name="myself" options={{ title: t("tabs.myself") }} />
+      <Tabs.Screen name="day" options={{ title: t("tabs.day") }} />
+      <Tabs.Screen name="week" options={{ title: t("tabs.week") }} />
     </Tabs>
   );
 }

@@ -210,9 +210,7 @@ export function AccountSettingsSection() {
               className={authInputClassName}
             />
           </View>
-          {errorMessage ? (
-            <Text className="text-sm text-red font-body">{errorMessage}</Text>
-          ) : null}
+          {errorMessage ? <Text className="text-sm text-red font-body">{errorMessage}</Text> : null}
           <Button
             variant="primary"
             onPress={handleSaveProfile}
@@ -272,9 +270,7 @@ export function AccountSettingsSection() {
               className={authInputClassName}
             />
           </View>
-          {errorMessage ? (
-            <Text className="text-sm text-red font-body">{errorMessage}</Text>
-          ) : null}
+          {errorMessage ? <Text className="text-sm text-red font-body">{errorMessage}</Text> : null}
           <Button
             variant="primary"
             onPress={handleChangePassword}

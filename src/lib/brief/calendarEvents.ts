@@ -3,7 +3,7 @@ import * as Calendar from "expo-calendar";
 import type { Locale } from "@/i18n/types";
 import { calendarRequiresDevBuild } from "@/lib/brief/calendarAccess";
 import { pickCalendarsForBrief, type SavedCalendarSelection } from "@/lib/brief/calendarSelection";
-import { getCalendarWeekBounds, type CalendarWeekBounds } from "@/lib/brief/calendarWeek";
+import { type CalendarWeekBounds, getCalendarWeekBounds } from "@/lib/brief/calendarWeek";
 import { buildDevCalendarStubs } from "@/lib/brief/devCalendarStubs";
 import { logger } from "@/lib/logger";
 
@@ -101,9 +101,7 @@ export async function fetchCalendarBriefEvents(
   try {
     const existing = await Calendar.getCalendarPermissionsAsync();
     const { status } =
-      existing.status === "granted"
-        ? existing
-        : await Calendar.requestCalendarPermissionsAsync();
+      existing.status === "granted" ? existing : await Calendar.requestCalendarPermissionsAsync();
     if (status !== "granted") {
       return {
         events: withDevStubsIfEmpty([], weekBounds),

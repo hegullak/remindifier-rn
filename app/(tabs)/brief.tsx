@@ -1,4 +1,3 @@
-import { Link } from "expo-router";
 import { useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { useAppAuth, useAppUser } from "@/features/auth/useAppAuth";
@@ -9,24 +8,19 @@ import { LookForwardSavedRow } from "@/features/brief/LookForwardSavedRow";
 import { useBriefData } from "@/features/brief/useBriefData";
 import { useTranslation } from "@/i18n";
 import { isDateInCalendarWeek } from "@/lib/brief/calendarWeek";
-import { briefGreetingLine } from "@/lib/brief/greeting";
+import { buildEveningWindDown } from "@/lib/brief/eveningWindDown";
 import { eventIcon, iconAndTitle } from "@/lib/brief/eventIcon";
-import { briefGatheringHref } from "@/lib/gatherings/briefLinks";
+import { briefGreetingLine } from "@/lib/brief/greeting";
+import { lookForwardDisplayText, shouldShowLookForwardPrompt } from "@/lib/brief/lookForward";
+import { buildMorningBrief } from "@/lib/brief/morningBrief";
+import type { TrainingDisplayLine } from "@/lib/brief/pplTraining";
 import { localizeGatheringTitle } from "@/lib/gatherings/localizeGathering";
 import { anniversaryMilestoneDetail } from "@/lib/milestones/anniversaries";
-import type { UpcomingRedLetterDay } from "@/lib/timeline/red-letter-days";
-import { buildEveningWindDown } from "@/lib/brief/eveningWindDown";
-import { buildMorningBrief } from "@/lib/brief/morningBrief";
-import {
-  lookForwardDisplayText,
-  shouldShowLookForwardPrompt,
-} from "@/lib/brief/lookForward";
 import { AppShell } from "@/ui/AppShell";
 import { BottomSheet } from "@/ui/BottomSheet";
 import { BriefCard } from "@/ui/BriefCard";
 import { PplSessionLabel } from "@/ui/PplSessionLabel";
 import { SectionLabel } from "@/ui/SectionLabel";
-import type { TrainingDisplayLine } from "@/lib/brief/pplTraining";
 
 export default function BriefScreen() {
   const { t, locale } = useTranslation();
@@ -89,8 +83,6 @@ export default function BriefScreen() {
     primary: string;
     secondary?: string;
     note?: string;
-    href?: string | { pathname: "/gather/new"; params: { prefill: string } };
-    gatheringId?: string | null;
     onPress?: () => void;
   };
 
@@ -119,12 +111,13 @@ export default function BriefScreen() {
     weekItems.push({
       id: `cal-${event.id}`,
       sortKey: daysUntil,
-      sortMinutes: event.allDay ? undefined : event.startDate.getHours() * 60 + event.startDate.getMinutes(),
+      sortMinutes: event.allDay
+        ? undefined
+        : event.startDate.getHours() * 60 + event.startDate.getMinutes(),
       dayLabel: briefDayLabel(daysUntil),
       icon,
       primary: title,
       secondary: [timeStr, calendarLabel].filter(Boolean).join(" · ") || undefined,
-      gatheringId: event.gatheringId,
     });
   }
 
@@ -136,13 +129,19 @@ export default function BriefScreen() {
       icon: rld.icon,
       primary: rld.personName,
       secondary: rld.headline,
-      href: rld.personId ? `/people/${rld.personId}` : undefined,
-      onPress: rld.kind === "Anniversary"
-        ? () => {
-            const m = anniversaryMilestoneDetail(rld.eventDate);
-            if (m) setAnniversaryDetail({ personName: rld.personName, years: m.years, norwegian: m.norwegian, english: m.english });
-          }
-        : undefined,
+      onPress:
+        rld.kind === "Anniversary"
+          ? () => {
+              const m = anniversaryMilestoneDetail(rld.eventDate);
+              if (m)
+                setAnniversaryDetail({
+                  personName: rld.personName,
+                  years: m.years,
+                  norwegian: m.norwegian,
+                  english: m.english,
+                });
+            }
+          : undefined,
     });
   }
 
@@ -178,7 +177,7 @@ export default function BriefScreen() {
   ) {
     const prevDay = i > 0 ? arr[i - 1].dayLabel : "";
     const showDayLabel = showDay && item.dayLabel !== prevDay;
-    const navigable = allowNavigation && Boolean(item.gatheringId || item.href || item.onPress);
+    const navigable = allowNavigation && Boolean(item.onPress);
     const row = (
       <View className={i < arr.length - 1 ? "mb-3" : ""}>
         {showDayLabel && (
@@ -197,20 +196,16 @@ export default function BriefScreen() {
               <Text className="text-xs text-text3 font-body mt-0.5">{item.note}</Text>
             ) : null}
           </View>
-          {navigable ? (
-            <Text className="text-base text-text3 font-body mt-0.5">›</Text>
-          ) : null}
+          {navigable ? <Text className="text-base text-text3 font-body mt-0.5">›</Text> : null}
         </View>
       </View>
     );
-    if (item.gatheringId || item.href) {
-      const href = item.gatheringId
-        ? briefGatheringHref(item.gatheringId, item.primary)
-        : item.href!;
-      return <Link key={item.id} href={href} asChild><Pressable className="active:opacity-70">{row}</Pressable></Link>;
-    }
     if (item.onPress) {
-      return <Pressable key={item.id} onPress={item.onPress} className="active:opacity-70">{row}</Pressable>;
+      return (
+        <Pressable key={item.id} onPress={item.onPress} className="active:opacity-70">
+          {row}
+        </Pressable>
+      );
     }
     return <View key={item.id}>{row}</View>;
   }
@@ -248,9 +243,7 @@ export default function BriefScreen() {
     if (weekOffset !== 0) return null;
     if (tomorrowItems.length === 0) return null;
 
-    const sorted = [...tomorrowItems].sort(
-      (a, b) => (a.sortMinutes ?? -1) - (b.sortMinutes ?? -1),
-    );
+    const sorted = [...tomorrowItems].sort((a, b) => (a.sortMinutes ?? -1) - (b.sortMinutes ?? -1));
 
     return (
       <View className="mb-1">
@@ -281,7 +274,6 @@ export default function BriefScreen() {
         primary: title,
         secondary: item.time,
         note: item.note || undefined,
-        href: briefGatheringHref(item.gatheringId, title),
       };
     });
 
@@ -391,10 +383,11 @@ export default function BriefScreen() {
 
   // Trekk ut relevante detalj-setninger fra body
   const ambientDetails = (() => {
-    const src = ambientPeriod === "morning" ? morningBrief : ambientPeriod === "evening" ? windDown : null;
+    const src =
+      ambientPeriod === "morning" ? morningBrief : ambientPeriod === "evening" ? windDown : null;
     if (!src?.available || src.isEmpty || !ambientHeadline) return [];
     const sentences = src.body.split("\n").filter(Boolean);
-    const find = (kw: string) => sentences.find(s => s.toLowerCase().includes(kw));
+    const find = (kw: string) => sentences.find((s) => s.toLowerCase().includes(kw));
     const lines: string[] = [];
     const firstEvent = sentences[0]; // "Første møte kl. 09:00." / "Første hendelse er kl. …"
     if (firstEvent) lines.push(firstEvent);
@@ -428,7 +421,10 @@ export default function BriefScreen() {
       {weekOffset === 0 ? (
         <CalendarAccessNotice
           access={calendarAccess}
-          hasDevStubs={calendarAccess !== "granted" && brief.calendarEvents.some((e) => e.id.startsWith("dev-stub-"))}
+          hasDevStubs={
+            calendarAccess !== "granted" &&
+            brief.calendarEvents.some((e) => e.id.startsWith("dev-stub-"))
+          }
         />
       ) : null}
 
@@ -488,12 +484,17 @@ export default function BriefScreen() {
         title={t("brief.morningBrief.sectionLabel")}
         large
       >
-        <Text className="text-xl text-text1 font-heading mb-5 leading-[28px]">{morningBrief.headline}</Text>
-        {morningBrief.body.split("\n").filter(Boolean).map((sentence, i) => (
-          <Text key={i} className="text-body-lg text-text2 font-body leading-[24px] mb-2">
-            {sentence}
-          </Text>
-        ))}
+        <Text className="text-xl text-text1 font-heading mb-5 leading-[28px]">
+          {morningBrief.headline}
+        </Text>
+        {morningBrief.body
+          .split("\n")
+          .filter(Boolean)
+          .map((sentence, i) => (
+            <Text key={i} className="text-body-lg text-text2 font-body leading-[24px] mb-2">
+              {sentence}
+            </Text>
+          ))}
       </BottomSheet>
 
       <BottomSheet
@@ -502,12 +503,17 @@ export default function BriefScreen() {
         title={t("brief.eveningWindDown.sectionLabel")}
         large
       >
-        <Text className="text-xl text-text1 font-heading mb-5 leading-[28px]">{windDown.headline}</Text>
-        {windDown.body.split("\n").filter(Boolean).map((sentence, i) => (
-          <Text key={i} className="text-body-lg text-text2 font-body leading-[24px] mb-2">
-            {sentence}
-          </Text>
-        ))}
+        <Text className="text-xl text-text1 font-heading mb-5 leading-[28px]">
+          {windDown.headline}
+        </Text>
+        {windDown.body
+          .split("\n")
+          .filter(Boolean)
+          .map((sentence, i) => (
+            <Text key={i} className="text-body-lg text-text2 font-body leading-[24px] mb-2">
+              {sentence}
+            </Text>
+          ))}
       </BottomSheet>
 
       <BottomSheet
@@ -547,63 +553,6 @@ export default function BriefScreen() {
         ) : null}
       </BottomSheet>
     </AppShell>
-  );
-}
-
-function RedLetterRow({
-  item,
-  onAnniversaryPress,
-}: {
-  item: UpcomingRedLetterDay;
-  onAnniversaryPress: (detail: {
-    personName: string;
-    years: number;
-    norwegian: string | null;
-    english: string | null;
-  }) => void;
-}) {
-  const milestone = item.kind === "Anniversary" ? anniversaryMilestoneDetail(item.eventDate) : null;
-
-  const headline = milestone ? (
-    <Pressable
-      onPress={() =>
-        onAnniversaryPress({
-          personName: item.personName,
-          years: milestone.years,
-          norwegian: milestone.norwegian,
-          english: milestone.english,
-        })
-      }
-      hitSlop={4}
-    >
-      <Text className="text-2xs uppercase tracking-[1.2px] text-amber font-bodySemi mt-1 underline">
-        {item.headline}
-      </Text>
-    </Pressable>
-  ) : (
-    <Text className="text-2xs uppercase tracking-[1.2px] text-amber font-bodySemi mt-1">
-      {item.headline}
-    </Text>
-  );
-
-  return (
-    <View className="mb-3">
-      {item.personId ? (
-        <Link href={`/people/${item.personId}`} asChild>
-          <Pressable>
-            <Text className="text-body-lg text-text1 font-bodyMedium">
-              {item.icon} {item.personName}
-            </Text>
-          </Pressable>
-        </Link>
-      ) : (
-        <Text className="text-body-lg text-text1 font-bodyMedium">
-          {item.icon} {item.personName}
-        </Text>
-      )}
-      {headline}
-      <Text className="text-body text-text2 font-body mt-0.5">{item.timing}</Text>
-    </View>
   );
 }
 

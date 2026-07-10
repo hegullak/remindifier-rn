@@ -4,20 +4,20 @@ import { router } from "expo-router";
 import * as Sharing from "expo-sharing";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Alert, Pressable, ScrollView, Switch, Text, View } from "react-native";
-import { useAppTheme } from "@/theme/ThemeProvider";
 import { deleteAllData, exportAllData } from "@/db/repos/settingsRepo";
 import { resetOnboarding, setBriefSectionOrder } from "@/db/repos/userRepo";
-import { DEFAULT_BRIEF_SECTION_ORDER } from "@/lib/brief/sections";
-import { notifyBriefReload } from "@/lib/brief/briefRefresh";
 import { deleteSeedCalendar, seedDevCalendar } from "@/db/seedCalendar";
 import { useUserDrizzleDb } from "@/db/useUserDrizzleDb";
 import { AccountSettingsSection } from "@/features/auth/AccountSettingsSection";
-import { CalendarSelectionSection } from "@/features/settings/CalendarSelectionSection";
 import { clearClerkAuthStorage } from "@/features/auth/clerk/clearAuthStorage";
 import { DEV_BYPASS_AUTH } from "@/features/auth/devBypass";
 import { useAppAuth } from "@/features/auth/useAppAuth";
+import { CalendarSelectionSection } from "@/features/settings/CalendarSelectionSection";
 import { useTranslation } from "@/i18n";
+import { notifyBriefReload } from "@/lib/brief/briefRefresh";
+import { DEFAULT_BRIEF_SECTION_ORDER } from "@/lib/brief/sections";
 import { getLastErrorTimestamp } from "@/lib/logUtils";
+import { useAppTheme } from "@/theme/ThemeProvider";
 import { AppShell } from "@/ui/AppShell";
 import { BottomSheet } from "@/ui/BottomSheet";
 import { Button } from "@/ui/Button";
@@ -217,10 +217,7 @@ export default function SettingsScreen() {
                       "Calendar permission not granted. In Expo Go on iPhone, use a dev build (npx expo run:ios) instead.",
                     );
                   } else {
-                    Alert.alert(
-                      "Seed calendar",
-                      result.message ?? `Failed (${result.reason}).`,
-                    );
+                    Alert.alert("Seed calendar", result.message ?? `Failed (${result.reason}).`);
                   }
                 }}
               >
@@ -270,9 +267,7 @@ export default function SettingsScreen() {
             {deletingAll ? (
               <ActivityIndicator color="#ffffff" />
             ) : (
-              <Text className="text-sm text-white font-bodySemi">
-                {t("data.deleteConfirm")}
-              </Text>
+              <Text className="text-sm text-white font-bodySemi">{t("data.deleteConfirm")}</Text>
             )}
           </Pressable>
           <Button variant="ghost" onPress={() => setShowDeleteSheet(false)} disabled={deletingAll}>

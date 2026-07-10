@@ -1,8 +1,13 @@
-import type { CalendarBriefEvent } from "@/lib/brief/calendarEvents";
-import { buildWeekendSummary, formatTime, getDayOfWeek, isWorkEvent } from "@/lib/brief/briefHelpers";
 import {
-  getUpcomingHoliday,
+  buildWeekendSummary,
+  formatTime,
+  getDayOfWeek,
+  isWorkEvent,
+} from "@/lib/brief/briefHelpers";
+import type { CalendarBriefEvent } from "@/lib/brief/calendarEvents";
+import {
   formatHolidayLine,
+  getUpcomingHoliday,
   type UpcomingHolidayInfo,
 } from "@/lib/brief/norwegianHolidays";
 
@@ -45,7 +50,7 @@ function analyseEvents(
 
   // Lunch window: 11:00–12:00 (user's actual lunch time)
   const lunchStart = 11 * 60; // 11:00
-  const lunchEnd = 12 * 60;   // 12:00
+  const lunchEnd = 12 * 60; // 12:00
   const hasLunchFree = !timed.some((e) => {
     const start = e.startDate.getHours() * 60 + e.startDate.getMinutes();
     return start >= lunchStart && start < lunchEnd;
@@ -72,7 +77,9 @@ function analyseEvents(
   const hasWeekendEvents = saturday.length > 0 || sunday.length > 0;
   const weekendSummary = hasWeekendEvents
     ? buildWeekendSummary(saturday, sunday, locale)
-    : locale === "no" ? "Fri helg." : "Free weekend.";
+    : locale === "no"
+      ? "Fri helg."
+      : "Free weekend.";
 
   return {
     eventCount: events.length,
@@ -91,7 +98,10 @@ function analyseEvents(
   };
 }
 
-function buildEnglish(signals: WindDownSignals, holiday: UpcomingHolidayInfo | null): EveningWindDownSummary {
+function buildEnglish(
+  signals: WindDownSignals,
+  holiday: UpcomingHolidayInfo | null,
+): EveningWindDownSummary {
   const {
     eventCount,
     firstEvent,
@@ -156,7 +166,6 @@ function buildEnglish(signals: WindDownSignals, holiday: UpcomingHolidayInfo | n
 
   parts.push(hasLunchFree ? "Lunch 11–12 is free." : "Meeting during tomorrow's lunch.");
 
-
   if (afternoonCalm) {
     parts.push("After 14:00 the day gets calmer.");
   }
@@ -190,7 +199,10 @@ function buildEnglish(signals: WindDownSignals, holiday: UpcomingHolidayInfo | n
   };
 }
 
-function buildNorwegian(signals: WindDownSignals, holiday: UpcomingHolidayInfo | null): EveningWindDownSummary {
+function buildNorwegian(
+  signals: WindDownSignals,
+  holiday: UpcomingHolidayInfo | null,
+): EveningWindDownSummary {
   const {
     eventCount,
     firstEvent,
@@ -254,7 +266,6 @@ function buildNorwegian(signals: WindDownSignals, holiday: UpcomingHolidayInfo |
   }
 
   parts.push(hasLunchFree ? "Lunsj kl. 11–12 er fri." : "Møte i lunsjtiden i morgen.");
-
 
   if (afternoonCalm) {
     parts.push("Ettermiddagen er rolig fra kl. 14:00.");

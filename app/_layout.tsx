@@ -1,4 +1,3 @@
-import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { ClerkProvider, useAuth } from "@clerk/clerk-expo";
 import {
   DMSans_400Regular,
@@ -11,6 +10,7 @@ import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { tokenCache } from "@/features/auth/clerk/tokenCache";
 import { installGlobalErrorLogger } from "@/lib/globalErrorHandler";
@@ -33,15 +33,15 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-    <SafeAreaProvider>
-      <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
-        <LanguageProvider>
-          <ThemeProvider>
-            <RootStack />
-          </ThemeProvider>
-        </LanguageProvider>
-      </ClerkProvider>
-    </SafeAreaProvider>
+      <SafeAreaProvider>
+        <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
+          <LanguageProvider>
+            <ThemeProvider>
+              <RootStack />
+            </ThemeProvider>
+          </LanguageProvider>
+        </ClerkProvider>
+      </SafeAreaProvider>
     </GestureHandlerRootView>
   );
 }

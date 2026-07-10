@@ -12,10 +12,7 @@ export function AppBrand() {
   return (
     <View className="flex-row items-center gap-2" accessibilityRole="header">
       <EchoflowMark size={26} color={accent} />
-      <Text
-        className="text-text1 font-bodySemi"
-        style={{ fontSize: 15.6, letterSpacing: 0.2 }}
-      >
+      <Text className="text-text1 font-bodySemi" style={{ fontSize: 15.6, letterSpacing: 0.2 }}>
         {t("common.appName")}
       </Text>
     </View>

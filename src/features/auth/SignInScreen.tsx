@@ -481,9 +481,7 @@ export function SignInScreen() {
                       }`}
                     >
                       <Text
-                        className={`text-sm font-bodyMedium ${
-                          active ? "text-card" : "text-text1"
-                        }`}
+                        className={`text-sm font-bodyMedium ${active ? "text-card" : "text-text1"}`}
                       >
                         {strategyLabel(factor.strategy, t)}
                       </Text>
@@ -509,9 +507,7 @@ export function SignInScreen() {
                       }`}
                     >
                       <Text
-                        className={`text-sm font-bodyMedium ${
-                          active ? "text-card" : "text-text1"
-                        }`}
+                        className={`text-sm font-bodyMedium ${active ? "text-card" : "text-text1"}`}
                       >
                         {strategyLabel(factor.strategy, t)}
                       </Text>

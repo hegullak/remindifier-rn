@@ -79,10 +79,7 @@ export function translateRelationType(
   return translated.join(conjunction);
 }
 
-export function toggleRelationCategory(
-  stored: readonly string[],
-  categoryValue: string,
-): string[] {
+export function toggleRelationCategory(stored: readonly string[], categoryValue: string): string[] {
   const set = new Set(stored);
   if (set.has(categoryValue)) {
     set.delete(categoryValue);

@@ -178,9 +178,7 @@ describe("fetchCalendarBriefEvents", () => {
       canAskAgain: true,
       expires: "never",
     });
-    mockCalendar.getCalendarsAsync.mockResolvedValue([
-      { id: "cal-job", title: "Jobb" } as never,
-    ]);
+    mockCalendar.getCalendarsAsync.mockResolvedValue([{ id: "cal-job", title: "Jobb" } as never]);
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -211,15 +209,11 @@ describe("fetchCalendarBriefEvents", () => {
       canAskAgain: true,
       expires: "never",
     });
-    mockCalendar.getCalendarsAsync.mockResolvedValue([
-      { id: "cal-1", title: "Privat" } as never,
-    ]);
+    mockCalendar.getCalendarsAsync.mockResolvedValue([{ id: "cal-1", title: "Privat" } as never]);
     mockCalendar.getEventsAsync.mockResolvedValue([]);
 
     const { events } = await fetchCalendarBriefEvents(getCalendarWeekBounds());
-    const tomorrowPrivat = events.filter(
-      (e) => e.daysUntil === 1 && e.calendarName === "Privat",
-    );
+    const tomorrowPrivat = events.filter((e) => e.daysUntil === 1 && e.calendarName === "Privat");
     expect(tomorrowPrivat.length).toBeGreaterThanOrEqual(3);
   });
 });

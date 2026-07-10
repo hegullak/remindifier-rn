@@ -1,8 +1,8 @@
 import { useCallback, useState } from "react";
 import { ActivityIndicator, Pressable, Text, TextInput, View } from "react-native";
 import { useTranslation } from "@/i18n";
-import { triggerLight } from "@/lib/haptics";
 import { LOOK_FORWARD_MAX_LENGTH } from "@/lib/brief/lookForward";
+import { triggerLight } from "@/lib/haptics";
 import { BriefCard } from "@/ui/BriefCard";
 
 type LookForwardPromptProps = {

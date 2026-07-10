@@ -68,12 +68,14 @@ export function ProfileHeaderLink() {
               <Text className="text-nav">🎸</Text>
             </View>
             <View className="flex-1">
-              <Text className="text-base text-text1 font-bodyMedium">{t("profile.guitarTheme")}</Text>
-              <Text className="text-body text-text3 font-body mt-0.5">{t("profile.guitarThemeHint")}</Text>
+              <Text className="text-base text-text1 font-bodyMedium">
+                {t("profile.guitarTheme")}
+              </Text>
+              <Text className="text-body text-text3 font-body mt-0.5">
+                {t("profile.guitarThemeHint")}
+              </Text>
             </View>
-            {guitarActive ? (
-              <Text className="text-accent text-lg font-bodySemi">✓</Text>
-            ) : null}
+            {guitarActive ? <Text className="text-accent text-lg font-bodySemi">✓</Text> : null}
           </Pressable>
         </View>
       </BottomSheet>

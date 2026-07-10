@@ -3,13 +3,13 @@ import { useState } from "react";
 import { Platform, Pressable, Text, TextInput, View } from "react-native";
 import { useTranslation } from "@/i18n/LanguageContext";
 import { redLetterKindIcon, redLetterKindLabel } from "@/i18n/redLetterKinds";
+import { triggerLight } from "@/lib/haptics";
 import {
   RED_LETTER_OTHER_KINDS,
   type RedLetterDayInput,
   type RedLetterKind,
 } from "@/lib/red-letter-day";
 import { useAppTheme } from "@/theme/ThemeProvider";
-import { triggerLight } from "@/lib/haptics";
 
 const CURRENT_YEAR = new Date().getFullYear();
 

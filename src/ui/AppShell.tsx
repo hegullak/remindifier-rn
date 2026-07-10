@@ -3,7 +3,7 @@ import { View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ProfileHeaderLink } from "@/features/auth/ProfileHeaderLink";
 import { useAppTheme } from "@/theme/ThemeProvider";
-import { GlobalAddButton, type AddMenuAction, type AddMenuSection } from "@/ui/GlobalAddButton";
+import { type AddMenuAction, type AddMenuSection, GlobalAddButton } from "@/ui/GlobalAddButton";
 
 export function AppShell({
   children,

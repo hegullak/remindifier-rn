@@ -139,10 +139,7 @@
       "indexes": {
         "daily_look_forward_user_date": {
           "name": "daily_look_forward_user_date",
-          "columns": [
-            "user_id",
-            "date"
-          ],
+          "columns": ["user_id", "date"],
           "isUnique": true
         }
       },
@@ -151,12 +148,8 @@
           "name": "daily_look_forward_user_id_users_id_fk",
           "tableFrom": "daily_look_forward",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -223,25 +216,17 @@
       "indexes": {
         "gathering_participants_unique": {
           "name": "gathering_participants_unique",
-          "columns": [
-            "gathering_id",
-            "person_id"
-          ],
+          "columns": ["gathering_id", "person_id"],
           "isUnique": true
         },
         "gathering_participants_gathering_idx": {
           "name": "gathering_participants_gathering_idx",
-          "columns": [
-            "gathering_id"
-          ],
+          "columns": ["gathering_id"],
           "isUnique": false
         },
         "gathering_participants_person_idx": {
           "name": "gathering_participants_person_idx",
-          "columns": [
-            "user_id",
-            "person_id"
-          ],
+          "columns": ["user_id", "person_id"],
           "isUnique": false
         }
       },
@@ -250,12 +235,8 @@
           "name": "gathering_participants_gathering_id_gatherings_id_fk",
           "tableFrom": "gathering_participants",
           "tableTo": "gatherings",
-          "columnsFrom": [
-            "gathering_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["gathering_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -263,12 +244,8 @@
           "name": "gathering_participants_person_id_persons_id_fk",
           "tableFrom": "gathering_participants",
           "tableTo": "persons",
-          "columnsFrom": [
-            "person_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["person_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -276,12 +253,8 @@
           "name": "gathering_participants_user_id_users_id_fk",
           "tableFrom": "gathering_participants",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -378,18 +351,12 @@
       "indexes": {
         "gatherings_user_idx": {
           "name": "gatherings_user_idx",
-          "columns": [
-            "user_id",
-            "scheduled_at"
-          ],
+          "columns": ["user_id", "scheduled_at"],
           "isUnique": false
         },
         "gatherings_status_idx": {
           "name": "gatherings_status_idx",
-          "columns": [
-            "user_id",
-            "status"
-          ],
+          "columns": ["user_id", "status"],
           "isUnique": false
         }
       },
@@ -398,12 +365,8 @@
           "name": "gatherings_user_id_users_id_fk",
           "tableFrom": "gatherings",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -546,19 +509,12 @@
       "indexes": {
         "person_entries_person_idx": {
           "name": "person_entries_person_idx",
-          "columns": [
-            "user_id",
-            "person_id",
-            "occurred_at"
-          ],
+          "columns": ["user_id", "person_id", "occurred_at"],
           "isUnique": false
         },
         "person_entries_recent_idx": {
           "name": "person_entries_recent_idx",
-          "columns": [
-            "user_id",
-            "occurred_at"
-          ],
+          "columns": ["user_id", "occurred_at"],
           "isUnique": false
         }
       },
@@ -567,12 +523,8 @@
           "name": "person_entries_user_id_users_id_fk",
           "tableFrom": "person_entries",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -580,12 +532,8 @@
           "name": "person_entries_person_id_persons_id_fk",
           "tableFrom": "person_entries",
           "tableTo": "persons",
-          "columnsFrom": [
-            "person_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["person_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -675,18 +623,12 @@
       "indexes": {
         "person_red_letter_days_person_idx": {
           "name": "person_red_letter_days_person_idx",
-          "columns": [
-            "user_id",
-            "person_id"
-          ],
+          "columns": ["user_id", "person_id"],
           "isUnique": false
         },
         "person_red_letter_days_date_idx": {
           "name": "person_red_letter_days_date_idx",
-          "columns": [
-            "user_id",
-            "event_date"
-          ],
+          "columns": ["user_id", "event_date"],
           "isUnique": false
         }
       },
@@ -695,12 +637,8 @@
           "name": "person_red_letter_days_user_id_users_id_fk",
           "tableFrom": "person_red_letter_days",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -708,12 +646,8 @@
           "name": "person_red_letter_days_person_id_persons_id_fk",
           "tableFrom": "person_red_letter_days",
           "tableTo": "persons",
-          "columnsFrom": [
-            "person_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["person_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -841,27 +775,17 @@
       "indexes": {
         "persons_user_idx": {
           "name": "persons_user_idx",
-          "columns": [
-            "user_id",
-            "archived",
-            "display_name"
-          ],
+          "columns": ["user_id", "archived", "display_name"],
           "isUnique": false
         },
         "persons_birthday_idx": {
           "name": "persons_birthday_idx",
-          "columns": [
-            "user_id",
-            "birthday"
-          ],
+          "columns": ["user_id", "birthday"],
           "isUnique": false
         },
         "persons_last_interaction_idx": {
           "name": "persons_last_interaction_idx",
-          "columns": [
-            "user_id",
-            "last_interaction_at"
-          ],
+          "columns": ["user_id", "last_interaction_at"],
           "isUnique": false
         }
       },
@@ -870,12 +794,8 @@
           "name": "persons_user_id_users_id_fk",
           "tableFrom": "persons",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -941,28 +861,17 @@
       "indexes": {
         "relationships_unique_directed": {
           "name": "relationships_unique_directed",
-          "columns": [
-            "user_id",
-            "from_person_id",
-            "to_person_id",
-            "label"
-          ],
+          "columns": ["user_id", "from_person_id", "to_person_id", "label"],
           "isUnique": true
         },
         "relationships_from_idx": {
           "name": "relationships_from_idx",
-          "columns": [
-            "user_id",
-            "from_person_id"
-          ],
+          "columns": ["user_id", "from_person_id"],
           "isUnique": false
         },
         "relationships_to_idx": {
           "name": "relationships_to_idx",
-          "columns": [
-            "user_id",
-            "to_person_id"
-          ],
+          "columns": ["user_id", "to_person_id"],
           "isUnique": false
         }
       },
@@ -971,12 +880,8 @@
           "name": "relationships_user_id_users_id_fk",
           "tableFrom": "relationships",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -984,12 +889,8 @@
           "name": "relationships_from_person_id_persons_id_fk",
           "tableFrom": "relationships",
           "tableTo": "persons",
-          "columnsFrom": [
-            "from_person_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["from_person_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -997,12 +898,8 @@
           "name": "relationships_to_person_id_persons_id_fk",
           "tableFrom": "relationships",
           "tableTo": "persons",
-          "columnsFrom": [
-            "to_person_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["to_person_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }

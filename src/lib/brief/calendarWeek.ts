@@ -48,10 +48,7 @@ export function isDateInCalendarWeek(date: Date, bounds = getCalendarWeekBounds(
   return d >= bounds.start && d <= bounds.end;
 }
 
-export function formatCalendarWeekRange(
-  bounds: CalendarWeekBounds,
-  locale: "en" | "no",
-): string {
+export function formatCalendarWeekRange(bounds: CalendarWeekBounds, locale: "en" | "no"): string {
   const dateLocale = locale === "no" ? "nb-NO" : "en-GB";
   const opts: Intl.DateTimeFormatOptions = { day: "numeric", month: "short" };
   const start = bounds.start.toLocaleDateString(dateLocale, opts);

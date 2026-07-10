@@ -1,14 +1,16 @@
-import type { SemanticIntakeParseOptions } from "@/lib/intake/semanticIntakeParser.types";
+import { parseSemanticIntakeLocal } from "@/lib/intake/semanticIntakeParser";
 import {
   enrichIntakeWithLocalSchedule,
   finalizeIntakePartial,
   mergeOrphanGratulereFollowUps,
   parseSemanticIntakeWithApi,
 } from "@/lib/intake/semanticIntakeParser.api";
-import { parseSemanticIntakeLocal } from "@/lib/intake/semanticIntakeParser";
-import type { SemanticIntakeParseResult } from "@/lib/intake/semanticIntakeParser.types";
-import { fetchParseCompletion } from "@/lib/parse/parseApiClient";
+import type {
+  SemanticIntakeParseOptions,
+  SemanticIntakeParseResult,
+} from "@/lib/intake/semanticIntakeParser.types";
 import { extractCompletionContent } from "@/lib/parse/openaiTypes";
+import { fetchParseCompletion } from "@/lib/parse/parseApiClient";
 
 function normalizeWhitespace(value: string): string {
   return value.replace(/\s+/g, " ").trim();
@@ -60,4 +62,7 @@ export async function parseSemanticIntake(
   return withMergedFollowUps(parseSemanticIntakeLocal(rawInput, options));
 }
 
-export { parseSemanticIntakeLocal, applySemanticIntakeEdits } from "@/lib/intake/semanticIntakeParser";
+export {
+  applySemanticIntakeEdits,
+  parseSemanticIntakeLocal,
+} from "@/lib/intake/semanticIntakeParser";

@@ -1,14 +1,17 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { getCalendarWeekBounds, formatCalendarWeekRange, getISOWeek } from "@/lib/brief/calendarWeek";
 import { listBriefSchedule, listUpcomingRedLetterDays } from "@/db/repos/briefRepo";
+import { listGatheringsForUser } from "@/db/repos/gatheringsRepo";
 import {
-  dismissDailyLookForward,
   deleteDailyLookForward,
+  dismissDailyLookForward,
   getDailyLookForward,
   saveDailyLookForward,
 } from "@/db/repos/lookForwardRepo";
-import { listGatheringsForUser } from "@/db/repos/gatheringsRepo";
-import { getBriefSectionOrder, getSelectedCalendarIds, setBriefSectionOrder } from "@/db/repos/userRepo";
+import {
+  getBriefSectionOrder,
+  getSelectedCalendarIds,
+  setBriefSectionOrder,
+} from "@/db/repos/userRepo";
 import {
   getFallbackTraining,
   getHeadsupItems,
@@ -17,20 +20,25 @@ import {
 import { useTranslation } from "@/i18n/LanguageContext";
 import { translate } from "@/i18n/translate";
 import type { Locale } from "@/i18n/types";
+import { subscribeBriefReload } from "@/lib/brief/briefRefresh";
 import {
-  type CalendarBriefEvent,
   type CalendarAccessStatus,
+  type CalendarBriefEvent,
   fetchCalendarBriefEvents,
   startOfToday,
 } from "@/lib/brief/calendarEvents";
 import {
+  formatCalendarWeekRange,
+  getCalendarWeekBounds,
+  getISOWeek,
+} from "@/lib/brief/calendarWeek";
+import type { DailyLookForwardRecord } from "@/lib/brief/lookForward";
+import type { BriefSectionId } from "@/lib/brief/sections";
+import { DEFAULT_BRIEF_SECTION_ORDER } from "@/lib/brief/sections";
+import {
   enrichCalendarWithGatheringIds,
   enrichScheduleWithGatheringIds,
 } from "@/lib/gatherings/briefLinks";
-import type { BriefSectionId } from "@/lib/brief/sections";
-import { DEFAULT_BRIEF_SECTION_ORDER } from "@/lib/brief/sections";
-import { subscribeBriefReload } from "@/lib/brief/briefRefresh";
-import type { DailyLookForwardRecord } from "@/lib/brief/lookForward";
 import { logger } from "@/lib/logger";
 import type { UpcomingRedLetterDay } from "@/lib/timeline/red-letter-days";
 
@@ -87,13 +95,13 @@ export function useBriefData(userId: string | null | undefined) {
     }
     const [scheduleRaw, redLetterDays, sectionOrder, selectedCalendarIds, gatherings, lookForward] =
       await Promise.all([
-      listBriefSchedule(userId),
-      listUpcomingRedLetterDays(userId, 60, locale),
-      getBriefSectionOrder(userId),
-      getSelectedCalendarIds(userId),
-      listGatheringsForUser(userId),
-      getDailyLookForward(userId),
-    ]);
+        listBriefSchedule(userId),
+        listUpcomingRedLetterDays(userId, 60, locale),
+        getBriefSectionOrder(userId),
+        getSelectedCalendarIds(userId),
+        listGatheringsForUser(userId),
+        getDailyLookForward(userId),
+      ]);
     const calendarResult = await fetchCalendarBriefEvents(weekBounds, selectedCalendarIds);
     const calendarEvents = calendarResult.events;
     const scheduleLocalized = scheduleRaw.map((item) => localizeScheduleItem(item, locale));

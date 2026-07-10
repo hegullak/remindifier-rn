@@ -71,7 +71,12 @@ describe("calendarEvents", () => {
       params ? `${key}:${params.days}` : key;
 
     const todayEvent = mapToCalendarBriefEvent(
-      { id: "1", title: "A", startDate: today.toISOString(), endDate: today.toISOString() } as never,
+      {
+        id: "1",
+        title: "A",
+        startDate: today.toISOString(),
+        endDate: today.toISOString(),
+      } as never,
       today,
     );
     const tomorrowEvent = mapToCalendarBriefEvent(
@@ -84,7 +89,12 @@ describe("calendarEvents", () => {
       today,
     );
     const laterEvent = mapToCalendarBriefEvent(
-      { id: "3", title: "C", startDate: later.toISOString(), endDate: later.toISOString() } as never,
+      {
+        id: "3",
+        title: "C",
+        startDate: later.toISOString(),
+        endDate: later.toISOString(),
+      } as never,
       today,
     );
 

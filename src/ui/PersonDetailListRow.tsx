@@ -2,13 +2,7 @@ import type { ReactNode } from "react";
 import { Text, View } from "react-native";
 
 /** Flat list row matching gather event-detail talking points. */
-export function PersonDetailListRow({
-  icon,
-  children,
-}: {
-  icon?: string;
-  children: ReactNode;
-}) {
+export function PersonDetailListRow({ icon, children }: { icon?: string; children: ReactNode }) {
   return (
     <View className="flex-row items-start gap-3 py-2.5 bg-bg">
       {icon ? (

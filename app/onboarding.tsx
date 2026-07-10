@@ -17,11 +17,11 @@ import { draftToFormInitial } from "@/features/people/naturalIntake";
 import { ParsedPersonPreviewCard } from "@/features/people/ParsedPersonPreviewCard";
 import { PersonForm } from "@/features/people/PersonForm";
 import { useTranslation } from "@/i18n/LanguageContext";
-import { useAppTheme } from "@/theme/ThemeProvider";
 import {
   type ParsedPersonDraft,
   parseNaturalPersonInput,
 } from "@/lib/people/naturalLanguageParser";
+import { useAppTheme } from "@/theme/ThemeProvider";
 import { FatalScreen, LoadingScreen } from "@/ui/StartupScreens";
 
 type OnboardingStep = "input" | "preview";
@@ -45,7 +45,11 @@ function OnboardingContent({
   const [parsedDraft, setParsedDraft] = useState<ParsedPersonDraft | null>(null);
   const [alreadyCompleted, setAlreadyCompleted] = useState<boolean | null>(null);
   const [parsing, setParsing] = useState(false);
-  const [nudge, setNudge] = useState<{ personId: string; personName: string; actions: string[] } | null>(null);
+  const [nudge, setNudge] = useState<{
+    personId: string;
+    personName: string;
+    actions: string[];
+  } | null>(null);
 
   useEffect(() => {
     if (!ready) return;

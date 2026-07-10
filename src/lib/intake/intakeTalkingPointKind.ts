@@ -6,7 +6,9 @@ export function resolveIntakeTalkingPointKind(
   const t = text.trim().toLowerCase();
 
   if (
-    /\b(diskutere|hyttetur|snakke\s+om|påsken|tar med hva|hvem som tar|planlegge\s+tur)\b/i.test(t) ||
+    /\b(diskutere|hyttetur|snakke\s+om|påsken|tar med hva|hvem som tar|planlegge\s+tur)\b/i.test(
+      t,
+    ) ||
     /^diskutere\s+/i.test(text)
   ) {
     return "topic";

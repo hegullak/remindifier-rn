@@ -145,11 +145,7 @@ export function MerkedagComposer({
         ) : null}
       </View>
 
-      <InputActionButtons
-        onConfirm={handleConfirm}
-        onDismiss={onDismiss}
-        onDelete={onDelete}
-      />
+      <InputActionButtons onConfirm={handleConfirm} onDismiss={onDismiss} onDelete={onDelete} />
     </View>
   );
 }

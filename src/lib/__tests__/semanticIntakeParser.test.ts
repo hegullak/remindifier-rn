@@ -1,4 +1,7 @@
-import { applySemanticIntakeEdits, parseSemanticIntakeLocal } from "@/lib/intake/semanticIntakeParser";
+import {
+  applySemanticIntakeEdits,
+  parseSemanticIntakeLocal,
+} from "@/lib/intake/semanticIntakeParser";
 
 const WEDNESDAY = new Date("2026-05-27T12:00:00");
 
@@ -27,10 +30,13 @@ describe("parseSemanticIntakeLocal", () => {
   });
 
   it("detects Norwegian follow-up phrasing", () => {
-    const result = parseSemanticIntakeLocal("Middag med Ola fredag kl 19, husk å spørre om hunden", {
-      referenceDate: WEDNESDAY,
-      locale: "no",
-    });
+    const result = parseSemanticIntakeLocal(
+      "Middag med Ola fredag kl 19, husk å spørre om hunden",
+      {
+        referenceDate: WEDNESDAY,
+        locale: "no",
+      },
+    );
     expect(result.person?.name).toBe("Ola");
     expect(result.followUps[0]?.text).toMatch(/hunden/i);
     expect(result.scheduledAt?.label).toMatch(/fredag/i);

@@ -2,9 +2,7 @@ import { resolveIntakeTalkingPointKind } from "@/lib/intake/intakeTalkingPointKi
 
 describe("resolveIntakeTalkingPointKind", () => {
   it("classifies agenda lines as topic even when parser said question", () => {
-    expect(resolveIntakeTalkingPointKind("diskutere hyttetur i påsken", "question")).toBe(
-      "topic",
-    );
+    expect(resolveIntakeTalkingPointKind("diskutere hyttetur i påsken", "question")).toBe("topic");
   });
 
   it("classifies ta opp / skylder as question", () => {

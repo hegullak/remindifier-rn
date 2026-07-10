@@ -2,12 +2,8 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import { useState } from "react";
 import { Platform, Pressable, Text } from "react-native";
 import { useTranslation } from "@/i18n/LanguageContext";
+import { formatBirthdayLabel, isoToPickerDate, pickerDateToIso } from "@/lib/birthdayForm";
 import { useAppTheme } from "@/theme/ThemeProvider";
-import {
-  formatBirthdayLabel,
-  isoToPickerDate,
-  pickerDateToIso,
-} from "@/lib/birthdayForm";
 
 type Props = {
   birthday: string;

@@ -1,4 +1,4 @@
-import { Pressable, Text, View, type TextStyle } from "react-native";
+import { Pressable, Text, type TextStyle, View } from "react-native";
 
 export interface SectionLabelProps {
   children: string;
@@ -17,10 +17,7 @@ export function SectionLabel({ children, style, drag, compact, divider }: Sectio
         compact ? "mt-3 mb-2" : "mt-5 mb-2"
       } ${divider ? "pb-2 border-b border-border" : ""}`}
     >
-      <Text
-        className="text-3xs uppercase tracking-[1.92px] text-text3 font-bodySemi"
-        style={style}
-      >
+      <Text className="text-3xs uppercase tracking-[1.92px] text-text3 font-bodySemi" style={style}>
         {children}
       </Text>
       {drag ? (

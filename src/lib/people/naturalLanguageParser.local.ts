@@ -1,5 +1,5 @@
-import { BIRTHDAY_SENTINEL_YEAR } from "@/lib/red-letter-day";
 import type { ParsedPersonDraft } from "@/lib/people/naturalLanguageParser.types";
+import { BIRTHDAY_SENTINEL_YEAR } from "@/lib/red-letter-day";
 
 const MONTH_BY_NAME: Record<string, number> = {
   jan: 1,
@@ -239,7 +239,10 @@ function extractRelation(
   // preprocessing converts ". " to ", "). This prevents picking up relation
   // words that describe other people mentioned later in the text.
   const scope = rawScope ?? text;
-  const firstSentences = scope.split(/(?<=[.!?])\s+/).slice(0, 2).join(" ");
+  const firstSentences = scope
+    .split(/(?<=[.!?])\s+/)
+    .slice(0, 2)
+    .join(" ");
   const useNo = preferNorwegianLabels(text);
   for (const entry of RELATION_ENTRIES) {
     entry.pattern.lastIndex = 0;

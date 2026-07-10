@@ -46,8 +46,12 @@ export function parseRemindifierQrPayload(raw: string): RemindifierQrPayload | n
       birthday: typeof data.birthday === "string" ? data.birthday : undefined,
       birthdayYearKnown:
         typeof data.birthdayYearKnown === "boolean" ? data.birthdayYearKnown : undefined,
-      about: typeof data.about === "string" ? data.about.slice(0, QR_FIELD_LIMITS.about) : undefined,
-      contact: typeof data.contact === "string" ? data.contact.slice(0, QR_FIELD_LIMITS.contact) : undefined,
+      about:
+        typeof data.about === "string" ? data.about.slice(0, QR_FIELD_LIMITS.about) : undefined,
+      contact:
+        typeof data.contact === "string"
+          ? data.contact.slice(0, QR_FIELD_LIMITS.contact)
+          : undefined,
     };
   } catch {
     return null;

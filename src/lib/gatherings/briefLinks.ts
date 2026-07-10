@@ -47,8 +47,7 @@ export function enrichScheduleWithGatheringIds<T extends { id: string; title: st
   return items.map((item) => ({
     ...item,
     gatheringId:
-      gatheringIdForScheduleItem(item.id) ??
-      gatheringIdForTitle(item.title, gatherings, locale),
+      gatheringIdForScheduleItem(item.id) ?? gatheringIdForTitle(item.title, gatherings, locale),
   }));
 }
 

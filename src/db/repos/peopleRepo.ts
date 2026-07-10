@@ -1,7 +1,14 @@
-import { and, asc, desc, eq, notInArray, inArray } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, notInArray } from "drizzle-orm";
 import * as Crypto from "expo-crypto";
 import { getDrizzleDbForUser } from "@/db/drizzleClient";
-import { gatheringParticipants, gatherings, personEntries, personRedLetterDays, persons, relationships } from "@/db/schema";
+import {
+  gatheringParticipants,
+  gatherings,
+  personEntries,
+  personRedLetterDays,
+  persons,
+  relationships,
+} from "@/db/schema";
 import { logger } from "@/lib/logger";
 import type { RedLetterDayInput } from "@/lib/red-letter-day";
 import { normalizeRedLetterDay } from "@/lib/red-letter-day";
@@ -80,13 +87,26 @@ export async function listPeopleSummaries(userId: string): Promise<PersonSummary
         eventDate: personRedLetterDays.eventDate,
       })
       .from(personRedLetterDays)
-      .where(and(eq(personRedLetterDays.userId, userId), inArray(personRedLetterDays.personId, personIds)))
+      .where(
+        and(
+          eq(personRedLetterDays.userId, userId),
+          inArray(personRedLetterDays.personId, personIds),
+        ),
+      )
       .orderBy(asc(personRedLetterDays.eventDate)),
 
     db
-      .select({ personId: gatheringParticipants.personId, gatheringId: gatheringParticipants.gatheringId })
+      .select({
+        personId: gatheringParticipants.personId,
+        gatheringId: gatheringParticipants.gatheringId,
+      })
       .from(gatheringParticipants)
-      .where(and(eq(gatheringParticipants.userId, userId), inArray(gatheringParticipants.personId, personIds))),
+      .where(
+        and(
+          eq(gatheringParticipants.userId, userId),
+          inArray(gatheringParticipants.personId, personIds),
+        ),
+      ),
 
     db
       .select({ personId: personEntries.personId, body: personEntries.body })
@@ -106,7 +126,11 @@ export async function listPeopleSummaries(userId: string): Promise<PersonSummary
   const allGatherings =
     gatheringIds.length > 0
       ? await db
-          .select({ id: gatherings.id, title: gatherings.title, scheduledAt: gatherings.scheduledAt })
+          .select({
+            id: gatherings.id,
+            title: gatherings.title,
+            scheduledAt: gatherings.scheduledAt,
+          })
           .from(gatherings)
           .where(and(eq(gatherings.userId, userId), inArray(gatherings.id, gatheringIds)))
           .orderBy(asc(gatherings.scheduledAt))

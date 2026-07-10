@@ -1,7 +1,7 @@
 import { Pressable, Text, TextInput, View } from "react-native";
 import { useTranslation } from "@/i18n";
-import { useAppTheme } from "@/theme/ThemeProvider";
 import type { SemanticIntakeParseResult } from "@/lib/intake/semanticIntakeParser.types";
+import { useAppTheme } from "@/theme/ThemeProvider";
 import { BriefCard } from "@/ui/BriefCard";
 
 type EditableValues = {
@@ -74,7 +74,10 @@ function PreviewRow({
 export function SemanticIntakePreviewCard({ parsed, editing, values, onChange }: Props) {
   const { t } = useTranslation();
   const { isDark } = useAppTheme();
-  const followUpLines = values.followUpText.split("\n").map((l) => l.trim()).filter(Boolean);
+  const followUpLines = values.followUpText
+    .split("\n")
+    .map((l) => l.trim())
+    .filter(Boolean);
 
   const ambiguityLabels = parsed.ambiguities
     .filter((key) => key !== "datetime_conflict")
@@ -82,9 +85,7 @@ export function SemanticIntakePreviewCard({ parsed, editing, values, onChange }:
 
   const datetimeOptions = parsed.scheduledAtOptions ?? [];
   const showDatetimePicker =
-    !editing &&
-    datetimeOptions.length >= 2 &&
-    parsed.ambiguities.includes("datetime_conflict");
+    !editing && datetimeOptions.length >= 2 && parsed.ambiguities.includes("datetime_conflict");
 
   const inputBg = isDark ? "#222838" : "#EFECE3";
   const inputColor = isDark ? "#EEF0F5" : "#1C1915";
@@ -128,7 +129,9 @@ export function SemanticIntakePreviewCard({ parsed, editing, values, onChange }:
                   marginBottom: 8,
                 }}
               >
-                <Text style={{ fontSize: 15, color: inputColor, fontWeight: selected ? "600" : "400" }}>
+                <Text
+                  style={{ fontSize: 15, color: inputColor, fontWeight: selected ? "600" : "400" }}
+                >
                   {option.label}
                 </Text>
               </Pressable>
@@ -204,7 +207,9 @@ export function SemanticIntakePreviewCard({ parsed, editing, values, onChange }:
 
       {parsed.ambiguities.includes("datetime_conflict") ? (
         <View className="mt-2 pt-2 border-t border-border">
-          <Text className="text-xs text-text3 font-body">{t("intake.ambiguity.datetime_conflict")}</Text>
+          <Text className="text-xs text-text3 font-body">
+            {t("intake.ambiguity.datetime_conflict")}
+          </Text>
         </View>
       ) : null}
 

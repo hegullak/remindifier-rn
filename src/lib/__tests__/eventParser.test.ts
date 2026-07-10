@@ -1,4 +1,5 @@
 jest.mock("@/lib/logger");
+
 import { parseEventInput } from "@/lib/gatherings/eventParser";
 
 describe("parseEventInput", () => {
@@ -60,7 +61,9 @@ describe("parseEventInput", () => {
 
   it("falls back when API returns error status", async () => {
     process.env.EXPO_PUBLIC_PARSE_API_URL = "https://parse.example.com";
-    global.fetch = jest.fn().mockResolvedValue({ ok: false, status: 500 }) as unknown as typeof fetch;
+    global.fetch = jest
+      .fn()
+      .mockResolvedValue({ ok: false, status: 500 }) as unknown as typeof fetch;
 
     const result = await parseEventInput("Plan dinner", { getToken });
     expect(result.talkingPoints[0].text).toBe("Plan dinner");

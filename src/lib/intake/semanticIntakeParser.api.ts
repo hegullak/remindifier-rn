@@ -1,5 +1,9 @@
 import type { Locale } from "@/i18n/types";
 import {
+  isGarbledFollowUpText,
+  resolveIntakeTalkingPointKind,
+} from "@/lib/intake/intakeTalkingPointKind";
+import {
   buildFields,
   overallConfidence,
   parseSemanticIntakeLocal,
@@ -8,10 +12,6 @@ import type {
   IntakeConfidence,
   SemanticIntakeParseResult,
 } from "@/lib/intake/semanticIntakeParser.types";
-import {
-  isGarbledFollowUpText,
-  resolveIntakeTalkingPointKind,
-} from "@/lib/intake/intakeTalkingPointKind";
 
 type IntakeApiPayload = {
   eventTitle: string | null;
@@ -36,12 +36,8 @@ function parseIsoDate(value: string | null): Date | null {
   return Number.isNaN(date.getTime()) ? null : date;
 }
 
-function normalizeTalkingPointKind(
-  kind: string,
-  text: string,
-): "question" | "topic" | "headsup" {
-  const parsed =
-    kind === "question" || kind === "topic" || kind === "headsup" ? kind : undefined;
+function normalizeTalkingPointKind(kind: string, text: string): "question" | "topic" | "headsup" {
+  const parsed = kind === "question" || kind === "topic" || kind === "headsup" ? kind : undefined;
   return resolveIntakeTalkingPointKind(text, parsed);
 }
 
@@ -50,10 +46,7 @@ function normalizeFollowUpItem(
 ): SemanticIntakeParseResult["followUps"][number] {
   return {
     ...item,
-    talkingPointKind: resolveIntakeTalkingPointKind(
-      item.text,
-      item.talkingPointKind,
-    ),
+    talkingPointKind: resolveIntakeTalkingPointKind(item.text, item.talkingPointKind),
   };
 }
 
@@ -110,9 +103,7 @@ export function mergeOrphanGratulereFollowUps(
   return dedupeFollowUps(
     followUps
       .map((f, i) =>
-        i === engagementIdx
-          ? { ...f, text: mergedText, talkingPointKind: "headsup" as const }
-          : f,
+        i === engagementIdx ? { ...f, text: mergedText, talkingPointKind: "headsup" as const } : f,
       )
       .filter((_, i) => i !== gratulereIdx),
   );
@@ -176,8 +167,7 @@ export function enrichIntakeWithLocalSchedule(
   const ambiguities = [...api.ambiguities];
 
   if (localOptions.length >= 2) {
-    const apiHasUsableOptions =
-      apiOptions.length >= 2 && apiOptions.every((o) => o.date != null);
+    const apiHasUsableOptions = apiOptions.length >= 2 && apiOptions.every((o) => o.date != null);
     scheduledAt = null;
     scheduledAtOptions = apiHasUsableOptions ? apiOptions : localOptions;
     if (!ambiguities.includes("datetime_conflict")) {
@@ -266,8 +256,7 @@ export function normalizeIntakeApiPayload(
     event: asNullableString(data.eventTitle)
       ? { title: asNullableString(data.eventTitle)!, confidence: "high" }
       : null,
-    scheduledAt:
-      scheduledAtOptions && scheduledAtOptions.length >= 2 ? null : scheduledAt,
+    scheduledAt: scheduledAtOptions && scheduledAtOptions.length >= 2 ? null : scheduledAt,
     scheduledAtOptions:
       scheduledAtOptions && scheduledAtOptions.length >= 2 ? scheduledAtOptions : undefined,
     followUps,
@@ -296,10 +285,5 @@ export async function parseSemanticIntakeWithApi(
     return null;
   }
 
-  return normalizeIntakeApiPayload(
-    parsed,
-    rawInput,
-    options.referenceDate,
-    options.locale,
-  );
+  return normalizeIntakeApiPayload(parsed, rawInput, options.referenceDate, options.locale);
 }

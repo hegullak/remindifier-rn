@@ -1,8 +1,5 @@
-import {
-  buildEveningWindDown,
-  buildEveningWindDownUnavailable,
-} from "@/lib/brief/eveningWindDown";
 import type { CalendarBriefEvent } from "@/lib/brief/calendarEvents";
+import { buildEveningWindDown, buildEveningWindDownUnavailable } from "@/lib/brief/eveningWindDown";
 
 function makeEvent(
   id: string,
@@ -30,9 +27,10 @@ function makeWeekendEvent(
   minute = 0,
   title?: string,
 ): CalendarBriefEvent {
-  const date = dayOfWeek === 6
-    ? new Date(2026, 5, 6, hour, minute, 0, 0) // Saturday 2026-06-06
-    : new Date(2026, 5, 7, hour, minute, 0, 0); // Sunday 2026-06-07
+  const date =
+    dayOfWeek === 6
+      ? new Date(2026, 5, 6, hour, minute, 0, 0) // Saturday 2026-06-06
+      : new Date(2026, 5, 7, hour, minute, 0, 0); // Sunday 2026-06-07
   return {
     id,
     title: title ?? `Weekend ${id}`,

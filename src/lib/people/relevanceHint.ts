@@ -1,5 +1,5 @@
-import type { Locale } from "@/i18n/types";
 import { translate } from "@/i18n/translate";
+import type { Locale } from "@/i18n/types";
 
 export type PersonRelevanceData = {
   nextRedLetterDayLabel: string | null;
@@ -13,10 +13,7 @@ export type PersonRelevanceData = {
  * Builds a short, warm relevance hint for a person card.
  * Returns the most relevant signal: gathering → red-letter day → follow-up.
  */
-export function buildPersonRelevanceHint(
-  data: PersonRelevanceData,
-  locale: Locale,
-): string | null {
+export function buildPersonRelevanceHint(data: PersonRelevanceData, locale: Locale): string | null {
   // Priority 1: Upcoming gathering within 7 days
   if (
     data.nextGatheringTitle &&

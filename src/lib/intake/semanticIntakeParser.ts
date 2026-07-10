@@ -71,9 +71,16 @@ const FOLLOW_UP_CLAUSE_PATTERNS: {
   { pattern: /\bikke\s+glem\s+å\s+(.+?)(?=\s*[.!?]|\s+jeg\s+|$)/i, talkingPointKind: "question" },
   { pattern: /\bremember\s+to\s+(.+?)(?=\s*[.!?]|$)/i, talkingPointKind: "question" },
   { pattern: /\bdon'?t\s+forget\s+to\s+(.+?)(?=\s*[.!?]|$)/i, talkingPointKind: "question" },
-  { pattern: /\b(?:vi\s+)?skal\s+diskutere\s+(.+?)(?=\s*[.!?]|$|\s+jeg\s+|\s+[A-ZÆØÅ][^.!?]*\s+nevnte)/i, talkingPointKind: "topic" },
+  {
+    pattern:
+      /\b(?:vi\s+)?skal\s+diskutere\s+(.+?)(?=\s*[.!?]|$|\s+jeg\s+|\s+[A-ZÆØÅ][^.!?]*\s+nevnte)/i,
+    talkingPointKind: "topic",
+  },
   { pattern: /\bskal\s+snakke\s+om\s+(.+)/i, talkingPointKind: "topic" },
-  { pattern: /\b(?:hun|han|de|sie|henne)\s+nevnte(?:\s+noe)?\s+om\s+(.+)/i, talkingPointKind: "topic" },
+  {
+    pattern: /\b(?:hun|han|de|sie|henne)\s+nevnte(?:\s+noe)?\s+om\s+(.+)/i,
+    talkingPointKind: "topic",
+  },
   { pattern: /\bnevnte\s+noe\s+om\s+(.+)/i, talkingPointKind: "topic" },
   {
     pattern: /\b(?:[A-ZÆØÅ][a-zæøå]+|[Hh]un|[Hh]an|[Dd]e)\s+nevnte\s+at\s+(.+)/i,
@@ -138,7 +145,11 @@ function splitClauses(text: string): string[] {
 }
 
 function pushFollowUp(
-  list: { text: string; confidence: IntakeConfidence; talkingPointKind?: "question" | "topic" | "headsup" }[],
+  list: {
+    text: string;
+    confidence: IntakeConfidence;
+    talkingPointKind?: "question" | "topic" | "headsup";
+  }[],
   text: string,
   talkingPointKind: "question" | "topic" | "headsup",
 ) {
@@ -151,19 +162,24 @@ function pushFollowUp(
 function expandFollowUpCapture(
   raw: string,
   talkingPointKind: "question" | "topic" | "headsup",
-): { text: string; talkingPointKind: "question" | "topic" | "headsup"; confidence: IntakeConfidence }[] {
+): {
+  text: string;
+  talkingPointKind: "question" | "topic" | "headsup";
+  confidence: IntakeConfidence;
+}[] {
   const segments = raw
     .split(/\.\s+/)
     .map(trimFollowUpTail)
     .filter((s) => s.length >= 3);
 
-  const items: { text: string; talkingPointKind: "question" | "topic" | "headsup"; confidence: IntakeConfidence }[] = [];
+  const items: {
+    text: string;
+    talkingPointKind: "question" | "topic" | "headsup";
+    confidence: IntakeConfidence;
+  }[] = [];
   for (const segment of segments.length > 0 ? segments : [trimFollowUpTail(raw)]) {
     const trimmedSegment = trimFollowUpTail(segment);
-    if (
-      talkingPointKind === "topic" &&
-      /\s+og\s+hvem\s+(?:som\s+)?/i.test(trimmedSegment)
-    ) {
+    if (talkingPointKind === "topic" && /\s+og\s+hvem\s+(?:som\s+)?/i.test(trimmedSegment)) {
       const parts = trimmedSegment.split(/\s+og\s+hvem\s+(?:som\s+)?/i);
       if (parts.length === 2 && parts[0].length >= 3 && parts[1].length >= 3) {
         items.push(
@@ -210,7 +226,10 @@ function splitFollowUpPhrase(phrase: string): string[] {
   return [p];
 }
 
-function stripFollowUpPhrases(clause: string): { followUps: ReturnType<typeof expandFollowUpCapture>; stripped: string } {
+function stripFollowUpPhrases(clause: string): {
+  followUps: ReturnType<typeof expandFollowUpCapture>;
+  stripped: string;
+} {
   const followUps: ReturnType<typeof expandFollowUpCapture> = [];
   let stripped = clause;
 
@@ -243,13 +262,18 @@ function clauseHasSchedulingSignal(clause: string): boolean {
   return (
     EVENT_KEYWORDS.test(clause) ||
     new RegExp(`\\b(?:${WEEKDAY_PATTERN})\\b`, "i").test(clause) ||
-    /\b(?:kl\.?|at|på)\s*(?:\d|one|two|three|four|five|six|en|to|tre|fire|fem|seks)/i.test(clause) ||
+    /\b(?:kl\.?|at|på)\s*(?:\d|one|two|three|four|five|six|en|to|tre|fire|fem|seks)/i.test(
+      clause,
+    ) ||
     PERSON_WITH_PATTERN.test(clause) ||
     /\b(?:planlegger|skal)\s+(?:å\s+)?(?:møte|mote|ta)\b/i.test(clause)
   );
 }
 
-function extractFollowUps(text: string): { followUps: ReturnType<typeof expandFollowUpCapture>; remainder: string } {
+function extractFollowUps(text: string): {
+  followUps: ReturnType<typeof expandFollowUpCapture>;
+  remainder: string;
+} {
   const followUps: ReturnType<typeof expandFollowUpCapture> = [];
   const clauses = splitClauses(text);
   const remainderParts: string[] = [];
@@ -277,14 +301,9 @@ function extractFollowUps(text: string): { followUps: ReturnType<typeof expandFo
     }
 
     const schedulingSource = stripped || trimmed;
-    if (
-      stripped &&
-      clauseHasSchedulingSignal(stripped) &&
-      stripped.length >= 8
-    ) {
+    if (stripped && clauseHasSchedulingSignal(stripped) && stripped.length >= 8) {
       remainderParts.push(stripped);
     } else if (!stripped && extracted.length > 0) {
-      continue;
     } else if (clauseHasSchedulingSignal(trimmed)) {
       remainderParts.push(schedulingSource);
     }
@@ -408,9 +427,7 @@ function parseClockFromFragment(
   const slice = fragment.slice(0, 48);
   const lower = slice.toLowerCase();
   const clockMatch =
-    lower.match(
-      /\b(?:klokken|kl\.?|at|ca\.?|på)\s*(\d{1,2})(?::(\d{2}))?\s*(am|pm)?\b/i,
-    ) ??
+    lower.match(/\b(?:klokken|kl\.?|at|ca\.?|på)\s*(\d{1,2})(?::(\d{2}))?\s*(am|pm)?\b/i) ??
     lower.match(
       /\b(?:klokken|kl\.?|at|ca\.?|på)\s*(one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|en|tre|fire|fem|seks|syv|sju|åtte|ni|ti|elleve|tolv)\b/i,
     ) ??
@@ -462,8 +479,7 @@ function buildScheduledAtOption(
   const parts: string[] = [weekdayLabel];
   if (timeLabel) parts.push(timeLabel);
 
-  const confidence: IntakeConfidence =
-    hour != null ? "high" : "medium";
+  const confidence: IntakeConfidence = hour != null ? "high" : "medium";
 
   return {
     label: parts.join(" "),
@@ -642,7 +658,10 @@ export function buildFields(
   return fields;
 }
 
-export function overallConfidence(fields: SemanticIntakeField[], ambiguities: string[]): IntakeConfidence {
+export function overallConfidence(
+  fields: SemanticIntakeField[],
+  ambiguities: string[],
+): IntakeConfidence {
   if (fields.length === 0) return "low";
   if (ambiguities.includes("free_form_only")) return "low";
   if (ambiguities.length > 0) return "medium";
@@ -753,7 +772,11 @@ export function applySemanticIntakeEdits(
             .split(/\n+/)
             .map((line) => line.trim())
             .filter(Boolean)
-            .map((text) => ({ text, confidence: "high" as const, talkingPointKind: "question" as const }))
+            .map((text) => ({
+              text,
+              confidence: "high" as const,
+              talkingPointKind: "question" as const,
+            }))
         : base.followUps,
   };
 

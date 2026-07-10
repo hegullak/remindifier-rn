@@ -1,7 +1,7 @@
 import { and, eq } from "drizzle-orm";
 import { getDrizzleDbForUser } from "@/db/drizzleClient";
 import { dailyLookForward } from "@/db/schema";
-import { localDateKey, type DailyLookForwardRecord } from "@/lib/brief/lookForward";
+import { type DailyLookForwardRecord, localDateKey } from "@/lib/brief/lookForward";
 
 function rowToRecord(row: { text: string | null; dismissed: boolean }): DailyLookForwardRecord {
   return { text: row.text, dismissed: row.dismissed };
@@ -47,7 +47,10 @@ export async function saveDailyLookForward(
     });
 }
 
-export async function dismissDailyLookForward(userId: string, date = localDateKey()): Promise<void> {
+export async function dismissDailyLookForward(
+  userId: string,
+  date = localDateKey(),
+): Promise<void> {
   const db = await getDrizzleDbForUser(userId);
   const now = new Date();
   const id = `${userId}:${date}`;

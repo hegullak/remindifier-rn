@@ -19,8 +19,8 @@ import {
 import { useTranslation } from "@/i18n";
 import { triggerLight, triggerMedium } from "@/lib/haptics";
 import { confirmSemanticIntake } from "@/lib/intake/confirmSemanticIntake";
-import { applySemanticIntakeEdits } from "@/lib/intake/semanticIntakeParser";
 import { parseSemanticIntake } from "@/lib/intake/parseSemanticIntake";
+import { applySemanticIntakeEdits } from "@/lib/intake/semanticIntakeParser";
 import type { SemanticIntakeParseResult } from "@/lib/intake/semanticIntakeParser.types";
 import { useAppTheme } from "@/theme/ThemeProvider";
 import { AppShell } from "@/ui/AppShell";
@@ -95,12 +95,8 @@ export default function SemanticIntakeScreen() {
     try {
       const result = await confirmSemanticIntake(userId, draft);
       triggerMedium();
-      if (result.kind === "gathering") {
-        router.replace("/(tabs)/gather?created=1");
-        return;
-      }
-      if (result.kind === "follow_up") {
-        router.replace(`/people/${result.personId}`);
+      if (result.kind === "gathering" || result.kind === "follow_up") {
+        router.replace("/(tabs)/brief");
         return;
       }
     } catch {
@@ -183,9 +179,7 @@ export default function SemanticIntakeScreen() {
                 },
               ]}
             />
-            <Text className="text-xs text-text3 font-body mt-2">
-              {t("intake.dictationHint")}
-            </Text>
+            <Text className="text-xs text-text3 font-body mt-2">{t("intake.dictationHint")}</Text>
             <Pressable
               onPress={() => void handleParse()}
               disabled={!inputText.trim() || parsing}
@@ -218,11 +212,11 @@ export default function SemanticIntakeScreen() {
                 loading={busy}
                 disabled={
                   busy ||
-                  (Boolean(
+                  Boolean(
                     parsed.ambiguities.includes("datetime_conflict") &&
                       (parsed.scheduledAtOptions?.length ?? 0) >= 2 &&
                       !values.scheduledLabel.trim(),
-                  ))
+                  )
                 }
               >
                 {t("intake.confirm")}
