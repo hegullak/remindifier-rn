@@ -140,6 +140,14 @@ export const no = {
       redLetter: "Merkedager denne uken",
       eveningWindDown: "KVELDEN",
     },
+    cards: {
+      assessment: "Dagens vurdering",
+      rhythm: "Dagens rytme",
+      breathingRoom: "Pusterom",
+      importantToday: "Viktig i dag",
+      laterThisWeek: "Viktig senere i uken",
+      recommendation: "Anbefaling",
+    },
     eveningWindDown: {
       sectionLabel: "KVELDEN",
       tomorrowEmpty: "I morgen ser åpent ut. Ingenting på kalenderen.",

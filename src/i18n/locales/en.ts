@@ -138,6 +138,14 @@ export const en = {
       redLetter: "Red-letter days this week",
       eveningWindDown: "WIND-DOWN",
     },
+    cards: {
+      assessment: "Today's assessment",
+      rhythm: "Today's rhythm",
+      breathingRoom: "Breathing room",
+      importantToday: "Important today",
+      laterThisWeek: "Later this week",
+      recommendation: "Recommendation",
+    },
     eveningWindDown: {
       sectionLabel: "WIND-DOWN",
       tomorrowEmpty: "Tomorrow looks open. Nothing major on the calendar.",

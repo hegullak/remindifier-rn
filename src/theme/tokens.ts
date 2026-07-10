@@ -26,7 +26,15 @@ export const GUITAR_CSS_VARS = {
   "gold-light": "rgba(245, 158, 11, 0.14)",
 } as const;
 
-export type BriefStripeColor = "blue" | "amber" | "gold" | "green" | "dusk" | "sage" | "accent";
+export type BriefStripeColor =
+  | "blue"
+  | "amber"
+  | "gold"
+  | "green"
+  | "dusk"
+  | "sage"
+  | "accent"
+  | "red";
 
 /** Resolved stripe colors per theme — inline hex avoids NativeWind bg-* on 3px strips. */
 export const BRIEF_STRIPE_COLORS: Record<
@@ -41,6 +49,7 @@ export const BRIEF_STRIPE_COLORS: Record<
     dusk: "#57506F",
     sage: "#466B55",
     accent: "#3E7FA6",
+    red: "#A65A54",
   },
   slate: {
     blue: "#9CCAE0",
@@ -50,6 +59,7 @@ export const BRIEF_STRIPE_COLORS: Record<
     dusk: "#9D8DC0",
     sage: "#7DB89A",
     accent: "#7EB8D4",
+    red: "#E0A09C",
   },
   guitar: {
     blue: "#60A5FA",
@@ -59,6 +69,7 @@ export const BRIEF_STRIPE_COLORS: Record<
     dusk: "#C4A882",
     sage: "#A3A352",
     accent: "#F59E0B",
+    red: "#F87171",
   },
 };
 

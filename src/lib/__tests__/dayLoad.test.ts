@@ -41,11 +41,7 @@ describe("classifyDayLoad", () => {
 
   it("classifies a handful of spaced events as moderate", () => {
     expect(
-      loadOf([
-        makeEvent("a", 8, 30, 30),
-        makeEvent("b", 10, 0, 60),
-        makeEvent("c", 13, 30, 60),
-      ]),
+      loadOf([makeEvent("a", 8, 30, 30), makeEvent("b", 10, 0, 60), makeEvent("c", 13, 30, 60)]),
     ).toBe("moderate");
   });
 

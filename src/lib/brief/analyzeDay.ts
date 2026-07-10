@@ -1,5 +1,5 @@
-import type { CalendarBriefEvent } from "@/lib/brief/calendarEvents";
 import { isWorkEvent } from "@/lib/brief/briefHelpers";
+import type { CalendarBriefEvent } from "@/lib/brief/calendarEvents";
 
 /**
  * Shared, typed analysis of a single day's calendar events.
