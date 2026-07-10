@@ -61,7 +61,7 @@
       [
         "expo-calendar",
         {
-          "calendarPermission": "Allow echoflow to read your calendars for the daily brief. Events are never modified."
+          "calendarPermission": "Allow echoflow to read your calendars for the daily brief, and to manage its own echoflow calendar. Your other calendars are never modified."
         }
       ]
     ],

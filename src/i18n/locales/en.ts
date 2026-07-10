@@ -82,11 +82,27 @@ export const en = {
     calendar: {
       title: "Calendars for Brief",
       readOnlyNote:
-        "Read-only: echoflow never creates, edits, or deletes calendar events. Choose which calendars appear in your brief.",
+        "echoflow never modifies these calendars — choose which ones appear in your brief.",
       permissionNeeded: "Calendar access is required to list your calendars.",
       grantAccess: "Allow calendar access",
       empty: "No calendars found on this device.",
       noneSelected: "No calendars selected — the brief will not show calendar events.",
+    },
+    echoCalendar: {
+      title: "Your echoflow calendar",
+      note: "echoflow creates its own calendar on this device. Copy other calendars into it to freely edit events there — your original calendars are never changed.",
+      permissionNeeded: "Calendar access is required to set up your echoflow calendar.",
+      grantAccess: "Allow calendar access",
+      empty: "No other calendars found on this device.",
+      copy: "Copy in",
+      linked: "Copied in",
+      lastSynced: "Last synced {time}",
+      neverSynced: "Not synced yet",
+      syncAgain: "Sync again",
+      remove: "Remove",
+      syncing: "Syncing…",
+      syncFailed: "Sync failed — try again.",
+      syncResult: "{created} added · {updated} updated · {deleted} removed",
     },
   },
   privacy: {

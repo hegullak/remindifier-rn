@@ -253,6 +253,52 @@ export const dailyLookForward = sqliteTable(
   (t) => [uniqueIndex("daily_look_forward_user_date").on(t.userId, t.date)],
 );
 
+/**
+ * Tracks which device calendars are mirrored into the app-owned "echoflow"
+ * device calendar, and per-event mapping so re-sync can diff cheaply.
+ * Assumes one physical device == one active app user (local-first model);
+ * the underlying device calendar is OS-level and not itself partitioned
+ * per user database.
+ */
+export const calendarSyncLinks = sqliteTable(
+  "calendar_sync_links",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    sourceCalendarId: text("source_calendar_id").notNull(),
+    sourceCalendarTitle: text("source_calendar_title").notNull(),
+    lastSyncedAt: integer("last_synced_at", { mode: "timestamp_ms" }),
+    createdAt: integer("created_at", { mode: "timestamp_ms" })
+      .notNull()
+      .default(sql`(unixepoch() * 1000)`),
+  },
+  (t) => [uniqueIndex("calendar_sync_links_user_source").on(t.userId, t.sourceCalendarId)],
+);
+
+export const calendarSyncEvents = sqliteTable(
+  "calendar_sync_events",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    sourceCalendarId: text("source_calendar_id").notNull(),
+    sourceEventId: text("source_event_id").notNull(),
+    echoEventId: text("echo_event_id").notNull(),
+    /** Canonical join of title/notes/location/start/end/allDay — cheap change detection, not a hash. */
+    signature: text("signature").notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp_ms" })
+      .notNull()
+      .default(sql`(unixepoch() * 1000)`),
+  },
+  (t) => [
+    uniqueIndex("calendar_sync_events_source_unique").on(t.userId, t.sourceEventId),
+    index("calendar_sync_events_calendar_idx").on(t.userId, t.sourceCalendarId),
+  ],
+);
+
 export const myProfile = sqliteTable("my_profile", {
   userId: text("user_id").primaryKey(),
   displayName: text("display_name").notNull(),
@@ -271,3 +317,5 @@ export type UserBriefPreferences = {
 
 export type Person = typeof persons.$inferSelect;
 export type MyProfile = typeof myProfile.$inferSelect;
+export type CalendarSyncLink = typeof calendarSyncLinks.$inferSelect;
+export type CalendarSyncEvent = typeof calendarSyncEvents.$inferSelect;

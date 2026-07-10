@@ -13,6 +13,7 @@ import { clearClerkAuthStorage } from "@/features/auth/clerk/clearAuthStorage";
 import { DEV_BYPASS_AUTH } from "@/features/auth/devBypass";
 import { useAppAuth } from "@/features/auth/useAppAuth";
 import { CalendarSelectionSection } from "@/features/settings/CalendarSelectionSection";
+import { EchoCalendarSection } from "@/features/settings/EchoCalendarSection";
 import { useTranslation } from "@/i18n";
 import { notifyBriefReload } from "@/lib/brief/briefRefresh";
 import { DEFAULT_BRIEF_SECTION_ORDER } from "@/lib/brief/sections";
@@ -154,6 +155,8 @@ export default function SettingsScreen() {
         <AccountSettingsSection />
 
         <CalendarSelectionSection userId={userId} />
+
+        <EchoCalendarSection userId={userId} />
 
         <SettingsAccordion title={t("privacy.title")}>
           {PRIVACY_KEYS.map((key, index) => (

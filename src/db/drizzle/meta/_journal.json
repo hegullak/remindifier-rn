@@ -22,6 +22,13 @@
       "when": 1781116871064,
       "tag": "0002_known_albert_cleary",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1783712107217,
+      "tag": "0003_clumsy_thundra",
+      "breakpoints": true
     }
   ]
 }
