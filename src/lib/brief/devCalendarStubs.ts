@@ -10,29 +10,7 @@ const TOMORROW_STUBS = [
   { id: "dev-stub-tomorrow-fotball", title: "Fotballtrening ⚽", hour: 19, minute: 30 },
 ] as const;
 
-function isPrivatCalendar(name?: string): boolean {
-  const lower = (name ?? "").toLowerCase();
-  return lower.includes("privat") || lower.includes("private") || lower.includes("personal");
-}
-
-function tomorrowBounds(todayStart: Date) {
-  const start = new Date(todayStart);
-  start.setDate(start.getDate() + 1);
-  const end = new Date(start);
-  end.setDate(end.getDate() + 1);
-  return { start, end };
-}
-
-/** True when at least one Privat event starts tomorrow. */
-export function hasPrivatTomorrowEvents(events: CalendarBriefEvent[]): boolean {
-  const todayStart = startOfToday();
-  const { start, end } = tomorrowBounds(todayStart);
-  return events.some(
-    (e) => isPrivatCalendar(e.calendarName) && e.startDate >= start && e.startDate < end,
-  );
-}
-
-/** Dev-only Privat events for tomorrow — keeps Brief «I morgen» populated during testing. */
+/** Dev-only fallback when permission is granted but the week has no events. */
 export function buildDevCalendarStubs(weekBounds: CalendarWeekBounds): CalendarBriefEvent[] {
   if (!__DEV__) return [];
 

@@ -82,6 +82,15 @@ export const no = {
     currentPassword: "Nåværende passord",
     newPassword: "Nytt passord",
     confirmPassword: "Bekreft nytt passord",
+    calendar: {
+      title: "Kalendere i Brief",
+      readOnlyNote:
+        "Kun lesing: echoflow oppretter, endrer eller sletter aldri kalenderhendelser. Velg hvilke kalendere som vises i briefen.",
+      permissionNeeded: "Kalendertilgang kreves for å vise kalenderne dine.",
+      grantAccess: "Gi kalendertilgang",
+      empty: "Ingen kalendere funnet på enheten.",
+      noneSelected: "Ingen kalendere valgt — briefen viser ingen kalenderhendelser.",
+    },
   },
   privacy: {
     title: "Personvern & sikkerhet",
@@ -152,6 +161,15 @@ export const no = {
       tomorrow: "I morgen",
       inDays: "Om {days} dager",
     },
+    calendarAccess: {
+      expoGoTitle: "Kalender krever dev-build",
+      expoGoBody:
+        "Expo Go kan ikke lese kalendere. Kjør npm run build:dev:ios, installer dev-appen på telefonen, og start deretter npm run start:dev.",
+      devStubsNote: "Viser eksempelhendelser nedenfor.",
+      deniedTitle: "Kalendertilgang avslått",
+      deniedBody: "Gi kalendertilgang i Innstillinger for å vise hendelser i briefen.",
+      openSettings: "Åpne innstillinger",
+    },
     greetingMorning: "God morgen",
     greetingAfternoon: "God ettermiddag",
     greetingEvening: "God kveld",
@@ -160,6 +178,13 @@ export const no = {
     pastEventsOne: "1 passert hendelse",
     hidePastEvents: "Skjul passerte",
     tomorrowSection: "I morgen",
+    lookForward: {
+      prompt: "Si én ting du gleder deg til i dag…",
+      placeholder: "F.eks. Fotball-VM starter i dag",
+      skip: "Hopp over",
+      save: "Lagre",
+      cancel: "Avbryt",
+    },
     weekPrev: "Forrige uke",
     weekNext: "Neste uke",
     weekThis: "Gå til denne uken",

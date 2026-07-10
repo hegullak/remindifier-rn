@@ -17,7 +17,14 @@ export function isAllDay(event: CalendarBriefEvent): boolean {
 
 export function isWorkEvent(e: CalendarBriefEvent): boolean {
   const name = (e.calendarName ?? "").toLowerCase();
-  return name.includes("jobb") || name.includes("work") || name.includes("job");
+  return (
+    name.includes("jobb") ||
+    name.includes("work") ||
+    name.includes("job") ||
+    name.includes("arbeid") ||
+    name.includes("kontor") ||
+    name.includes("office")
+  );
 }
 
 export function buildWeekendSummary(

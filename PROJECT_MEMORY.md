@@ -74,7 +74,9 @@ A contextual memory and heads-up assistant for the people in your life — not a
 - **Dagen min:** upcoming today + training; passed timed events in collapsible dropdown (non-navigable in Brief; still in Events tab)
 - **I morgen:** always shown when `tomorrowItems.length > 0` (not evening-only)
 - **Uken min:** collapsed card for rest-of-week (`sortKey >= 2`); tomorrow excluded (lives in I morgen)
-- **Dev calendar stubs:** `src/lib/brief/devCalendarStubs.ts` — injects 3 Privat tomorrow events in `__DEV__` when real calendar lacks Privat tomorrow; seed mirror in `seedCalendar.ts`
+- **Device calendars (readonly):** `fetchCalendarBriefEvents` reads selected calendars only (`userRepo.getSelectedCalendarIds`); default = all. User picks calendars in **Settings → Kalendere i Brief** (`CalendarSelectionSection`). Never writes to device calendar.
+- **Expo Go + calendar:** `expo-calendar` read API does **not** work in Expo Go on iPhone (iOS 17+ needs `NSCalendarsFullAccessUsageDescription` in the host app binary). `calendarAccess.ts` detects `Constants.appOwnership === "expo"` and skips fetch; Brief shows `CalendarAccessNotice`. Real calendar requires a **development build** (EAS or `npx expo run:ios` on Mac). In `__DEV__`, demo stubs still show for layout testing.
+- **Dev calendar stubs:** `devCalendarStubs.ts` — in `__DEV__` only, injects 3 Privat tomorrow events when the week fetch returns zero events; seed mirror in `seedCalendar.ts`
 - **Body text:** use `"\n"` as sentence separator in brief bodies; renderer splits on `"\n"` — never `". "` (breaks «kl. 09:00»)
 - Static demo content: `getHeadsupItems(locale)`, `getFallbackTraining(locale)` in `briefContent.ts`
 - **Push-Pull-Legs:** session names stay English in all locales; active day highlighted via `PplSessionLabel` (`src/ui/PplSessionLabel.tsx`) — never translate to e.g. «Trekk»
@@ -136,6 +138,27 @@ A contextual memory and heads-up assistant for the people in your life — not a
 - `src/lib/logger.ts`, `globalErrorHandler.ts`, `logUtils.ts`
 - Device logs under Documents; dev also `expo-output.log` via `npm run start:lan:log`
 - **Startup debug sequence:** `app_launched` → `root_stack_ready` → `index_ready` → `tabs_db_ready` → `migrations_ready` → `bootstrap_ready` → `tabs_render`
+
+## EAS development build (vs Expo Go)
+
+| | **Expo Go** | **EAS dev build** |
+|---|-------------|-------------------|
+| App on phone | Generic Expo Go from App Store | **echoflow** installed as its own app |
+| Native config | Fixed (camera, etc. only) | **Your** `app.json` plugins (calendar, SQLCipher, …) |
+| JS workflow | Scan QR → instant reload | Scan QR → instant reload (same Metro) |
+| Rebuild native | Never | Only when native deps/config change |
+| iPhone calendar | ❌ Not available | ✅ After granting permission |
+
+**One-time setup** (from repo root, Windows OK for iOS cloud build):
+
+1. `npx eas login` — Expo account (free tier includes dev builds)
+2. `npx eas init` — links project; writes `expo.extra.eas.projectId` into `app.json`
+3. `npx eas secret:create --scope project --name EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY --value pk_…` (and other `EXPO_PUBLIC_*` from `.env`)
+4. **iPhone (physical):** `npm run build:dev:ios` — requires **paid Apple Developer** account for signing; install via QR/link when build finishes
+5. **Android:** `npm run build:dev:android` — install APK from EAS dashboard
+6. Daily dev: `npm run start:dev` → open **echoflow** dev app (not Expo Go) → scan QR
+
+Config: `eas.json` profiles `development` (device), `development-simulator` (iOS sim, Mac). Package: `expo-dev-client`. Rebuild after changing native plugins in `app.json`.
 
 ## Tooling & conventions
 

@@ -6,7 +6,7 @@ remindifier-rn (product: **echoflow**) uses `@clerk/clerk-expo` with flows that 
 
 | Feature | iOS | Android | Notes |
 |--------|-----|---------|--------|
-| Email + password sign-in | ✓ | ✓ | `SignInScreen` + 2FA (TOTP, email/phone code, backup) |
+| Email + password sign-in | ✓ | ✓ | `SignInScreen` + 2FA (TOTP, email/phone code, backup) + **Client Trust** on new devices |
 | Email sign-up + verification | ✓ | ✓ | `SignUpScreen` |
 | Google OAuth | ✓ | ✓ | `useSSO` + in-app browser |
 | Apple Sign In | ✓ (native) | ✓ (OAuth browser) | iOS: `expo-apple-authentication`; Android: `oauth_apple` |

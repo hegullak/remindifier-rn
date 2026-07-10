@@ -1,8 +1,14 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { getCalendarWeekBounds, formatCalendarWeekRange, getISOWeek } from "@/lib/brief/calendarWeek";
 import { listBriefSchedule, listUpcomingRedLetterDays } from "@/db/repos/briefRepo";
+import {
+  dismissDailyLookForward,
+  deleteDailyLookForward,
+  getDailyLookForward,
+  saveDailyLookForward,
+} from "@/db/repos/lookForwardRepo";
 import { listGatheringsForUser } from "@/db/repos/gatheringsRepo";
-import { getBriefSectionOrder, setBriefSectionOrder } from "@/db/repos/userRepo";
+import { getBriefSectionOrder, getSelectedCalendarIds, setBriefSectionOrder } from "@/db/repos/userRepo";
 import {
   getFallbackTraining,
   getHeadsupItems,
@@ -13,6 +19,7 @@ import { translate } from "@/i18n/translate";
 import type { Locale } from "@/i18n/types";
 import {
   type CalendarBriefEvent,
+  type CalendarAccessStatus,
   fetchCalendarBriefEvents,
   startOfToday,
 } from "@/lib/brief/calendarEvents";
@@ -23,6 +30,7 @@ import {
 import type { BriefSectionId } from "@/lib/brief/sections";
 import { DEFAULT_BRIEF_SECTION_ORDER } from "@/lib/brief/sections";
 import { subscribeBriefReload } from "@/lib/brief/briefRefresh";
+import type { DailyLookForwardRecord } from "@/lib/brief/lookForward";
 import { logger } from "@/lib/logger";
 import type { UpcomingRedLetterDay } from "@/lib/timeline/red-letter-days";
 
@@ -40,6 +48,8 @@ interface BriefState {
   weekEvents: CalendarBriefEvent[];
   redLetterDays: UpcomingRedLetterDay[];
   sectionOrder: BriefSectionId[];
+  lookForward: DailyLookForwardRecord | null;
+  calendarAccess: CalendarAccessStatus;
 }
 
 const initialState: BriefState = {
@@ -50,6 +60,8 @@ const initialState: BriefState = {
   weekEvents: [],
   redLetterDays: [],
   sectionOrder: DEFAULT_BRIEF_SECTION_ORDER,
+  lookForward: null,
+  calendarAccess: "denied",
 };
 
 export function formatBriefDateLine(locale: Locale, weekBounds: { start: Date; end: Date }) {
@@ -73,14 +85,17 @@ export function useBriefData(userId: string | null | undefined) {
       setBrief(initialState);
       return;
     }
-    const [scheduleRaw, redLetterDays, sectionOrder, calendarEvents, gatherings] =
+    const [scheduleRaw, redLetterDays, sectionOrder, selectedCalendarIds, gatherings, lookForward] =
       await Promise.all([
       listBriefSchedule(userId),
       listUpcomingRedLetterDays(userId, 60, locale),
       getBriefSectionOrder(userId),
-      fetchCalendarBriefEvents(weekBounds),
+      getSelectedCalendarIds(userId),
       listGatheringsForUser(userId),
+      getDailyLookForward(userId),
     ]);
+    const calendarResult = await fetchCalendarBriefEvents(weekBounds, selectedCalendarIds);
+    const calendarEvents = calendarResult.events;
     const scheduleLocalized = scheduleRaw.map((item) => localizeScheduleItem(item, locale));
     const schedule = enrichScheduleWithGatheringIds(scheduleLocalized, gatherings, locale);
     const calendarLinked = enrichCalendarWithGatheringIds(calendarEvents, gatherings, locale);
@@ -108,8 +123,31 @@ export function useBriefData(userId: string | null | undefined) {
       weekEvents: calendarEvents,
       redLetterDays,
       sectionOrder,
+      lookForward,
+      calendarAccess: calendarResult.access,
     }));
   }, [userId, locale, weekBounds]);
+
+  const saveLookForward = useCallback(
+    async (text: string) => {
+      if (!userId) return;
+      await saveDailyLookForward(userId, text);
+      await reload();
+    },
+    [userId, reload],
+  );
+
+  const dismissLookForward = useCallback(async () => {
+    if (!userId) return;
+    await dismissDailyLookForward(userId);
+    await reload();
+  }, [userId, reload]);
+
+  const deleteLookForward = useCallback(async () => {
+    if (!userId) return;
+    await deleteDailyLookForward(userId);
+    await reload();
+  }, [userId, reload]);
 
   useEffect(() => {
     reload().catch((error) => {
@@ -148,5 +186,10 @@ export function useBriefData(userId: string | null | undefined) {
     dateLine: formatBriefDateLine(locale, weekBounds),
     headsupItems,
     trainingLines,
+    lookForward: brief.lookForward,
+    calendarAccess: brief.calendarAccess,
+    saveLookForward,
+    dismissLookForward,
+    deleteLookForward,
   };
 }

@@ -34,6 +34,7 @@ export async function activateClerkSession(
 export type SignInFlowStep =
   | { kind: "complete"; sessionId: string }
   | { kind: "second_factor"; signIn: SignInResource }
+  | { kind: "client_trust"; signIn: SignInResource }
   | { kind: "first_factor"; signIn: SignInResource }
   | { kind: "unsupported"; status: string | null };
 
@@ -52,6 +53,9 @@ export function resolveSignInStep(signIn: SignInResource): SignInFlowStep {
   if (status === "needs_second_factor") {
     return { kind: "second_factor", signIn };
   }
+  if ((status as string | null) === "needs_client_trust") {
+    return { kind: "client_trust", signIn };
+  }
   if (status === "needs_first_factor") {
     return { kind: "first_factor", signIn };
   }
@@ -64,6 +68,8 @@ export function signInStatusMessage(status: string | null, locale: Locale) {
       return translate(locale, "signInForm.needsNewPassword");
     case "needs_identifier":
       return translate(locale, "signInForm.needsIdentifier");
+    case "needs_client_trust":
+      return translate(locale, "signInForm.confirmDevice");
     default:
       return status
         ? translate(locale, "signInForm.statusStopped", { status })

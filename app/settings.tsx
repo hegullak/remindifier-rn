@@ -12,6 +12,7 @@ import { notifyBriefReload } from "@/lib/brief/briefRefresh";
 import { deleteSeedCalendar, seedDevCalendar } from "@/db/seedCalendar";
 import { useUserDrizzleDb } from "@/db/useUserDrizzleDb";
 import { AccountSettingsSection } from "@/features/auth/AccountSettingsSection";
+import { CalendarSelectionSection } from "@/features/settings/CalendarSelectionSection";
 import { clearClerkAuthStorage } from "@/features/auth/clerk/clearAuthStorage";
 import { DEV_BYPASS_AUTH } from "@/features/auth/devBypass";
 import { useAppAuth } from "@/features/auth/useAppAuth";
@@ -152,6 +153,8 @@ export default function SettingsScreen() {
 
         <AccountSettingsSection />
 
+        <CalendarSelectionSection userId={userId} />
+
         <SettingsAccordion title={t("privacy.title")}>
           {PRIVACY_KEYS.map((key, index) => (
             <Text
@@ -209,7 +212,10 @@ export default function SettingsScreen() {
                       `Removed ${result.removed} events, created ${result.created}.`,
                     );
                   } else if (result.reason === "no_permission") {
-                    Alert.alert("Seed calendar", "Calendar permission not granted.");
+                    Alert.alert(
+                      "Seed calendar",
+                      "Calendar permission not granted. In Expo Go on iPhone, use a dev build (npx expo run:ios) instead.",
+                    );
                   } else {
                     Alert.alert(
                       "Seed calendar",

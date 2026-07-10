@@ -232,6 +232,27 @@ export const briefRedLetterDays = sqliteTable("brief_red_letter_days", {
   timing: text("timing").notNull(),
 });
 
+/** One optional «looking forward to today» line per user per local calendar day. */
+export const dailyLookForward = sqliteTable(
+  "daily_look_forward",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    date: text("date").notNull(),
+    text: text("text"),
+    dismissed: integer("dismissed", { mode: "boolean" }).notNull().default(false),
+    createdAt: integer("created_at", { mode: "timestamp_ms" })
+      .notNull()
+      .default(sql`(unixepoch() * 1000)`),
+    updatedAt: integer("updated_at", { mode: "timestamp_ms" })
+      .notNull()
+      .default(sql`(unixepoch() * 1000)`),
+  },
+  (t) => [uniqueIndex("daily_look_forward_user_date").on(t.userId, t.date)],
+);
+
 export const myProfile = sqliteTable("my_profile", {
   userId: text("user_id").primaryKey(),
   displayName: text("display_name").notNull(),
@@ -244,6 +265,8 @@ export const myProfile = sqliteTable("my_profile", {
 export type UserBriefPreferences = {
   sectionOrder?: string[];
   onboardingCompletedAt?: number;
+  /** Device calendar IDs included in the brief (read-only). Omitted = all calendars. */
+  selectedCalendarIds?: string[];
 };
 
 export type Person = typeof persons.$inferSelect;

@@ -37,6 +37,7 @@ export function SignInScreen() {
   const [password, setPassword] = useState("");
   const [verificationCode, setVerificationCode] = useState("");
   const [pendingSecondFactor, setPendingSecondFactor] = useState(false);
+  const [secondFactorKind, setSecondFactorKind] = useState<"mfa" | "client_trust">("mfa");
   const [pendingFirstFactor, setPendingFirstFactor] = useState(false);
   const [supportedFactors, setSupportedFactors] = useState<SecondFactor[]>([]);
   const [supportedFirstFactors, setSupportedFirstFactors] = useState<FirstFactor[]>([]);
@@ -88,6 +89,7 @@ export function SignInScreen() {
 
   function resetVerificationFlow() {
     setPendingSecondFactor(false);
+    setSecondFactorKind("mfa");
     setPendingFirstFactor(false);
     setSupportedFactors([]);
     setSupportedFirstFactors([]);
@@ -203,9 +205,13 @@ export function SignInScreen() {
     await prepareCodeDelivery(factor);
   }
 
-  function beginSecondFactorStep(signInResource: SignInResource) {
+  function beginSecondFactorStep(
+    signInResource: SignInResource,
+    kind: "mfa" | "client_trust" = "mfa",
+  ) {
     const factors = signInResource.supportedSecondFactors ?? [];
     if (__DEV__) console.log("Clerk supportedSecondFactors:", JSON.stringify(factors));
+    setSecondFactorKind(kind);
     setSupportedFactors(factors);
     setPendingSecondFactor(true);
     setVerificationCode("");
@@ -244,7 +250,9 @@ export function SignInScreen() {
         const ok = await finishSignIn(step.sessionId);
         if (ok) setErrorMessage(null);
       } else if (step.kind === "second_factor") {
-        beginSecondFactorStep(step.signIn);
+        beginSecondFactorStep(step.signIn, "mfa");
+      } else if (step.kind === "client_trust") {
+        beginSecondFactorStep(step.signIn, "client_trust");
       } else if (step.kind === "first_factor") {
         beginFirstFactorStep(step.signIn);
       } else {
@@ -265,6 +273,14 @@ export function SignInScreen() {
           const retryStep = resolveSignInStep(retry as SignInResource);
           if (retryStep.kind === "complete") {
             await finishSignIn(retryStep.sessionId);
+            return;
+          }
+          if (retryStep.kind === "second_factor") {
+            beginSecondFactorStep(retryStep.signIn, "mfa");
+            return;
+          }
+          if (retryStep.kind === "client_trust") {
+            beginSecondFactorStep(retryStep.signIn, "client_trust");
             return;
           }
         } catch {
@@ -371,7 +387,9 @@ export function SignInScreen() {
       if (step.kind === "complete") {
         await finishSignIn(step.sessionId);
       } else if (step.kind === "second_factor") {
-        beginSecondFactorStep(step.signIn);
+        beginSecondFactorStep(step.signIn, "mfa");
+      } else if (step.kind === "client_trust") {
+        beginSecondFactorStep(step.signIn, "client_trust");
       } else if (step.kind === "unsupported") {
         setErrorMessage(signInStatusMessage(step.status, locale));
       }
@@ -404,7 +422,11 @@ export function SignInScreen() {
     <View className="gap-5">
       {pendingVerification ? (
         <Text className="text-base leading-[24px] text-text1 font-body mb-1">
-          {pendingFirstFactor ? t("signInForm.confirmDevice") : t("signInForm.confirmSecondFactor")}
+          {pendingFirstFactor
+            ? t("signInForm.confirmDevice")
+            : secondFactorKind === "client_trust"
+              ? t("signInForm.confirmDevice")
+              : t("signInForm.confirmSecondFactor")}
         </Text>
       ) : null}
       {!pendingVerification ? (

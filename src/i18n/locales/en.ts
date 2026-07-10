@@ -80,6 +80,15 @@ export const en = {
     currentPassword: "Current password",
     newPassword: "New password",
     confirmPassword: "Confirm new password",
+    calendar: {
+      title: "Calendars for Brief",
+      readOnlyNote:
+        "Read-only: echoflow never creates, edits, or deletes calendar events. Choose which calendars appear in your brief.",
+      permissionNeeded: "Calendar access is required to list your calendars.",
+      grantAccess: "Allow calendar access",
+      empty: "No calendars found on this device.",
+      noneSelected: "No calendars selected — the brief will not show calendar events.",
+    },
   },
   privacy: {
     title: "Privacy & security",
@@ -150,6 +159,15 @@ export const en = {
       tomorrow: "Tomorrow",
       inDays: "In {days} days",
     },
+    calendarAccess: {
+      expoGoTitle: "Calendar needs a dev build",
+      expoGoBody:
+        "Expo Go cannot read calendars. Run npm run build:dev:ios, install the dev app on your phone, then start the bundler with npm run start:dev.",
+      devStubsNote: "Showing sample events below.",
+      deniedTitle: "Calendar access denied",
+      deniedBody: "Allow calendar access in Settings to show your events in the brief.",
+      openSettings: "Open Settings",
+    },
     greetingMorning: "Good morning",
     greetingAfternoon: "Good afternoon",
     greetingEvening: "Good evening",
@@ -158,6 +176,13 @@ export const en = {
     pastEventsOne: "1 passed event",
     hidePastEvents: "Hide passed events",
     tomorrowSection: "Tomorrow",
+    lookForward: {
+      prompt: "Name one thing you're looking forward to today…",
+      placeholder: "e.g. World Cup kicks off today",
+      skip: "Skip",
+      save: "Save",
+      cancel: "Cancel",
+    },
     weekPrev: "Previous week",
     weekNext: "Next week",
     weekThis: "Go to this week",

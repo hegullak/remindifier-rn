@@ -100,3 +100,26 @@ export async function ensureDefaultBriefPreferences(userId: string) {
     })
     .where(eq(users.id, userId));
 }
+
+export async function getSelectedCalendarIds(userId: string): Promise<string[] | undefined> {
+  const prefs = await getUserBriefPreferences(userId);
+  return prefs.selectedCalendarIds;
+}
+
+export async function setSelectedCalendarIds(userId: string, calendarIds: string[]) {
+  try {
+    const db = await getDrizzleDbForUser(userId);
+    const prefs = await getUserBriefPreferences(userId);
+    await db
+      .update(users)
+      .set({
+        briefPreferences: { ...prefs, selectedCalendarIds: calendarIds },
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, userId));
+    logger.info("calendar_selection_updated", { userId, count: calendarIds.length });
+  } catch (err) {
+    logRepoError("calendar_selection_update_failed", err, { userId });
+    throw err;
+  }
+}

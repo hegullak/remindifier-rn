@@ -3,8 +3,13 @@ import { PermissionStatus } from "expo-modules-core";
 import { fetchCalendarBriefEvents } from "@/lib/brief/calendarEvents";
 import { getCalendarWeekBounds } from "@/lib/brief/calendarWeek";
 
+jest.mock("@/lib/brief/calendarAccess", () => ({
+  calendarRequiresDevBuild: jest.fn(() => false),
+}));
+
 jest.mock("expo-calendar", () => ({
   requestCalendarPermissionsAsync: jest.fn(),
+  getCalendarPermissionsAsync: jest.fn(),
   getCalendarsAsync: jest.fn(),
   getEventsAsync: jest.fn(),
   EntityTypes: { EVENT: "event" },
@@ -15,9 +20,15 @@ const mockCalendar = Calendar as jest.Mocked<typeof Calendar>;
 describe("fetchCalendarBriefEvents", () => {
   beforeEach(() => {
     jest.resetAllMocks();
+    mockCalendar.getCalendarPermissionsAsync.mockResolvedValue({
+      status: PermissionStatus.UNDETERMINED,
+      granted: false,
+      canAskAgain: true,
+      expires: "never",
+    });
   });
 
-  it("returns [] when permission is denied", async () => {
+  it("returns denied access when permission is denied", async () => {
     const dev = (global as { __DEV__?: boolean }).__DEV__;
     (global as { __DEV__?: boolean }).__DEV__ = false;
 
@@ -28,12 +39,21 @@ describe("fetchCalendarBriefEvents", () => {
       expires: "never",
     });
 
-    await expect(fetchCalendarBriefEvents()).resolves.toEqual([]);
+    await expect(fetchCalendarBriefEvents()).resolves.toEqual({
+      events: [],
+      access: "denied",
+    });
 
     (global as { __DEV__?: boolean }).__DEV__ = dev;
   });
 
-  it("returns sorted events from remindifier calendar", async () => {
+  it("returns sorted events from all calendars", async () => {
+    mockCalendar.getCalendarPermissionsAsync.mockResolvedValue({
+      status: PermissionStatus.GRANTED,
+      granted: true,
+      canAskAgain: true,
+      expires: "never",
+    });
     mockCalendar.requestCalendarPermissionsAsync.mockResolvedValue({
       status: PermissionStatus.GRANTED,
       granted: true,
@@ -42,6 +62,7 @@ describe("fetchCalendarBriefEvents", () => {
     });
     mockCalendar.getCalendarsAsync.mockResolvedValue([
       { id: "cal-1", title: "Privat" } as never,
+      { id: "cal-2", title: "Jobb" } as never,
     ]);
 
     const today = new Date();
@@ -68,25 +89,49 @@ describe("fetchCalendarBriefEvents", () => {
         startDate: sooner.toISOString(),
         endDate: sooner.toISOString(),
         allDay: true,
-        calendarId: "cal-1",
+        calendarId: "cal-2",
       } as never,
     ]);
 
     const weekBounds = getCalendarWeekBounds();
-    const events = await fetchCalendarBriefEvents(weekBounds);
+    const { events, access } = await fetchCalendarBriefEvents(weekBounds);
+    expect(access).toBe("granted");
     expect(events).toHaveLength(2);
     expect(mockCalendar.getEventsAsync).toHaveBeenCalledWith(
-      ["cal-1"],
+      ["cal-1", "cal-2"],
       weekBounds.start,
       weekBounds.end,
     );
     expect(events[0].id).toBe("a");
     expect(events[1].id).toBe("b");
     expect(events[0].allDay).toBe(true);
-    expect(events[0].calendarName).toBe("Privat");
+    expect(events[0].calendarName).toBe("Jobb");
   });
 
-  it("returns [] and logs when fetch throws", async () => {
+  it("only fetches events from selected calendar ids", async () => {
+    mockCalendar.getCalendarPermissionsAsync.mockResolvedValue({
+      status: PermissionStatus.GRANTED,
+      granted: true,
+      canAskAgain: true,
+      expires: "never",
+    });
+    mockCalendar.getCalendarsAsync.mockResolvedValue([
+      { id: "cal-1", title: "Privat" } as never,
+      { id: "cal-2", title: "Jobb" } as never,
+    ]);
+    mockCalendar.getEventsAsync.mockResolvedValue([]);
+
+    const weekBounds = getCalendarWeekBounds();
+    await fetchCalendarBriefEvents(weekBounds, ["cal-2"]);
+
+    expect(mockCalendar.getEventsAsync).toHaveBeenCalledWith(
+      ["cal-2"],
+      weekBounds.start,
+      weekBounds.end,
+    );
+  });
+
+  it("returns error access and logs when fetch throws", async () => {
     const dev = (global as { __DEV__?: boolean }).__DEV__;
     (global as { __DEV__?: boolean }).__DEV__ = false;
 
@@ -98,12 +143,15 @@ describe("fetchCalendarBriefEvents", () => {
     });
     mockCalendar.getCalendarsAsync.mockRejectedValue(new Error("calendar unavailable"));
 
-    await expect(fetchCalendarBriefEvents()).resolves.toEqual([]);
+    await expect(fetchCalendarBriefEvents()).resolves.toEqual({
+      events: [],
+      access: "error",
+    });
 
     (global as { __DEV__?: boolean }).__DEV__ = dev;
   });
 
-  it("returns [] when calendar is missing", async () => {
+  it("returns granted with empty events when no calendars exist", async () => {
     const dev = (global as { __DEV__?: boolean }).__DEV__;
     (global as { __DEV__?: boolean }).__DEV__ = false;
 
@@ -115,12 +163,15 @@ describe("fetchCalendarBriefEvents", () => {
     });
     mockCalendar.getCalendarsAsync.mockResolvedValue([]);
 
-    await expect(fetchCalendarBriefEvents()).resolves.toEqual([]);
+    await expect(fetchCalendarBriefEvents()).resolves.toEqual({
+      events: [],
+      access: "granted",
+    });
 
     (global as { __DEV__?: boolean }).__DEV__ = dev;
   });
 
-  it("injects dev tomorrow stubs when Privat tomorrow is missing", async () => {
+  it("injects dev stubs when week has no events in __DEV__", async () => {
     mockCalendar.requestCalendarPermissionsAsync.mockResolvedValue({
       status: PermissionStatus.GRANTED,
       granted: true,
@@ -148,7 +199,24 @@ describe("fetchCalendarBriefEvents", () => {
       } as never,
     ]);
 
-    const events = await fetchCalendarBriefEvents(getCalendarWeekBounds());
+    const { events } = await fetchCalendarBriefEvents(getCalendarWeekBounds());
+    expect(events.some((e) => e.id === "job-tomorrow")).toBe(true);
+    expect(events.some((e) => e.id.startsWith("dev-stub-"))).toBe(false);
+  });
+
+  it("injects dev stubs when calendar returns no events in __DEV__", async () => {
+    mockCalendar.requestCalendarPermissionsAsync.mockResolvedValue({
+      status: PermissionStatus.GRANTED,
+      granted: true,
+      canAskAgain: true,
+      expires: "never",
+    });
+    mockCalendar.getCalendarsAsync.mockResolvedValue([
+      { id: "cal-1", title: "Privat" } as never,
+    ]);
+    mockCalendar.getEventsAsync.mockResolvedValue([]);
+
+    const { events } = await fetchCalendarBriefEvents(getCalendarWeekBounds());
     const tomorrowPrivat = events.filter(
       (e) => e.daysUntil === 1 && e.calendarName === "Privat",
     );

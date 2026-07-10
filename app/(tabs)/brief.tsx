@@ -3,6 +3,9 @@ import { useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { useAppAuth, useAppUser } from "@/features/auth/useAppAuth";
 import { BriefDateHeader } from "@/features/brief/BriefDateHeader";
+import { CalendarAccessNotice } from "@/features/brief/CalendarAccessNotice";
+import { LookForwardPrompt } from "@/features/brief/LookForwardPrompt";
+import { LookForwardSavedRow } from "@/features/brief/LookForwardSavedRow";
 import { useBriefData } from "@/features/brief/useBriefData";
 import { useTranslation } from "@/i18n";
 import { isDateInCalendarWeek } from "@/lib/brief/calendarWeek";
@@ -14,6 +17,10 @@ import { anniversaryMilestoneDetail } from "@/lib/milestones/anniversaries";
 import type { UpcomingRedLetterDay } from "@/lib/timeline/red-letter-days";
 import { buildEveningWindDown } from "@/lib/brief/eveningWindDown";
 import { buildMorningBrief } from "@/lib/brief/morningBrief";
+import {
+  lookForwardDisplayText,
+  shouldShowLookForwardPrompt,
+} from "@/lib/brief/lookForward";
 import { AppShell } from "@/ui/AppShell";
 import { BottomSheet } from "@/ui/BottomSheet";
 import { BriefCard } from "@/ui/BriefCard";
@@ -31,6 +38,11 @@ export default function BriefScreen() {
     trainingLines,
     weekOffset,
     weekBounds,
+    lookForward,
+    saveLookForward,
+    dismissLookForward,
+    deleteLookForward,
+    calendarAccess,
   } = useBriefData(userId);
   const morningBrief = buildMorningBrief(brief.todayEvents ?? [], brief.weekEvents ?? [], locale);
   const windDown = buildEveningWindDown(brief.tomorrowEvents ?? [], brief.weekEvents ?? [], locale);
@@ -38,6 +50,7 @@ export default function BriefScreen() {
   const [showEveningWindDown, setShowEveningWindDown] = useState(false);
   const [weekExpanded, setWeekExpanded] = useState(false);
   const [pastExpanded, setPastExpanded] = useState(false);
+  const [lookForwardEditing, setLookForwardEditing] = useState(false);
   const [anniversaryDetail, setAnniversaryDetail] = useState<{
     personName: string;
     years: number;
@@ -56,11 +69,6 @@ export default function BriefScreen() {
     next.setHours(0, 0, 0, 0);
     next.setDate(next.getDate() + item.daysUntil);
     return isDateInCalendarWeek(next, weekBounds);
-  });
-
-  const privateCalendarEvents = brief.calendarEvents.filter((e) => {
-    const name = (e.calendarName ?? "").toLowerCase();
-    return name.includes("privat") || name.includes("private") || name.includes("personal");
   });
 
   function briefDayLabel(daysUntil: number): string {
@@ -87,10 +95,13 @@ export default function BriefScreen() {
   };
 
   const nowMinutes = new Date().getHours() * 60 + new Date().getMinutes();
+  const lookForwardText = lookForwardDisplayText(lookForward);
+  const showLookForwardPrompt =
+    weekOffset === 0 && (lookForwardEditing || shouldShowLookForwardPrompt(lookForward));
 
   const weekItems: UnifiedItem[] = [];
 
-  for (const event of privateCalendarEvents) {
+  for (const event of brief.calendarEvents) {
     const eventDay = new Date(event.startDate);
     eventDay.setHours(0, 0, 0, 0);
     const daysUntil = Math.round((eventDay.getTime() - today.getTime()) / 86400000);
@@ -104,6 +115,7 @@ export default function BriefScreen() {
           hour: "2-digit",
           minute: "2-digit",
         });
+    const calendarLabel = event.calendarName?.trim();
     weekItems.push({
       id: `cal-${event.id}`,
       sortKey: daysUntil,
@@ -111,7 +123,7 @@ export default function BriefScreen() {
       dayLabel: briefDayLabel(daysUntil),
       icon,
       primary: title,
-      secondary: timeStr,
+      secondary: [timeStr, calendarLabel].filter(Boolean).join(" · ") || undefined,
       gatheringId: event.gatheringId,
     });
   }
@@ -287,14 +299,24 @@ export default function BriefScreen() {
     const hasUpcoming = upcomingToday.length > 0;
     const hasPast = pastToday.length > 0;
     const hasTraining = trainingLines.length > 0;
-    if (!hasUpcoming && !hasPast && !hasTraining) return null;
+    const hasLookForward = Boolean(lookForwardText);
+    if (!hasUpcoming && !hasPast && !hasTraining && !hasLookForward) return null;
+    const needDividerLookForward = hasLookForward && hasUpcoming;
     const needDivider1 = hasUpcoming && hasTraining;
-    const needDivider2 = (hasUpcoming || hasTraining) && hasPast;
+    const needDivider2 = (hasUpcoming || hasTraining || hasLookForward) && hasPast;
 
     return (
       <View className="mb-1">
         <SectionLabel>{locale === "no" ? "Dagen min" : "My day"}</SectionLabel>
         <BriefCard stripeColor="gold">
+          {lookForwardText && !lookForwardEditing ? (
+            <LookForwardSavedRow
+              text={lookForwardText}
+              onEdit={() => setLookForwardEditing(true)}
+              onDelete={() => void deleteLookForward()}
+            />
+          ) : null}
+          {needDividerLookForward && hasUpcoming ? <View className="h-px bg-border mb-3" /> : null}
           {upcomingToday.map((item, i) => renderUnifiedRow(item, i, upcomingToday, false))}
           {needDivider1 && <View className="h-px bg-border my-3" />}
           {trainingLines.map((line, i) => (
@@ -402,6 +424,30 @@ export default function BriefScreen() {
       </View>
 
       <BriefDateHeader />
+
+      {weekOffset === 0 ? (
+        <CalendarAccessNotice
+          access={calendarAccess}
+          hasDevStubs={calendarAccess !== "granted" && brief.calendarEvents.some((e) => e.id.startsWith("dev-stub-"))}
+        />
+      ) : null}
+
+      {showLookForwardPrompt ? (
+        <LookForwardPrompt
+          initialText={lookForwardEditing ? (lookForwardText ?? "") : ""}
+          onSave={async (text) => {
+            await saveLookForward(text);
+            setLookForwardEditing(false);
+          }}
+          onDismiss={async () => {
+            if (lookForwardEditing) {
+              setLookForwardEditing(false);
+            } else {
+              await dismissLookForward();
+            }
+          }}
+        />
+      ) : null}
 
       {/* Ambient — kun morgen 06–09 eller kveld 20:30+ */}
       {ambientHeadline ? (
