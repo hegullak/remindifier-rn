@@ -19,9 +19,8 @@ export const en = {
   },
   tabs: {
     brief: "brief",
-    gather: "events",
-    people: "people",
-    myself: "myself",
+    day: "day",
+    week: "week",
   },
   profile: {
     menuTitle: "Profile",

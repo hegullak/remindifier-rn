@@ -21,9 +21,8 @@ export const no = {
   },
   tabs: {
     brief: "brief",
-    gather: "events",
-    people: "people",
-    myself: "myself",
+    day: "dag",
+    week: "uke",
   },
   profile: {
     menuTitle: "Profil",
