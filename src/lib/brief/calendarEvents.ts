@@ -11,6 +11,8 @@ export type CalendarBriefEvent = {
   id: string;
   title: string;
   startDate: Date;
+  /** End of the event; optional for legacy/mock rows. Used for meeting-time and gap analysis. */
+  endDate?: Date;
   allDay: boolean;
   daysUntil: number;
   isToday: boolean;
@@ -55,6 +57,7 @@ export function mapToCalendarBriefEvent(
     id: event.id,
     title: event.title ?? "",
     startDate,
+    endDate: event.endDate ? new Date(event.endDate) : undefined,
     allDay: event.allDay ?? false,
     daysUntil,
     isToday: daysUntil === 0,
