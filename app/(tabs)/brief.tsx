@@ -105,7 +105,9 @@ export default function BriefScreen() {
   const isEveningWindow = nowMinutes >= EVENING_START_MINUTES;
   const isMorningWindow = !isEveningWindow && now.getHours() >= MORNING_START_HOUR;
 
-  const ambientHeadline = isMorningWindow
+  // Flow-summary: the day's narrative at the top of the brief. Morning and
+  // evening variants feed the same block (buildMorningBrief / buildEveningWindDown).
+  const flowSummaryHeadline = isMorningWindow
     ? morningBrief.available && !morningBrief.isEmpty
       ? morningBrief.headline
       : null
@@ -114,7 +116,11 @@ export default function BriefScreen() {
         ? windDown.headline
         : null
       : null;
-  const ambientBody = isMorningWindow ? morningBrief.body : isEveningWindow ? windDown.body : null;
+  const flowSummaryBody = isMorningWindow
+    ? morningBrief.body
+    : isEveningWindow
+      ? windDown.body
+      : null;
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -350,19 +356,19 @@ export default function BriefScreen() {
     <AppShell>
       <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 130 }}>
         {/* Greeting */}
-        <View style={{ paddingTop: 16, paddingBottom: ambientHeadline ? 6 : 16 }}>
+        <View style={{ paddingTop: 16, paddingBottom: flowSummaryHeadline ? 6 : 16 }}>
           <Text className="text-5xl leading-tight text-text1 font-heading">
             {greetingLead} <Text className="text-accent">{greetingName}</Text>
           </Text>
         </View>
 
-        {/* Ambient day narrative — morning 06-18 or evening 18:00+ only */}
-        {ambientHeadline ? (
+        {/* Flow-summary — morning 06-18 or evening 18:00+ only */}
+        {flowSummaryHeadline ? (
           <View style={{ paddingBottom: 16 }}>
             <Text className="text-body-lg text-text1 font-body leading-[24px] mb-2">
-              {ambientHeadline}
+              {flowSummaryHeadline}
             </Text>
-            {ambientBody
+            {flowSummaryBody
               ?.split("\n")
               .filter(Boolean)
               .map((line) => (
