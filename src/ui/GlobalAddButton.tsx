@@ -1,6 +1,8 @@
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
+import { useAppAuth } from "@/features/auth/useAppAuth";
+import { IntentionCaptureSheet } from "@/features/brief/IntentionCaptureSheet";
 import { useTranslation } from "@/i18n";
 import { triggerLight } from "@/lib/haptics";
 import { BottomSheet } from "@/ui/BottomSheet";
@@ -40,7 +42,9 @@ function toSections(props: Props): AddMenuSection[] {
 export function GlobalAddButton(props: Props) {
   const router = useRouter();
   const { t } = useTranslation();
+  const { userId } = useAppAuth();
   const [open, setOpen] = useState(false);
+  const [showIntentionCapture, setShowIntentionCapture] = useState(false);
   const prependSections = toSections(props);
 
   const globalActions: AddMenuAction[] = [
@@ -50,6 +54,14 @@ export function GlobalAddButton(props: Props) {
       label: t("global.quickCapture"),
       onPress: () => {
         router.push("/intake");
+      },
+    },
+    {
+      icon: "💭",
+      bgClass: "bg-duskLight",
+      label: t("global.newIntention"),
+      onPress: () => {
+        setShowIntentionCapture(true);
       },
     },
     {
@@ -123,6 +135,12 @@ export function GlobalAddButton(props: Props) {
           {globalActions.map(renderAction)}
         </View>
       </BottomSheet>
+
+      <IntentionCaptureSheet
+        visible={showIntentionCapture}
+        onDismiss={() => setShowIntentionCapture(false)}
+        userId={userId}
+      />
     </>
   );
 }

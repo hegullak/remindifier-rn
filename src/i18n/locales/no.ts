@@ -6,6 +6,7 @@ export const no = {
     quickCapture: "Si eller skriv",
     newPerson: "Ny person",
     newEvent: "Ny event",
+    newIntention: "Noe å huske",
   },
   common: {
     appName: "echoflow",
@@ -168,6 +169,18 @@ export const no = {
   },
   week: {
     title: "Uke",
+  },
+  intentions: {
+    captureTitle: "Noe å huske",
+    placeholder: "f.eks. Ringe tante Berit",
+    horizon: {
+      today: "I dag",
+      week: "Denne uken",
+      month: "Denne måneden",
+    },
+    resolveTitle: "Hvordan gikk det?",
+    done: "Gjort",
+    notNow: "Ikke nå",
   },
   brief: {
     sections: {

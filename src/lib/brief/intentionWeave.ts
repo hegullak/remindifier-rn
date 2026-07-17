@@ -1,13 +1,15 @@
 import { analyzeDay } from "@/lib/brief/analyzeDay";
 import type { CalendarBriefEvent } from "@/lib/brief/calendarEvents";
 import { getISOWeek } from "@/lib/brief/calendarWeek";
-import type { FlowSummary, FlowSummaryPeriod } from "@/lib/brief/flowSummary";
 
 /**
- * Weaves one open intention ("ringe tante Berit denne uken") into the
- * flow-summary — but only when the day has room. This is the companion
- * behaviour: echoflow remembers on your behalf and offers, never nags.
- * Opportunity, not failure: a packed day simply stays silent.
+ * The companion loop: echoflow remembers a soft intention ("ring tante Berit")
+ * on the user's behalf and offers it back only when there is real room for
+ * it — never nags, never forces it onto a packed day. This is the mechanism
+ * behind the "mentally prepared, not just reminded" principle: knowing in
+ * advance which day has room removes the running mental check of "do I have
+ * capacity for this today?" that makes dreadful-but-necessary things (calls,
+ * follow-ups, maintenance, admin) feel heavier than they actually are.
  */
 
 export type OpenIntention = {
@@ -15,6 +17,12 @@ export type OpenIntention = {
   text: string;
   /** Local date (YYYY-MM-DD) the intention should be done by. */
   dueBy: string;
+};
+
+/** Which day within the horizon has room, and whether that's today. */
+export type IntentionWindow = {
+  dateIso: string;
+  isToday: boolean;
 };
 
 /** Max timed events for a day to still count as "has room". */
@@ -42,45 +50,81 @@ function isSameIsoWeek(aIso: string, bIso: string): boolean {
   return a.getFullYear() === b.getFullYear() && getISOWeek(a) === getISOWeek(b);
 }
 
-/** The companion sentence for one open intention — rendered as its own quiet line on Flow. */
-export function buildIntentionLine(
-  intention: OpenIntention,
-  locale: "en" | "no",
-  period: FlowSummaryPeriod,
-  todayIso: string,
-): string {
-  const thisWeek = isSameIsoWeek(intention.dueBy, todayIso);
-  if (locale === "no") {
-    const lead =
-      period === "evening"
-        ? `I morgen kan det bli tid til å ${intention.text}`
-        : `Du kan vurdere om du skal ${intention.text}`;
-    return thisWeek ? `${lead} — du antydet at du skulle gjøre det denne uken.` : `${lead}.`;
-  }
-  const lead =
-    period === "evening"
-      ? `Tomorrow could leave time to ${intention.text}`
-      : `You might consider whether to ${intention.text}`;
-  return thisWeek ? `${lead} — you hinted you'd get to it this week.` : `${lead}.`;
+function localDateKeyFor(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
 }
 
 /**
- * Returns a copy of the summary with the intention appended to the body.
- * Forces isEmpty=false so an open day still shows the flow-summary block —
- * an empty day is exactly when there is most room for an intention.
+ * Scans forward from today through the intention's horizon — clamped to the
+ * last day we actually have calendar data for — and returns the first day
+ * with room. The nearest calm day wins; this never skips ahead looking for
+ * a "better" one further out. Returns null when no day in range has room:
+ * the companion stays silent rather than forcing the intention in.
  */
-export function weaveIntentionIntoFlowSummary(
-  summary: FlowSummary,
-  intention: OpenIntention,
-  locale: "en" | "no",
-  period: FlowSummaryPeriod,
+export function findIntentionWindow(
+  weekEvents: CalendarBriefEvent[],
   todayIso: string,
-): FlowSummary {
-  if (!summary.available) return summary;
-  const sentence = buildIntentionLine(intention, locale, period, todayIso);
-  return {
-    ...summary,
-    isEmpty: false,
-    body: summary.body ? `${summary.body}\n${sentence}` : sentence,
-  };
+  dueByIso: string,
+  lastAvailableIso: string,
+): IntentionWindow | null {
+  const scanEndIso = dueByIso < lastAvailableIso ? dueByIso : lastAvailableIso;
+  if (scanEndIso < todayIso) return null;
+
+  const cursor = new Date(`${todayIso}T00:00:00`);
+  const end = new Date(`${scanEndIso}T00:00:00`);
+
+  while (cursor.getTime() <= end.getTime()) {
+    const dateIso = localDateKeyFor(cursor);
+    const dayEvents = weekEvents.filter(
+      (e) => e.startDate.toDateString() === cursor.toDateString(),
+    );
+    if (hasRoomForIntention(dayEvents)) {
+      return { dateIso, isToday: dateIso === todayIso };
+    }
+    cursor.setDate(cursor.getDate() + 1);
+  }
+  return null;
+}
+
+/** "Torsdag" / "I morgen" / "Today" — the found window's day, for the forward-looking line. */
+function dayName(dateIso: string, todayIso: string, locale: "en" | "no"): string {
+  const tomorrow = new Date(`${todayIso}T00:00:00`);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  if (dateIso === localDateKeyFor(tomorrow)) return locale === "no" ? "I morgen" : "Tomorrow";
+  const d = new Date(`${dateIso}T12:00:00`);
+  const label = d.toLocaleDateString(locale === "no" ? "nb-NO" : "en-GB", { weekday: "long" });
+  return label.charAt(0).toUpperCase() + label.slice(1);
+}
+
+/**
+ * The companion sentence for one open intention, given which day was found
+ * to have room. Two registers: "you have room today" when the window is
+ * today, or a forward-looking preview ("Torsdag ser rolig ut...") when the
+ * nearest calm day is later in the horizon — shown even while today is busy,
+ * since knowing the day in advance is itself the reassurance.
+ */
+export function buildIntentionLine(
+  intention: OpenIntention,
+  window: IntentionWindow,
+  locale: "en" | "no",
+  todayIso: string,
+): string {
+  const thisWeek = isSameIsoWeek(intention.dueBy, todayIso);
+
+  if (window.isToday) {
+    if (locale === "no") {
+      const lead = `Du kan vurdere om du skal ${intention.text}`;
+      return thisWeek ? `${lead} — du antydet at du skulle gjøre det denne uken.` : `${lead}.`;
+    }
+    const lead = `You might consider whether to ${intention.text}`;
+    return thisWeek ? `${lead} — you hinted you'd get to it this week.` : `${lead}.`;
+  }
+
+  const day = dayName(window.dateIso, todayIso, locale);
+  return locale === "no"
+    ? `${day} ser rolig ut — kanskje dagen for å ${intention.text}.`
+    : `${day} looks calm — maybe the day to ${intention.text}.`;
 }

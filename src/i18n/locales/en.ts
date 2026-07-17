@@ -4,6 +4,7 @@ export const en = {
     quickCapture: "Speak or type",
     newPerson: "New person",
     newEvent: "New event",
+    newIntention: "Something to remember",
   },
   common: {
     appName: "echoflow",
@@ -167,6 +168,18 @@ export const en = {
   },
   week: {
     title: "Week",
+  },
+  intentions: {
+    captureTitle: "Something to remember",
+    placeholder: "e.g. Call aunt Berit",
+    horizon: {
+      today: "Today",
+      week: "This week",
+      month: "This month",
+    },
+    resolveTitle: "How did it go?",
+    done: "Done",
+    notNow: "Not now",
   },
   brief: {
     sections: {

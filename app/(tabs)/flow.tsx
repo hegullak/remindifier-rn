@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
-import { ScrollView, Text, View } from "react-native";
-import { addIntention, deleteAllIntentions } from "@/db/repos/intentionsRepo";
+import { Pressable, ScrollView, Text, View } from "react-native";
+import { addIntention, completeIntention, deleteAllIntentions } from "@/db/repos/intentionsRepo";
 import { useAppAuth, useAppUser } from "@/features/auth/useAppAuth";
 import { DevBriefControls } from "@/features/brief/DevBriefControls";
 import { useBriefData } from "@/features/brief/useBriefData";
@@ -13,7 +13,7 @@ import { buildFlowStanzas } from "@/lib/brief/flowStanzas";
 import { briefGreetingLine } from "@/lib/brief/greeting";
 import {
   buildIntentionLine,
-  hasRoomForIntention,
+  findIntentionWindow,
   pickOpenIntention,
 } from "@/lib/brief/intentionWeave";
 import { localDateKey } from "@/lib/brief/lookForward";
@@ -21,6 +21,8 @@ import { type MockDayScenario, mockDayEventsVariant } from "@/lib/brief/mockDay"
 import { mockEventsForDay } from "@/lib/brief/mockFromCalendarPool";
 import { logger } from "@/lib/logger";
 import { AppShell } from "@/ui/AppShell";
+import { BottomSheet } from "@/ui/BottomSheet";
+import { Button } from "@/ui/Button";
 
 /**
  * Flow — the primary view. A Mental Forecast, not a calendar summary: it
@@ -53,6 +55,9 @@ export default function FlowScreen() {
       return next >= 5 ? { kind: null, index: 0 } : { kind, index: next };
     });
   }
+
+  const [showResolveSheet, setShowResolveSheet] = useState(false);
+  const [resolving, setResolving] = useState(false);
 
   const lang = locale === "no" ? "no" : "en";
   const firstName = user?.firstName?.trim() || (locale === "no" ? "du" : "there");
@@ -110,22 +115,41 @@ export default function FlowScreen() {
       ? buildFlowStanzas(flowFocusEvents, lang, flowPeriod, effectiveWeekEvents)
       : null;
 
-  // Companion moment: when the focus day has room, one open intention gets its
-  // own quiet line ("du antydet at du skulle ringe tante Berit denne uken").
+  // Companion moment: scan forward within the intention's horizon (clamped to
+  // this week's data) for the nearest calm day, then surface it — "you have
+  // room today" or a forward-looking "Thursday looks calm" preview shown even
+  // while today is busy. Silent when no day in range has room — never forced in.
   const todayIso = localDateKey();
+  const weekEndIso = localDateKey(getCalendarWeekBounds().end);
   const openIntention = pickOpenIntention(brief.intentions, todayIso);
-  const roomForIntention = hasRoomForIntention(flowFocusEvents);
+  const intentionWindow = openIntention
+    ? findIntentionWindow(effectiveWeekEvents, todayIso, openIntention.dueBy, weekEndIso)
+    : null;
   const intentionLine =
-    forecast && openIntention && roomForIntention
-      ? buildIntentionLine(openIntention, lang, flowPeriod, todayIso)
+    forecast && openIntention && intentionWindow
+      ? buildIntentionLine(openIntention, intentionWindow, lang, todayIso)
       : null;
   if (__DEV__ && openIntention) {
     logger.info("intention_weave", {
       surfaced: Boolean(intentionLine),
-      hasRoom: roomForIntention,
-      period: flowPeriod,
-      focusEventCount: flowFocusEvents.length,
+      window: intentionWindow,
     });
+  }
+
+  async function handleIntentionDone() {
+    if (!userId || !openIntention) return;
+    setResolving(true);
+    try {
+      await completeIntention(userId, openIntention.id);
+      notifyBriefReload();
+      setShowResolveSheet(false);
+    } catch (error) {
+      logger.error("intention_complete_failed", {
+        error: error instanceof Error ? error.message : "unknown",
+      });
+    } finally {
+      setResolving(false);
+    }
   }
 
   function seedTestIntention() {
@@ -199,15 +223,34 @@ export default function FlowScreen() {
             ))}
 
             {intentionLine ? (
-              <View className="border-t border-border mt-2 pt-4">
+              <Pressable
+                onPress={() => setShowResolveSheet(true)}
+                className="border-t border-border mt-2 pt-4 active:opacity-70"
+              >
                 <Text className="text-body-lg text-accent font-heading italic leading-[23px]">
                   {intentionLine}
                 </Text>
-              </View>
+              </Pressable>
             ) : null}
           </View>
         ) : null}
       </ScrollView>
+
+      <BottomSheet
+        visible={showResolveSheet}
+        onDismiss={() => setShowResolveSheet(false)}
+        title={t("intentions.resolveTitle")}
+      >
+        <Text className="text-body-lg text-text1 font-bodyMedium mb-5">{openIntention?.text}</Text>
+        <View className="gap-2">
+          <Button onPress={handleIntentionDone} loading={resolving} disabled={resolving}>
+            {t("intentions.done")}
+          </Button>
+          <Button variant="ghost" onPress={() => setShowResolveSheet(false)} disabled={resolving}>
+            {t("intentions.notNow")}
+          </Button>
+        </View>
+      </BottomSheet>
     </AppShell>
   );
 }
