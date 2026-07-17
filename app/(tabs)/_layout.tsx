@@ -87,13 +87,9 @@ function FloatingTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
 
         const emojis: Record<string, string> = {
           brief: "☀️",
-          day: "📅",
-          week: "📊",
         };
         const labels: Record<string, string> = {
           brief: options.title ?? "brief",
-          day: options.title ?? "day",
-          week: options.title ?? "week",
         };
 
         return (
@@ -231,8 +227,6 @@ function TabsWithBootstrap({
   return (
     <Tabs tabBar={(props) => <FloatingTabBar {...props} />} screenOptions={{ headerShown: false }}>
       <Tabs.Screen name="brief" options={{ title: t("tabs.brief") }} />
-      <Tabs.Screen name="day" options={{ title: t("tabs.day") }} />
-      <Tabs.Screen name="week" options={{ title: t("tabs.week") }} />
     </Tabs>
   );
 }

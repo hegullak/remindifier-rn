@@ -105,6 +105,11 @@ export const no = {
       syncFailed: "Synkronisering feilet — prøv igjen.",
       syncResult: "{created} lagt til · {updated} oppdatert · {deleted} fjernet",
     },
+    workCalendar: {
+      title: "Jobbkalender",
+      note: "Ta med jobbkalender i den daglige vurderingen.",
+      comingSoon: "Kommer snart",
+    },
   },
   privacy: {
     title: "Personvern & sikkerhet",

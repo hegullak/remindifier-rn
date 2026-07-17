@@ -158,6 +158,20 @@ export default function SettingsScreen() {
 
         <EchoCalendarSection userId={userId} />
 
+        <Card style={{ marginBottom: 8, opacity: 0.6 }}>
+          <View className="flex-row items-center justify-between">
+            <View className="flex-1">
+              <Text className="text-body-lg text-text1 font-bodyMedium">
+                {t("settings.workCalendar.title")}
+              </Text>
+              <Text className="text-xs text-text3 font-body mt-1">
+                {t("settings.workCalendar.comingSoon")}
+              </Text>
+            </View>
+            <Switch value={false} disabled={true} />
+          </View>
+        </Card>
+
         <SettingsAccordion title={t("privacy.title")}>
           {PRIVACY_KEYS.map((key, index) => (
             <Text

@@ -104,6 +104,11 @@ export const en = {
       syncFailed: "Sync failed — try again.",
       syncResult: "{created} added · {updated} updated · {deleted} removed",
     },
+    workCalendar: {
+      title: "Work calendar",
+      note: "Include your work calendar in the daily assessment.",
+      comingSoon: "Coming soon",
+    },
   },
   privacy: {
     title: "Privacy & security",

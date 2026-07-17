@@ -23,6 +23,17 @@ export function formatBriefHeaderDate(locale: "en" | "no", now = new Date()) {
 }
 
 /** Monday 00:00 through Sunday 23:59:59 for the week containing `ref`, shifted by `weekOffset`. */
+export function getCalendarDayBounds(ref = new Date(), dayOffset = 0): CalendarWeekBounds {
+  const start = new Date(ref);
+  start.setDate(start.getDate() + dayOffset);
+  start.setHours(0, 0, 0, 0);
+
+  const end = new Date(start);
+  end.setHours(23, 59, 59, 999);
+
+  return { start, end };
+}
+
 export function getCalendarWeekBounds(ref = new Date(), weekOffset = 0): CalendarWeekBounds {
   const anchor = new Date(ref);
   if (weekOffset !== 0) {
