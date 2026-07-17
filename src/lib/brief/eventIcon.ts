@@ -29,7 +29,7 @@ export function eventIcon(title: string | null | undefined): string {
 
 // Trailing emoji (incl. variation selectors / ZWJ sequences) at end of a title.
 const TRAILING_EMOJI =
-  /\s*([\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{2190}-\u{21FF}\u{2B00}-\u{2BFF}](?:[\u{FE0F}\u{200D}\u{1F300}-\u{1FAFF}])*)\s*$/u;
+  /\s*([\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{2190}-\u{21FF}\u{2B00}-\u{2BFF}](?:(?:\u{FE0F}|\u{200D}|[\u{1F300}-\u{1FAFF}]))*)\s*$/u;
 
 /**
  * Resolves icon + display title for an event:

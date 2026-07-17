@@ -23,8 +23,8 @@ describe("getUpcomingHoliday", () => {
     const before17May = new Date(2026, 4, 10);
     const info = getUpcomingHoliday(before17May, "no", 21);
     expect(info).not.toBeNull();
-    expect(info!.daysUntil).toBeGreaterThan(0);
-    expect(info!.daysUntil).toBeLessThanOrEqual(21);
+    expect(info?.daysUntil).toBeGreaterThan(0);
+    expect(info?.daysUntil).toBeLessThanOrEqual(21);
   });
 
   it("suggests bridge day for Thursday holiday (en)", () => {
@@ -35,15 +35,23 @@ describe("getUpcomingHoliday", () => {
 });
 
 describe("formatHolidayLine", () => {
-  const holiday = getNorwegianHolidays(2026).find((h) => h.nameNo === "17. mai")!;
+  const holidayOrNull = getNorwegianHolidays(2026).find((h) => h.nameNo === "17. mai");
+
+  beforeAll(() => {
+    if (!holidayOrNull) throw new Error("Holiday not found");
+  });
 
   it("formats today (no)", () => {
+    const holiday = holidayOrNull;
+    if (!holiday) return;
     expect(
       formatHolidayLine({ holiday, daysUntil: 0, bridgeDaySuggestion: undefined }, "no"),
     ).toContain("I dag");
   });
 
   it("formats tomorrow (en)", () => {
+    const holiday = holidayOrNull;
+    if (!holiday) return;
     expect(
       formatHolidayLine({ holiday, daysUntil: 1, bridgeDaySuggestion: undefined }, "en"),
     ).toMatch(/tomorrow/i);

@@ -48,8 +48,8 @@ export function EventNudgeSheet({
       </Text>
 
       <View className="bg-bg2 rounded-xl px-4 py-3 mb-5">
-        {pendingActions.map((action, i) => (
-          <Text key={i} className="text-body text-text1 font-body leading-[20px]">
+        {pendingActions.map((action) => (
+          <Text key={action} className="text-body text-text1 font-body leading-[20px]">
             · {action}
           </Text>
         ))}

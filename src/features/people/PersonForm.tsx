@@ -182,7 +182,7 @@ export const PersonForm = forwardRef<PersonFormHandle, PersonFormProps>(function
         {t("personForm.funFacts")}
       </Text>
       {funFacts.map((fact, i) => (
-        <View key={`${fact}-${i}`} className="flex-row items-start gap-2 mb-2">
+        <View key={fact} className="flex-row items-start gap-2 mb-2">
           <Text className="text-body-lg text-text2 font-body flex-1">· {fact}</Text>
           <Pressable
             onPress={() => setFunFacts((prev) => prev.filter((_, idx) => idx !== i))}

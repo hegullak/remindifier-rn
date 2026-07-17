@@ -1,8 +1,8 @@
 import * as Calendar from "expo-calendar";
 import { logger } from "@/lib/logger";
 
-const SEED_CALENDAR_JOBB = "Jobb";
-const SEED_CALENDAR_PRIVAT = "Privat";
+const _SEED_CALENDAR_JOBB = "Jobb";
+const _SEED_CALENDAR_PRIVAT = "Privat";
 
 function daysFromToday(days: number): Date {
   const d = new Date();

@@ -31,7 +31,7 @@ function makeWeekendEvent(
   title?: string,
 ): CalendarBriefEvent {
   // Find next Saturday or Sunday from a fixed date
-  const base = new Date(2026, 5, 6, hour, minute, 0, 0); // 2026-06-06 is a Saturday
+  const _base = new Date(2026, 5, 6, hour, minute, 0, 0); // 2026-06-06 is a Saturday
   const date =
     dayOfWeek === 6
       ? new Date(2026, 5, 6, hour, minute, 0, 0)

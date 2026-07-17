@@ -13,7 +13,7 @@ export function pickCalendarsForBrief<T extends { id: string }>(
 export function isCalendarEnabled(
   calendarId: string,
   selectedIds: SavedCalendarSelection,
-  allCalendarIds: string[],
+  _allCalendarIds: string[],
 ): boolean {
   if (selectedIds === undefined) return true;
   return selectedIds.includes(calendarId);

@@ -171,7 +171,8 @@ describe("enrichIntakeWithLocalSchedule", () => {
     expect(apiOnly).not.toBeNull();
     expect(apiOnly?.followUps.some((f) => /hyttetur/i.test(f.text))).toBe(false);
 
-    const enriched = enrichIntakeWithLocalSchedule(apiOnly!, MARTE_JONAS_INPUT, WEDNESDAY, "no");
+    if (!apiOnly) return;
+    const enriched = enrichIntakeWithLocalSchedule(apiOnly, MARTE_JONAS_INPUT, WEDNESDAY, "no");
 
     expect(enriched.followUps.some((f) => /hyttetur/i.test(f.text))).toBe(true);
     expect(enriched.followUps.some((f) => /tar med hva|hvem som/i.test(f.text))).toBe(true);
@@ -195,8 +196,9 @@ describe("enrichIntakeWithLocalSchedule", () => {
     );
     expect(apiOnly).not.toBeNull();
 
+    if (!apiOnly) return;
     const enriched = enrichIntakeWithLocalSchedule(
-      apiOnly!,
+      apiOnly,
       "Planlegger å møte Marte og Jonas til lunsj onsdag kl. 12, men Jonas kan ikke før torsdag kl. 13.",
       WEDNESDAY,
       "no",

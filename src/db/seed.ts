@@ -97,7 +97,7 @@ export async function seedLocalData(userId: string) {
   // Calculate relative dates
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const todayStr = today.toISOString().slice(0, 10);
+  const _todayStr = today.toISOString().slice(0, 10);
   const in3Days = new Date(today);
   in3Days.setDate(today.getDate() + 3);
   const in3DaysStr = in3Days.toISOString().slice(0, 10);

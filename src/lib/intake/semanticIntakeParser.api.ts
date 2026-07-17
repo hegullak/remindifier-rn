@@ -247,15 +247,14 @@ export function normalizeIntakeApiPayload(
     };
   }
 
+  const personName = asNullableString(data.personName);
+  const eventTitle = asNullableString(data.eventTitle);
+
   const partial: Omit<SemanticIntakeParseResult, "fields" | "overallConfidence"> = {
     rawText,
     ambiguities,
-    person: asNullableString(data.personName)
-      ? { name: asNullableString(data.personName)!, confidence: "high" }
-      : null,
-    event: asNullableString(data.eventTitle)
-      ? { title: asNullableString(data.eventTitle)!, confidence: "high" }
-      : null,
+    person: personName ? { name: personName, confidence: "high" } : null,
+    event: eventTitle ? { title: eventTitle, confidence: "high" } : null,
     scheduledAt: scheduledAtOptions && scheduledAtOptions.length >= 2 ? null : scheduledAt,
     scheduledAtOptions:
       scheduledAtOptions && scheduledAtOptions.length >= 2 ? scheduledAtOptions : undefined,
