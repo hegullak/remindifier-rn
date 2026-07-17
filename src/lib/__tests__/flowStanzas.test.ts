@@ -92,8 +92,38 @@ describe("buildFlowStanzas", () => {
       "en",
     );
     expect(result.verdict).toContain("Busy morning");
-    expect(stanza(result, "morning").lines.join(" ")).toContain("First event at 08:00.");
+    expect(stanza(result, "morning").lines.join(" ")).toContain("Event a at 08:00.");
+    expect(stanza(result, "morning").lines.join(" ")).toContain("Busy until 11:00.");
     expect(stanza(result, "evening").lines.join(" ")).toContain("Football practice at 18:30.");
+  });
+
+  it("names the anchor event in the afternoon stanza instead of just counting", () => {
+    const result = buildFlowStanzas(
+      [makeEvent("a", 13, 0, "Kundemøte"), makeEvent("b", 15, 0, "Designgjennomgang")],
+      "no",
+    );
+    const afternoon = stanza(result, "afternoon").lines.join(" ");
+    expect(afternoon).toContain("Kundemøte kl. 13:00");
+    expect(afternoon).toContain("tett fram til kl. 16:00");
+    expect(afternoon).not.toMatch(/^\d/);
+  });
+
+  it("names the single afternoon event with its own time", () => {
+    const result = buildFlowStanzas([makeEvent("a", 14, 0, "Legetime")], "no");
+    expect(stanza(result, "afternoon").lines.join(" ")).toContain("Legetime kl. 14:00.");
+  });
+
+  it("marks overflow when more than two evening events exist", () => {
+    const result = buildFlowStanzas(
+      [
+        makeEvent("a", 9),
+        makeEvent("b", 18, 0, "Fotballtrening"),
+        makeEvent("c", 19, 0, "Middag"),
+        makeEvent("d", 20, 30, "Bursdagsfeiring"),
+      ],
+      "no",
+    );
+    expect(stanza(result, "evening").lines.join(" ")).toContain("+ 1 til.");
   });
 
   describe("weekend stanza", () => {

@@ -42,6 +42,10 @@ function minutesToLabel(minutes: number, locale: "en" | "no"): string {
   return formatTime(d, locale);
 }
 
+function eventEnd(event: CalendarBriefEvent): Date {
+  return event.endDate ?? new Date(event.startDate.getTime() + 60 * 60000);
+}
+
 function buildVerdict(
   morningBusy: boolean,
   afternoonBusy: boolean,
@@ -124,17 +128,16 @@ export function buildFlowStanzas(
 
   const stanzas: FlowStanza[] = [];
 
-  // Morning: first event + lunch status.
+  // Morning: name the first event, not just its time; if busy, say how long it runs.
   const morningLines: string[] = [];
   if (morningEvents.length > 0) {
     const first = morningEvents[0];
-    morningLines.push(
-      no
-        ? `Første avtale kl. ${formatTime(first.startDate, locale)}.`
-        : `First event at ${formatTime(first.startDate, locale)}.`,
-    );
+    const firstTime = formatTime(first.startDate, locale);
+    morningLines.push(no ? `${first.title} kl. ${firstTime}.` : `${first.title} at ${firstTime}.`);
     if (morningBusy) {
-      morningLines.push(no ? "Formiddagen er ganske tett." : "The morning is fairly packed.");
+      const last = morningEvents[morningEvents.length - 1];
+      const untilTime = formatTime(eventEnd(last), locale);
+      morningLines.push(no ? `Tett fram til kl. ${untilTime}.` : `Busy until ${untilTime}.`);
     }
   } else {
     morningLines.push(no ? "Rolig morgen." : "A calm morning.");
@@ -150,16 +153,23 @@ export function buildFlowStanzas(
   );
   stanzas.push({ period: "morning", lines: morningLines });
 
-  // Afternoon: load + the best gap after lunch.
+  // Afternoon: name the anchor event(s) instead of just a count.
   const afternoonLines: string[] = [];
   if (afternoonEvents.length === 0) {
     afternoonLines.push(no ? "Ettermiddagen er åpen." : "The afternoon is open.");
+  } else if (afternoonEvents.length === 1) {
+    const only = afternoonEvents[0];
+    const time = formatTime(only.startDate, locale);
+    afternoonLines.push(no ? `${only.title} kl. ${time}.` : `${only.title} at ${time}.`);
   } else {
-    const count = afternoonEvents.length;
+    const first = afternoonEvents[0];
+    const last = afternoonEvents[afternoonEvents.length - 1];
+    const firstTime = formatTime(first.startDate, locale);
+    const untilTime = formatTime(eventEnd(last), locale);
     afternoonLines.push(
       no
-        ? `${count} ${count === 1 ? "avtale" : "avtaler"} i ettermiddag.`
-        : `${count} ${count === 1 ? "event" : "events"} in the afternoon.`,
+        ? `${first.title} kl. ${firstTime}, deretter tett fram til kl. ${untilTime}.`
+        : `${first.title} at ${firstTime}, then busy until ${untilTime}.`,
     );
   }
   const afternoonGap = signals.gaps
@@ -171,7 +181,7 @@ export function buildFlowStanzas(
   }
   stanzas.push({ period: "afternoon", lines: afternoonLines });
 
-  // Evening: name the activities, or promise calm.
+  // Evening: name the activities with their times, or promise calm.
   const eveningLines: string[] = [];
   if (eveningEvents.length === 0) {
     eveningLines.push(no ? "Kvelden ser rolig ut." : "The evening looks calm.");
@@ -179,6 +189,10 @@ export function buildFlowStanzas(
     for (const event of eveningEvents.slice(0, 2)) {
       const time = formatTime(event.startDate, locale);
       eveningLines.push(no ? `${event.title} kl. ${time}.` : `${event.title} at ${time}.`);
+    }
+    if (eveningEvents.length > 2) {
+      const extra = eveningEvents.length - 2;
+      eveningLines.push(no ? `+ ${extra} til.` : `+${extra} more.`);
     }
   }
   stanzas.push({ period: "evening", lines: eveningLines });
