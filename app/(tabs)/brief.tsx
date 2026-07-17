@@ -1,49 +1,82 @@
 import { useMemo, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { useAppAuth, useAppUser } from "@/features/auth/useAppAuth";
-import { CalendarAccessNotice } from "@/features/brief/CalendarAccessNotice";
-import { ImportantItemsCard } from "@/features/brief/ImportantItemsCard";
 import { useBriefData } from "@/features/brief/useBriefData";
 import { useMockCalendarPool } from "@/features/brief/useMockCalendarPool";
-import { DayPickerHeader } from "@/features/day/DayPickerHeader";
-import { DayTimeline } from "@/features/day/DayTimeline";
-import { useDayData } from "@/features/day/useDayData";
 import { useTranslation } from "@/i18n";
-import { getCalendarWeekBounds } from "@/lib/brief/calendarWeek";
-import { groupEventsByPeriod } from "@/lib/brief/dayTimeline";
+import type { CalendarBriefEvent } from "@/lib/brief/calendarEvents";
+import { getCalendarWeekBounds, isDateInCalendarWeek } from "@/lib/brief/calendarWeek";
 import { buildEveningWindDown } from "@/lib/brief/eveningWindDown";
+import { eventIcon, iconAndTitle } from "@/lib/brief/eventIcon";
 import { briefGreetingLine } from "@/lib/brief/greeting";
-import { interpretDay } from "@/lib/brief/interpretDay";
 import { mockEventsForDay } from "@/lib/brief/mockFromCalendarPool";
 import { buildMorningBrief } from "@/lib/brief/morningBrief";
+import type { TrainingDisplayLine } from "@/lib/brief/pplTraining";
+import { localizeGatheringTitle } from "@/lib/gatherings/localizeGathering";
+import { anniversaryMilestoneDetail } from "@/lib/milestones/anniversaries";
 import { AppShell } from "@/ui/AppShell";
+import { BottomSheet } from "@/ui/BottomSheet";
+import { BriefCard } from "@/ui/BriefCard";
+import { PplSessionLabel } from "@/ui/PplSessionLabel";
 import { SectionLabel } from "@/ui/SectionLabel";
 
 /** Ambient narrative covers the whole day — morning briefing until 18:00, then evening wind-down. */
 const MORNING_START_HOUR = 6;
 const EVENING_START_MINUTES = 18 * 60;
 
+type UnifiedItem = {
+  id: string;
+  sortKey: number; // daysUntil
+  sortMinutes?: number; // minute-of-day for chronological ordering within a day
+  dayLabel: string;
+  icon: string;
+  primary: string;
+  secondary?: string;
+  note?: string;
+  onPress?: () => void;
+};
+
+type AnniversaryDetail = {
+  personName: string;
+  years: number;
+  norwegian: string | null;
+  english: string | null;
+};
+
+function trainingLineKey(line: TrainingDisplayLine, index: number): string {
+  if (line.kind === "ppl") return `ppl-${line.active}`;
+  return `text-${index}-${line.text}`;
+}
+
 export default function BriefScreen() {
   const { t, locale } = useTranslation();
   const { user } = useAppUser();
   const { userId } = useAppAuth();
-  const { brief, calendarAccess } = useBriefData(userId);
-  const dayData = useDayData(userId);
+  const {
+    brief,
+    dateLine,
+    headsupItems,
+    trainingLines,
+    weekOffset,
+    weekBounds,
+    shiftWeek,
+    resetWeek,
+  } = useBriefData(userId);
   const [mockMode, setMockMode] = useState(false);
   const { pool: mockPool } = useMockCalendarPool(userId, __DEV__ && mockMode);
+  const [weekExpanded, setWeekExpanded] = useState(false);
+  const [anniversaryDetail, setAnniversaryDetail] = useState<AnniversaryDetail | null>(null);
 
+  const lang = locale === "no" ? "no" : "en";
   const firstName = user?.firstName?.trim() || (locale === "no" ? "du" : "there");
   const { lead: greetingLead, name: greetingName } = briefGreetingLine(firstName, locale);
 
-  const lang = locale === "no" ? "no" : "en";
-  const isToday = dayData.dayOffset === 0;
-
-  // Mock mode: fill any day in the current week that has zero real events
-  // with events drawn from the user's own calendar history.
+  // Mock mode (dev-only): fill any day this week with zero real events using
+  // events drawn from the user's own calendar history — for testing the flow.
   const effectiveWeekEvents = useMemo(() => {
     if (!mockMode) return brief.weekEvents;
     const bounds = getCalendarWeekBounds();
-    const filled = [];
+    const filled: CalendarBriefEvent[] = [];
     for (let i = 0; i < 7; i++) {
       const day = new Date(bounds.start);
       day.setDate(day.getDate() + i);
@@ -56,27 +89,12 @@ export default function BriefScreen() {
   }, [mockMode, brief.weekEvents, mockPool]);
 
   const effectiveTodayEvents = useMemo(
-    () =>
-      effectiveWeekEvents.filter((e) => e.startDate.toDateString() === new Date().toDateString()),
+    () => effectiveWeekEvents.filter((e) => e.daysUntil === 0),
     [effectiveWeekEvents],
   );
-
-  const effectiveTomorrowEvents = useMemo(() => {
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    return effectiveWeekEvents.filter(
-      (e) => e.startDate.toDateString() === tomorrow.toDateString(),
-    );
-  }, [effectiveWeekEvents]);
-
-  const effectiveDayEvents = useMemo(() => {
-    if (!mockMode || dayData.events.length > 0) return dayData.events;
-    return mockEventsForDay(dayData.date, mockPool);
-  }, [mockMode, dayData.events, dayData.date, mockPool]);
-
-  const effectiveTimeline = useMemo(
-    () => (mockMode ? groupEventsByPeriod(effectiveDayEvents) : dayData.timeline),
-    [mockMode, effectiveDayEvents, dayData.timeline],
+  const effectiveTomorrowEvents = useMemo(
+    () => effectiveWeekEvents.filter((e) => e.daysUntil === 1),
+    [effectiveWeekEvents],
   );
 
   const morningBrief = buildMorningBrief(effectiveTodayEvents, effectiveWeekEvents, lang);
@@ -96,29 +114,251 @@ export default function BriefScreen() {
         ? windDown.headline
         : null
       : null;
-
   const ambientBody = isMorningWindow ? morningBrief.body : isEveningWindow ? windDown.body : null;
 
-  const laterThisWeek = useMemo(
-    () => interpretDay(effectiveDayEvents, effectiveWeekEvents, lang, "morning").laterThisWeek,
-    [effectiveDayEvents, effectiveWeekEvents, lang],
-  );
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  function briefDayLabel(daysUntil: number): string {
+    if (daysUntil === 0) return locale === "no" ? "I DAG" : "TODAY";
+    if (daysUntil === 1) return locale === "no" ? "I MORGEN" : "TOMORROW";
+    const d = new Date(today);
+    d.setDate(today.getDate() + daysUntil);
+    const label = d.toLocaleDateString(locale === "no" ? "nb-NO" : "en-GB", { weekday: "long" });
+    return locale === "no" ? label.toUpperCase() : label.charAt(0).toUpperCase() + label.slice(1);
+  }
+
+  const redLettersThisWeek = brief.redLetterDays.filter((item) => {
+    const next = new Date();
+    next.setHours(0, 0, 0, 0);
+    next.setDate(next.getDate() + item.daysUntil);
+    return isDateInCalendarWeek(next, weekBounds);
+  });
+
+  const weekItems: UnifiedItem[] = [];
+
+  for (const event of effectiveWeekEvents) {
+    const { icon, title } = iconAndTitle(event.title);
+    const timeStr = event.allDay
+      ? undefined
+      : event.startDate.toLocaleTimeString(locale === "no" ? "nb-NO" : "en-GB", {
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+    weekItems.push({
+      id: `cal-${event.id}`,
+      sortKey: event.daysUntil,
+      sortMinutes: event.allDay
+        ? undefined
+        : event.startDate.getHours() * 60 + event.startDate.getMinutes(),
+      dayLabel: briefDayLabel(event.daysUntil),
+      icon,
+      primary: title,
+      secondary: timeStr,
+    });
+  }
+
+  for (const rld of redLettersThisWeek) {
+    weekItems.push({
+      id: `rld-${rld.id}`,
+      sortKey: rld.daysUntil,
+      dayLabel: briefDayLabel(rld.daysUntil),
+      icon: rld.icon,
+      primary: rld.personName,
+      secondary: rld.headline,
+      onPress:
+        rld.kind === "Anniversary"
+          ? () => {
+              const m = anniversaryMilestoneDetail(rld.eventDate);
+              if (m) {
+                setAnniversaryDetail({
+                  personName: rld.personName,
+                  years: m.years,
+                  norwegian: m.norwegian,
+                  english: m.english,
+                });
+              }
+            }
+          : undefined,
+    });
+  }
+
+  if (weekOffset === 0) {
+    for (const item of headsupItems) {
+      const [head, ...rest] = item.text.split(" · ");
+      const secondary = rest.length > 0 ? rest.join(" · ") : undefined;
+      const hsIcon = eventIcon(head);
+      weekItems.push({
+        id: `headsup-${item.day}`,
+        sortKey: item.daysUntil,
+        dayLabel: briefDayLabel(item.daysUntil),
+        icon: hsIcon === "🕐" ? "💡" : hsIcon,
+        primary: head,
+        secondary,
+      });
+    }
+  }
+
+  weekItems.sort((a, b) => a.sortKey - b.sortKey);
+  const todayItems = weekItems.filter((i) => i.sortKey === 0);
+  const restItems = weekItems.filter((i) => i.sortKey > 0);
+  const nowMinutesForDim = now.getHours() * 60 + now.getMinutes();
+
+  function renderUnifiedRow(
+    item: UnifiedItem,
+    i: number,
+    arr: UnifiedItem[],
+    showDay: boolean,
+    dimmed = false,
+  ) {
+    const prevDay = i > 0 ? arr[i - 1].dayLabel : "";
+    const showDayLabel = showDay && item.dayLabel !== prevDay;
+    const row = (
+      <View className={i < arr.length - 1 ? "mb-3" : ""}>
+        {showDayLabel && (
+          <Text className="text-3xs uppercase tracking-[1.2px] text-sage font-bodySemi mb-1">
+            {item.dayLabel}
+          </Text>
+        )}
+        <View className="flex-row items-start gap-2">
+          <Text className="text-base mt-0.5" style={dimmed ? { opacity: 0.45 } : undefined}>
+            {item.icon}
+          </Text>
+          <View className="flex-1">
+            <Text
+              className="text-body-lg text-text1 font-bodyMedium"
+              style={dimmed ? { opacity: 0.45, textDecorationLine: "line-through" } : undefined}
+            >
+              {item.primary}
+            </Text>
+            {item.secondary ? (
+              <Text
+                className="text-sm text-text2 font-body mt-0.5"
+                style={dimmed ? { opacity: 0.45 } : undefined}
+              >
+                {item.secondary}
+              </Text>
+            ) : null}
+            {item.note ? (
+              <Text className="text-xs text-text3 font-body mt-0.5">{item.note}</Text>
+            ) : null}
+          </View>
+        </View>
+      </View>
+    );
+    if (item.onPress) {
+      return (
+        <Pressable key={item.id} onPress={item.onPress} className="active:opacity-70">
+          {row}
+        </Pressable>
+      );
+    }
+    return <View key={item.id}>{row}</View>;
+  }
+
+  function renderDagenMin() {
+    if (weekOffset !== 0) return null;
+
+    const scheduleItems: UnifiedItem[] = brief.schedule.map((item) => {
+      const rawTitle = item.gatheringId
+        ? localizeGatheringTitle(item.gatheringId, item.title, locale)
+        : item.title;
+      const { icon, title } = iconAndTitle(rawTitle);
+      const [h, m] = item.time.split(":").map(Number);
+      return {
+        id: `sched-${item.id}`,
+        sortKey: 0,
+        sortMinutes: Number.isFinite(h) ? h * 60 + (m || 0) : undefined,
+        dayLabel: "I DAG",
+        icon,
+        primary: title,
+        secondary: item.time,
+        note: item.note || undefined,
+      };
+    });
+
+    const dayCombined = [...scheduleItems, ...todayItems].sort(
+      (a, b) => (a.sortMinutes ?? -1) - (b.sortMinutes ?? -1),
+    );
+
+    const hasDay = dayCombined.length > 0;
+    const hasTraining = trainingLines.length > 0;
+    if (!hasDay && !hasTraining) return null;
+    const needDivider = hasDay && hasTraining;
+
+    return (
+      <View className="mb-1">
+        <SectionLabel>{locale === "no" ? "Dagen min" : "My day"}</SectionLabel>
+        <BriefCard stripeColor="blue">
+          {dayCombined.map((item, i) => {
+            const dimmed = item.sortMinutes !== undefined && item.sortMinutes < nowMinutesForDim;
+            return renderUnifiedRow(item, i, dayCombined, false, dimmed);
+          })}
+          {needDivider && <View className="h-px bg-border my-3" />}
+          {trainingLines.map((line, i) => (
+            <View
+              key={trainingLineKey(line, i)}
+              className={`flex-row items-start gap-2${i < trainingLines.length - 1 ? " mb-3" : ""}`}
+            >
+              <Text className="text-base">{i === 0 ? "🏋️" : "🏃"}</Text>
+              {line.kind === "ppl" ? (
+                <PplSessionLabel active={line.active} className="flex-1" />
+              ) : (
+                <Text className="text-body-lg text-text1 font-body flex-1">{line.text}</Text>
+              )}
+            </View>
+          ))}
+        </BriefCard>
+      </View>
+    );
+  }
+
+  function renderUkenMin() {
+    if (weekOffset !== 0) return null;
+    if (restItems.length === 0) return null;
+    return (
+      <View className="mb-1">
+        <SectionLabel>{locale === "no" ? "Uken min" : "My week"}</SectionLabel>
+        {weekExpanded ? (
+          <Pressable onPress={() => setWeekExpanded(false)} className="active:opacity-90">
+            <BriefCard stripeColor="sage">
+              {restItems.map((item, i) => renderUnifiedRow(item, i, restItems, true))}
+              <Text className="text-xs text-text3 font-body mt-3">
+                {locale === "no" ? "Vis mindre" : "Show less"}
+              </Text>
+            </BriefCard>
+          </Pressable>
+        ) : (
+          <Pressable onPress={() => setWeekExpanded(true)} className="active:opacity-70">
+            <BriefCard stripeColor="sage">
+              <View className="flex-row items-center justify-between py-3">
+                <Text className="text-body-lg text-text2 font-body">
+                  {locale === "no"
+                    ? `${restItems.length} ${restItems.length === 1 ? "hendelse" : "hendelser"} resten av uken`
+                    : `${restItems.length} ${restItems.length === 1 ? "event" : "events"} rest of week`}
+                </Text>
+                <Text className="text-xl text-sage font-bodySemi">+{restItems.length}</Text>
+              </View>
+            </BriefCard>
+          </Pressable>
+        )}
+      </View>
+    );
+  }
 
   return (
     <AppShell>
       <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 130 }}>
         {/* Greeting */}
-        <View style={{ paddingTop: 16, paddingBottom: ambientHeadline ? 6 : 12 }}>
+        <View style={{ paddingTop: 16, paddingBottom: ambientHeadline ? 6 : 16 }}>
           <Text className="text-5xl leading-tight text-text1 font-heading">
-            {greetingLead}
-            {"\n"}
-            <Text className="text-accent">{greetingName}</Text>
+            {greetingLead} <Text className="text-accent">{greetingName}</Text>
           </Text>
         </View>
 
         {/* Ambient day narrative — morning 06-18 or evening 18:00+ only */}
         {ambientHeadline ? (
-          <View style={{ paddingBottom: 20 }}>
+          <View style={{ paddingBottom: 16 }}>
             <Text className="text-body-lg text-text1 font-body leading-[24px] mb-2">
               {ambientHeadline}
             </Text>
@@ -151,41 +391,82 @@ export default function BriefScreen() {
           </Pressable>
         )}
 
-        {/* Date picker */}
-        <DayPickerHeader
-          dateLabel={dayData.dateLabel}
-          dayOffset={dayData.dayOffset}
-          onPrev={() => dayData.shiftDay(-1)}
-          onNext={() => dayData.shiftDay(1)}
-          onToday={dayData.goToToday}
-        />
+        {/* Week picker */}
+        <View className="flex-row items-center gap-3 mb-4">
+          <Pressable
+            onPress={() => shiftWeek(-1)}
+            accessibilityRole="button"
+            accessibilityLabel={t("brief.weekPrev")}
+            hitSlop={16}
+            className="active:opacity-60"
+          >
+            <Text className="text-xl text-accent font-body">←</Text>
+          </Pressable>
+          <Pressable
+            onPress={resetWeek}
+            disabled={weekOffset === 0}
+            accessibilityRole="button"
+            accessibilityLabel={t("brief.weekThis")}
+            hitSlop={8}
+            className="active:opacity-70"
+          >
+            <Text
+              className={`text-base font-bodySemi ${weekOffset === 0 ? "text-text3" : "text-accent"}`}
+            >
+              {dateLine}
+            </Text>
+          </Pressable>
+          <Pressable
+            onPress={() => shiftWeek(1)}
+            accessibilityRole="button"
+            accessibilityLabel={t("brief.weekNext")}
+            hitSlop={16}
+            className="active:opacity-60"
+          >
+            <Text className="text-xl text-accent font-body">→</Text>
+          </Pressable>
+        </View>
 
-        {/* Calendar access notice */}
-        <CalendarAccessNotice
-          access={calendarAccess}
-          hasDevStubs={
-            calendarAccess !== "granted" && dayData.events.some((e) => e.id.startsWith("dev-stub-"))
-          }
-        />
+        {renderDagenMin()}
+        {renderUkenMin()}
+      </ScrollView>
 
-        {/* Dagens agenda — strikethrough for passed events when viewing today */}
-        {effectiveTimeline.allDay.length > 0 || effectiveTimeline.periods.length > 0 ? (
-          <View className="mt-4">
-            <SectionLabel>{locale === "no" ? "Dagen min" : "My day"}</SectionLabel>
-            <DayTimeline timeline={effectiveTimeline} isToday={isToday} />
+      <BottomSheet
+        visible={anniversaryDetail !== null}
+        onDismiss={() => setAnniversaryDetail(null)}
+        title={t("brief.anniversarySheet.title")}
+      >
+        {anniversaryDetail ? (
+          <View className="gap-3">
+            <Text className="text-body-lg text-text1 font-bodyMedium">
+              {anniversaryDetail.personName}
+            </Text>
+            <Text className="text-body text-text2 font-body">
+              {t("brief.anniversarySheet.years", { count: anniversaryDetail.years })}
+            </Text>
+            {anniversaryDetail.norwegian ? (
+              <View>
+                <Text className="text-2xs uppercase tracking-[1.2px] text-text3 font-bodySemi">
+                  {t("brief.anniversarySheet.norwegianLabel")}
+                </Text>
+                <Text className="text-body-lg text-amber font-bodySemi mt-1">
+                  {anniversaryDetail.norwegian}
+                </Text>
+              </View>
+            ) : null}
+            {anniversaryDetail.english ? (
+              <View>
+                <Text className="text-2xs uppercase tracking-[1.2px] text-text3 font-bodySemi">
+                  {t("brief.anniversarySheet.englishLabel")}
+                </Text>
+                <Text className="text-body-lg text-text1 font-bodyMedium mt-1">
+                  {anniversaryDetail.english}
+                </Text>
+              </View>
+            ) : null}
           </View>
         ) : null}
-
-        {/* Viktige hendelser senere i uken */}
-        {laterThisWeek.length > 0 && (
-          <ImportantItemsCard
-            label={t("brief.cards.laterThisWeek")}
-            items={laterThisWeek}
-            stripeColor="dusk"
-            showDayLabel
-          />
-        )}
-      </ScrollView>
+      </BottomSheet>
     </AppShell>
   );
 }
