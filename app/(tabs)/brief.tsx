@@ -3,6 +3,7 @@ import { Pressable, ScrollView, Text, View } from "react-native";
 import { addIntention, deleteAllIntentions } from "@/db/repos/intentionsRepo";
 import { useAppAuth, useAppUser } from "@/features/auth/useAppAuth";
 import { DateNavBar } from "@/features/brief/DateNavBar";
+import { DevBriefControls } from "@/features/brief/DevBriefControls";
 import { useBriefData } from "@/features/brief/useBriefData";
 import { useMockCalendarPool } from "@/features/brief/useMockCalendarPool";
 import { useDayData } from "@/features/day/useDayData";
@@ -425,8 +426,46 @@ export default function BriefScreen() {
     );
   }
 
+  function seedTestIntention() {
+    if (!userId) return;
+    addIntention(userId, {
+      text: "ringe tante Berit",
+      dueBy: localDateKey(getCalendarWeekBounds().end),
+    })
+      .then(() => notifyBriefReload())
+      .catch((error) => {
+        logger.error("intention_seed_failed", {
+          error: error instanceof Error ? error.message : "unknown",
+        });
+      });
+  }
+
+  function clearTestIntentions() {
+    if (!userId) return;
+    deleteAllIntentions(userId)
+      .then(() => notifyBriefReload())
+      .catch((error) => {
+        logger.error("intention_clear_failed", {
+          error: error instanceof Error ? error.message : "unknown",
+        });
+      });
+  }
+
   return (
-    <AppShell>
+    <AppShell
+      headerLeft={
+        __DEV__ ? (
+          <DevBriefControls
+            mockMode={mockMode}
+            onToggleMock={() => setMockMode((v) => !v)}
+            periodOverride={periodOverride}
+            onSetPeriod={setPeriodOverride}
+            onSeedIntention={seedTestIntention}
+            onClearIntentions={clearTestIntentions}
+          />
+        ) : undefined
+      }
+    >
       <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 130 }}>
         {/* Greeting */}
         <View style={{ paddingTop: 12, paddingBottom: flowSummaryHeadline ? 4 : 12 }}>
@@ -449,91 +488,6 @@ export default function BriefScreen() {
             ) : null}
           </View>
         ) : null}
-
-        {/* Dev-only: mock mode toggle + period override + intention seeding */}
-        {__DEV__ && (
-          <View className="flex-row flex-wrap gap-2 mb-3">
-            <Pressable
-              onPress={() => setMockMode((v) => !v)}
-              className={`px-3 py-1.5 rounded-pill border ${
-                mockMode ? "border-accent bg-accentLight" : "border-border"
-              }`}
-            >
-              <Text
-                className={`text-2xs uppercase tracking-[1px] font-bodySemi ${
-                  mockMode ? "text-accent" : "text-text3"
-                }`}
-              >
-                {mockMode ? "Mock: on" : "Mock: off"}
-              </Text>
-            </Pressable>
-            <Pressable
-              onPress={() => setPeriodOverride((p) => (p === "morning" ? null : "morning"))}
-              className={`px-3 py-1.5 rounded-pill border ${
-                periodOverride === "morning" ? "border-accent bg-accentLight" : "border-border"
-              }`}
-            >
-              <Text
-                className={`text-2xs uppercase tracking-[1px] font-bodySemi ${
-                  periodOverride === "morning" ? "text-accent" : "text-text3"
-                }`}
-              >
-                Day mode
-              </Text>
-            </Pressable>
-            <Pressable
-              onPress={() => setPeriodOverride((p) => (p === "evening" ? null : "evening"))}
-              className={`px-3 py-1.5 rounded-pill border ${
-                periodOverride === "evening" ? "border-accent bg-accentLight" : "border-border"
-              }`}
-            >
-              <Text
-                className={`text-2xs uppercase tracking-[1px] font-bodySemi ${
-                  periodOverride === "evening" ? "text-accent" : "text-text3"
-                }`}
-              >
-                Evening mode
-              </Text>
-            </Pressable>
-            <Pressable
-              onPress={() => {
-                if (!userId) return;
-                addIntention(userId, {
-                  text: "ringe tante Berit",
-                  dueBy: localDateKey(getCalendarWeekBounds().end),
-                })
-                  .then(() => notifyBriefReload())
-                  .catch((error) => {
-                    logger.error("intention_seed_failed", {
-                      error: error instanceof Error ? error.message : "unknown",
-                    });
-                  });
-              }}
-              className="px-3 py-1.5 rounded-pill border border-green/60 bg-greenLight"
-            >
-              <Text className="text-2xs uppercase tracking-[1px] font-bodySemi text-green">
-                + Int
-              </Text>
-            </Pressable>
-            <Pressable
-              onPress={() => {
-                if (!userId) return;
-                deleteAllIntentions(userId)
-                  .then(() => notifyBriefReload())
-                  .catch((error) => {
-                    logger.error("intention_clear_failed", {
-                      error: error instanceof Error ? error.message : "unknown",
-                    });
-                  });
-              }}
-              className="px-3 py-1.5 rounded-pill border border-red/60 bg-redLight"
-            >
-              <Text className="text-2xs uppercase tracking-[1px] font-bodySemi text-red">
-                × Int
-              </Text>
-            </Pressable>
-          </View>
-        )}
 
         {/* Combined day + week navigation */}
         <DateNavBar
