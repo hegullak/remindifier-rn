@@ -151,6 +151,19 @@ export const no = {
     passwordMinLength: "Nytt passord må være minst 8 tegn.",
     passwordChangeFailed: "Kunne ikke endre passord.",
   },
+  day: {
+    previous: "Forrige dag",
+    next: "Neste dag",
+    goToToday: "Gå til i dag",
+    empty: "Ingenting planlagt.",
+    periods: {
+      allDay: "Hele dagen",
+      morning: "Morgen",
+      lunch: "Lunsj",
+      afternoon: "Ettermiddag",
+      evening: "Kveld",
+    },
+  },
   brief: {
     sections: {
       schedule: "Dagens program",

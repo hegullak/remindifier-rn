@@ -150,6 +150,19 @@ export const en = {
     passwordMinLength: "New password must be at least 8 characters.",
     passwordChangeFailed: "Could not change password.",
   },
+  day: {
+    previous: "Previous day",
+    next: "Next day",
+    goToToday: "Go to today",
+    empty: "Nothing scheduled.",
+    periods: {
+      allDay: "All day",
+      morning: "Morning",
+      lunch: "Lunch",
+      afternoon: "Afternoon",
+      evening: "Evening",
+    },
+  },
   brief: {
     sections: {
       schedule: "Today's schedule",
