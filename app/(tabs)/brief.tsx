@@ -15,10 +15,9 @@ import { buildMorningBrief } from "@/lib/brief/morningBrief";
 import { AppShell } from "@/ui/AppShell";
 import { SectionLabel } from "@/ui/SectionLabel";
 
-/** Ambient narrative only shows in these windows — morning briefing or evening wind-down. */
+/** Ambient narrative covers the whole day — morning briefing until 18:00, then evening wind-down. */
 const MORNING_START_HOUR = 6;
-const MORNING_END_HOUR = 9;
-const EVENING_START_MINUTES = 20 * 60 + 30;
+const EVENING_START_MINUTES = 18 * 60;
 
 export default function BriefScreen() {
   const { t, locale } = useTranslation();
@@ -38,8 +37,8 @@ export default function BriefScreen() {
 
   const now = new Date();
   const nowMinutes = now.getHours() * 60 + now.getMinutes();
-  const isMorningWindow = now.getHours() >= MORNING_START_HOUR && now.getHours() < MORNING_END_HOUR;
   const isEveningWindow = nowMinutes >= EVENING_START_MINUTES;
+  const isMorningWindow = !isEveningWindow && now.getHours() >= MORNING_START_HOUR;
 
   const ambientHeadline = isMorningWindow
     ? morningBrief.available && !morningBrief.isEmpty
