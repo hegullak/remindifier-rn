@@ -85,6 +85,29 @@ export async function completeIntention(userId: string, id: string): Promise<voi
     .where(and(eq(intentions.userId, userId), eq(intentions.id, id)));
 }
 
+/** Recent after-notes with their intention texts — the raw material for contact moments. */
+export async function listCompletedAfterNotes(
+  userId: string,
+  limit = THREAD_LOOKBACK_ROWS,
+): Promise<{ text: string; afterNote: string }[]> {
+  const db = await getDrizzleDbForUser(userId);
+  const rows = await db
+    .select({ text: intentions.text, afterNote: intentions.afterNote })
+    .from(intentions)
+    .where(
+      and(
+        eq(intentions.userId, userId),
+        isNotNull(intentions.completedAt),
+        isNotNull(intentions.afterNote),
+      ),
+    )
+    .orderBy(desc(intentions.completedAt))
+    .limit(limit);
+  return rows.flatMap((row) =>
+    row.afterNote ? [{ text: row.text, afterNote: row.afterNote }] : [],
+  );
+}
+
 /** Stores the after-moment note ("noe verdt å huske til neste gang?") on a resolved intention. */
 export async function setIntentionAfterNote(
   userId: string,

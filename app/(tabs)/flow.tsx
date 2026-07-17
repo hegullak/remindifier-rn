@@ -14,6 +14,7 @@ import { useTranslation } from "@/i18n";
 import { notifyBriefReload } from "@/lib/brief/briefRefresh";
 import type { CalendarBriefEvent } from "@/lib/brief/calendarEvents";
 import { getCalendarWeekBounds } from "@/lib/brief/calendarWeek";
+import { buildContactMomentLine, findContactMoment } from "@/lib/brief/contactMoments";
 import { buildFlowStanzas } from "@/lib/brief/flowStanzas";
 import { briefGreetingLine } from "@/lib/brief/greeting";
 import {
@@ -153,6 +154,15 @@ export default function FlowScreen() {
       ? buildIntentionLine(openIntention, intentionWindow, lang, todayIso)
       : null;
   const intentionPoints = openIntention ? intentionTalkingPoints(openIntention) : [];
+
+  // Contact moment: an event in the focus day naming a person the intention
+  // threads know something about — one discreet prep line before you meet them.
+  const contactMoment = forecast
+    ? findContactMoment(flowFocusEvents, brief.intentions, brief.afterNoteThreads)
+    : null;
+  const contactLine = contactMoment
+    ? buildContactMomentLine(contactMoment, lang, isEveningWindow ? "tomorrow" : "today")
+    : null;
   if (__DEV__ && openIntention) {
     logger.info("intention_weave", {
       surfaced: Boolean(intentionLine),
@@ -274,15 +284,30 @@ export default function FlowScreen() {
               </View>
             ))}
 
-            {intentionLine ? (
-              <Pressable
-                onPress={() => setShowResolveSheet(true)}
-                className="border-t border-border mt-2 pt-4 active:opacity-70"
-              >
-                <Text className="text-body-lg text-accent font-heading italic leading-[23px]">
-                  {intentionLine}
-                </Text>
-              </Pressable>
+            {/* Companion voice — quiet register below a hairline: the intention
+                offer (tappable -> resolve) and the contact-moment prep line. */}
+            {intentionLine || contactLine ? (
+              <View className="border-t border-border mt-2 pt-4">
+                {intentionLine ? (
+                  <Pressable
+                    onPress={() => setShowResolveSheet(true)}
+                    className="active:opacity-70"
+                  >
+                    <Text className="text-body-lg text-accent font-heading italic leading-[23px]">
+                      {intentionLine}
+                    </Text>
+                  </Pressable>
+                ) : null}
+                {contactLine ? (
+                  <Text
+                    className={`text-body-lg text-accent font-heading italic leading-[23px]${
+                      intentionLine ? " mt-3" : ""
+                    }`}
+                  >
+                    {contactLine}
+                  </Text>
+                ) : null}
+              </View>
             ) : null}
           </View>
         ) : null}

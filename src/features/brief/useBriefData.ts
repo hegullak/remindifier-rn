@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { listBriefSchedule, listUpcomingRedLetterDays } from "@/db/repos/briefRepo";
 import { listGatheringsForUser } from "@/db/repos/gatheringsRepo";
-import { listOpenIntentions } from "@/db/repos/intentionsRepo";
+import { listCompletedAfterNotes, listOpenIntentions } from "@/db/repos/intentionsRepo";
 import {
   deleteDailyLookForward,
   dismissDailyLookForward,
@@ -33,6 +33,7 @@ import {
   getCalendarWeekBounds,
   getISOWeek,
 } from "@/lib/brief/calendarWeek";
+import type { AfterNoteThread } from "@/lib/brief/contactMoments";
 import type { OpenIntention } from "@/lib/brief/intentionWeave";
 import { type DailyLookForwardRecord, localDateKey } from "@/lib/brief/lookForward";
 import type { BriefSectionId } from "@/lib/brief/sections";
@@ -62,6 +63,8 @@ interface BriefState {
   calendarAccess: CalendarAccessStatus;
   /** Open soft intentions ("ring tante Berit denne uken") for flow-summary weaving. */
   intentions: OpenIntention[];
+  /** After-notes from completed intentions — raw material for contact moments. */
+  afterNoteThreads: AfterNoteThread[];
 }
 
 const initialState: BriefState = {
@@ -75,6 +78,7 @@ const initialState: BriefState = {
   lookForward: null,
   calendarAccess: "denied",
   intentions: [],
+  afterNoteThreads: [],
 };
 
 export function formatBriefDateLine(locale: Locale, weekBounds: { start: Date; end: Date }) {
@@ -106,6 +110,7 @@ export function useBriefData(userId: string | null | undefined) {
       gatherings,
       lookForward,
       intentions,
+      afterNoteThreads,
     ] = await Promise.all([
       listBriefSchedule(userId),
       listUpcomingRedLetterDays(userId, 60, locale),
@@ -114,6 +119,7 @@ export function useBriefData(userId: string | null | undefined) {
       listGatheringsForUser(userId),
       getDailyLookForward(userId),
       listOpenIntentions(userId, localDateKey()),
+      listCompletedAfterNotes(userId),
     ]);
     const calendarResult = await fetchCalendarBriefEvents(weekBounds, selectedCalendarIds);
     const calendarEvents = calendarResult.events;
@@ -147,6 +153,7 @@ export function useBriefData(userId: string | null | undefined) {
       lookForward,
       calendarAccess: calendarResult.access,
       intentions,
+      afterNoteThreads,
     }));
   }, [userId, locale, weekBounds]);
 
