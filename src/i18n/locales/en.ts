@@ -182,6 +182,9 @@ export const en = {
     talkingPointsLabel: "Worth bringing up",
     done: "Done",
     notNow: "Not now",
+    afterNoteTitle: "Anything worth remembering for next time?",
+    afterNotePlaceholder: "e.g. She's seeing the doctor again in three weeks",
+    afterNoteSkip: "Skip",
   },
   brief: {
     sections: {

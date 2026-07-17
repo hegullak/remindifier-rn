@@ -1,0 +1,1 @@
+ALTER TABLE `intentions` ADD `after_note` text;

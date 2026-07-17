@@ -1,6 +1,11 @@
 import { useMemo, useState } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
-import { addIntention, completeIntention, deleteAllIntentions } from "@/db/repos/intentionsRepo";
+import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import {
+  addIntention,
+  completeIntention,
+  deleteAllIntentions,
+  setIntentionAfterNote,
+} from "@/db/repos/intentionsRepo";
 import { useAppAuth, useAppUser } from "@/features/auth/useAppAuth";
 import { DevBriefControls } from "@/features/brief/DevBriefControls";
 import { useBriefData } from "@/features/brief/useBriefData";
@@ -21,6 +26,7 @@ import { localDateKey } from "@/lib/brief/lookForward";
 import { type MockDayScenario, mockDayEventsVariant } from "@/lib/brief/mockDay";
 import { mockEventsForDay } from "@/lib/brief/mockFromCalendarPool";
 import { logger } from "@/lib/logger";
+import { useAppTheme } from "@/theme/ThemeProvider";
 import { AppShell } from "@/ui/AppShell";
 import { BottomSheet } from "@/ui/BottomSheet";
 import { Button } from "@/ui/Button";
@@ -34,10 +40,23 @@ import { Button } from "@/ui/Button";
 const MORNING_START_HOUR = 6;
 const EVENING_START_MINUTES = 18 * 60;
 
+const flowStyles = StyleSheet.create({
+  afterNoteInput: {
+    minHeight: 72,
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    fontSize: 15,
+    lineHeight: 22,
+  },
+});
+
 export default function FlowScreen() {
   const { t, locale } = useTranslation();
   const { user } = useAppUser();
   const { userId } = useAppAuth();
+  const { isDark } = useAppTheme();
   const { brief } = useBriefData(userId);
   const [mockMode, setMockMode] = useState(false);
   const { pool: mockPool } = useMockCalendarPool(userId, __DEV__ && mockMode);
@@ -59,6 +78,9 @@ export default function FlowScreen() {
 
   const [showResolveSheet, setShowResolveSheet] = useState(false);
   const [resolving, setResolving] = useState(false);
+  /** Set right after "Gjort" — flips the sheet to the after-moment capture step. */
+  const [afterNoteFor, setAfterNoteFor] = useState<{ id: string; text: string } | null>(null);
+  const [afterNoteText, setAfterNoteText] = useState("");
 
   const lang = locale === "no" ? "no" : "en";
   const firstName = user?.firstName?.trim() || (locale === "no" ? "du" : "there");
@@ -144,9 +166,36 @@ export default function FlowScreen() {
     try {
       await completeIntention(userId, openIntention.id);
       notifyBriefReload();
-      setShowResolveSheet(false);
+      // Don't close yet — flip to the after-moment capture step while the
+      // call/visit is still fresh in the user's head. The intention id is
+      // kept locally since the reload just removed it from the open list.
+      setAfterNoteFor({ id: openIntention.id, text: openIntention.text });
     } catch (error) {
       logger.error("intention_complete_failed", {
+        error: error instanceof Error ? error.message : "unknown",
+      });
+    } finally {
+      setResolving(false);
+    }
+  }
+
+  function closeResolveSheet() {
+    setShowResolveSheet(false);
+    setAfterNoteFor(null);
+    setAfterNoteText("");
+  }
+
+  async function handleAfterNoteSave() {
+    if (!userId || !afterNoteFor) return;
+    const note = afterNoteText.trim();
+    setResolving(true);
+    try {
+      if (note) {
+        await setIntentionAfterNote(userId, afterNoteFor.id, note);
+      }
+      closeResolveSheet();
+    } catch (error) {
+      logger.error("intention_after_note_failed", {
         error: error instanceof Error ? error.message : "unknown",
       });
     } finally {
@@ -241,37 +290,81 @@ export default function FlowScreen() {
 
       <BottomSheet
         visible={showResolveSheet}
-        onDismiss={() => setShowResolveSheet(false)}
-        title={t("intentions.resolveTitle")}
+        onDismiss={closeResolveSheet}
+        title={afterNoteFor ? t("intentions.afterNoteTitle") : t("intentions.resolveTitle")}
       >
-        <Text className="text-body-lg text-text1 font-bodyMedium mb-4">{openIntention?.text}</Text>
-
-        {/* The preparation moment: talking points captured with the intention,
-            shown right before the user acts on it. */}
-        {intentionPoints.length > 0 ? (
-          <View className="mb-5">
-            <Text className="text-3xs uppercase tracking-[1.5px] text-text3 font-bodySemi mb-2">
-              {t("intentions.talkingPointsLabel")}
+        {afterNoteFor ? (
+          /* Step 2 — after-moment capture, while the call/visit is fresh.
+             Whatever lands here is carried forward as talking points the next
+             time an intention with the same text is created. */
+          <View>
+            <Text className="text-body-lg text-text1 font-bodyMedium mb-4">
+              {afterNoteFor.text}
             </Text>
-            {intentionPoints.map((point) => (
-              <View key={point} className="flex-row items-start gap-2 mb-1.5">
-                <Text className="text-body text-accent font-body">·</Text>
-                <Text className="text-body text-text2 font-body leading-[20px] flex-1">
-                  {point}
-                </Text>
-              </View>
-            ))}
+            <TextInput
+              value={afterNoteText}
+              onChangeText={setAfterNoteText}
+              placeholder={t("intentions.afterNotePlaceholder")}
+              placeholderTextColor={isDark ? "#7A8CAD" : "#A89E90"}
+              multiline
+              numberOfLines={3}
+              textAlignVertical="top"
+              style={[
+                flowStyles.afterNoteInput,
+                {
+                  color: isDark ? "#EEF0F5" : "#1C1915",
+                  backgroundColor: isDark ? "#222838" : "#EFECE3",
+                  borderColor: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.07)",
+                },
+              ]}
+            />
+            <View className="gap-2 mt-4">
+              <Button
+                onPress={handleAfterNoteSave}
+                loading={resolving}
+                disabled={resolving || !afterNoteText.trim()}
+              >
+                {t("common.save")}
+              </Button>
+              <Button variant="ghost" onPress={closeResolveSheet} disabled={resolving}>
+                {t("intentions.afterNoteSkip")}
+              </Button>
+            </View>
           </View>
-        ) : null}
+        ) : (
+          /* Step 1 — the preparation moment: talking points captured with the
+             intention, shown right before the user acts on it. */
+          <View>
+            <Text className="text-body-lg text-text1 font-bodyMedium mb-4">
+              {openIntention?.text}
+            </Text>
 
-        <View className="gap-2">
-          <Button onPress={handleIntentionDone} loading={resolving} disabled={resolving}>
-            {t("intentions.done")}
-          </Button>
-          <Button variant="ghost" onPress={() => setShowResolveSheet(false)} disabled={resolving}>
-            {t("intentions.notNow")}
-          </Button>
-        </View>
+            {intentionPoints.length > 0 ? (
+              <View className="mb-5">
+                <Text className="text-3xs uppercase tracking-[1.5px] text-text3 font-bodySemi mb-2">
+                  {t("intentions.talkingPointsLabel")}
+                </Text>
+                {intentionPoints.map((point) => (
+                  <View key={point} className="flex-row items-start gap-2 mb-1.5">
+                    <Text className="text-body text-accent font-body">·</Text>
+                    <Text className="text-body text-text2 font-body leading-[20px] flex-1">
+                      {point}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            ) : null}
+
+            <View className="gap-2">
+              <Button onPress={handleIntentionDone} loading={resolving} disabled={resolving}>
+                {t("intentions.done")}
+              </Button>
+              <Button variant="ghost" onPress={closeResolveSheet} disabled={resolving}>
+                {t("intentions.notNow")}
+              </Button>
+            </View>
+          </View>
+        )}
       </BottomSheet>
     </AppShell>
   );

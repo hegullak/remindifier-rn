@@ -183,6 +183,9 @@ export const no = {
     talkingPointsLabel: "Verdt å ta opp",
     done: "Gjort",
     notNow: "Ikke nå",
+    afterNoteTitle: "Noe verdt å huske til neste gang?",
+    afterNotePlaceholder: "f.eks. Hun skal til legen igjen om tre uker",
+    afterNoteSkip: "Hopp over",
   },
   brief: {
     sections: {

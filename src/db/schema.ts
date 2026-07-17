@@ -315,6 +315,12 @@ export const intentions = sqliteTable(
     text: text("text").notNull(),
     /** Talking points / prep notes, one per line — shown when the intention surfaces. */
     notes: text("notes"),
+    /**
+     * Optional note captured right after completion ("noe verdt å huske til
+     * neste gang?") — carried forward as talking points when a new intention
+     * with matching text is created later.
+     */
+    afterNote: text("after_note"),
     /** Local date (YYYY-MM-DD) the intention should be done by. */
     dueBy: text("due_by").notNull(),
     completedAt: integer("completed_at", { mode: "timestamp_ms" }),
