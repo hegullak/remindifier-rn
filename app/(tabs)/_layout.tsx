@@ -24,8 +24,7 @@ import { FatalScreen, LoadingScreen } from "@/ui/StartupScreens";
 
 const isExpoGo = Constants.appOwnership === "expo";
 
-/** day/week route files exist on disk but are hidden from the tab bar for now. */
-const VISIBLE_TAB_NAMES = ["brief"];
+const VISIBLE_TAB_NAMES = ["flow", "day", "week"];
 
 function TabBarContainer({
   children,
@@ -92,10 +91,14 @@ function FloatingTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
           const inactiveColor = tabUi.inactive;
 
           const emojis: Record<string, string> = {
-            brief: "☀️",
+            flow: "☀️",
+            day: "📅",
+            week: "📊",
           };
           const labels: Record<string, string> = {
-            brief: options.title ?? "brief",
+            flow: options.title ?? "flow",
+            day: options.title ?? "day",
+            week: options.title ?? "week",
           };
 
           return (
@@ -232,9 +235,9 @@ function TabsWithBootstrap({
 
   return (
     <Tabs tabBar={(props) => <FloatingTabBar {...props} />} screenOptions={{ headerShown: false }}>
-      <Tabs.Screen name="brief" options={{ title: t("tabs.brief") }} />
-      <Tabs.Screen name="day" options={{ href: null }} />
-      <Tabs.Screen name="week" options={{ href: null }} />
+      <Tabs.Screen name="flow" options={{ title: t("tabs.flow") }} />
+      <Tabs.Screen name="day" options={{ title: t("tabs.day") }} />
+      <Tabs.Screen name="week" options={{ title: t("tabs.week") }} />
     </Tabs>
   );
 }

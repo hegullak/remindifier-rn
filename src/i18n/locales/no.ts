@@ -20,7 +20,7 @@ export const no = {
     loading: "Laster…",
   },
   tabs: {
-    brief: "brief",
+    flow: "flow",
     day: "dag",
     week: "uke",
   },
@@ -152,6 +152,7 @@ export const no = {
     passwordChangeFailed: "Kunne ikke endre passord.",
   },
   day: {
+    title: "Dag",
     previous: "Forrige dag",
     next: "Neste dag",
     goToToday: "Gå til i dag",
@@ -163,6 +164,9 @@ export const no = {
       afternoon: "Ettermiddag",
       evening: "Kveld",
     },
+  },
+  week: {
+    title: "Uke",
   },
   brief: {
     sections: {

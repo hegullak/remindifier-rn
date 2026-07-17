@@ -18,7 +18,7 @@ export const en = {
     loading: "Loading…",
   },
   tabs: {
-    brief: "brief",
+    flow: "flow",
     day: "day",
     week: "week",
   },
@@ -151,6 +151,7 @@ export const en = {
     passwordChangeFailed: "Could not change password.",
   },
   day: {
+    title: "Day",
     previous: "Previous day",
     next: "Next day",
     goToToday: "Go to today",
@@ -162,6 +163,9 @@ export const en = {
       afternoon: "Afternoon",
       evening: "Evening",
     },
+  },
+  week: {
+    title: "Week",
   },
   brief: {
     sections: {
