@@ -299,6 +299,31 @@ export const calendarSyncEvents = sqliteTable(
   ],
 );
 
+/**
+ * A loose intention with a time horizon — "something I want to get done within
+ * this week". Distinct from gatherings (firm calendar events) and person
+ * follow-ups (tied to an existing person). Surfaced softly in the flow-summary
+ * when the day has room; never nags.
+ */
+export const intentions = sqliteTable(
+  "intentions",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    text: text("text").notNull(),
+    /** Local date (YYYY-MM-DD) the intention should be done by. */
+    dueBy: text("due_by").notNull(),
+    completedAt: integer("completed_at", { mode: "timestamp_ms" }),
+    dismissedAt: integer("dismissed_at", { mode: "timestamp_ms" }),
+    createdAt: integer("created_at", { mode: "timestamp_ms" })
+      .notNull()
+      .default(sql`(unixepoch() * 1000)`),
+  },
+  (t) => [index("intentions_user_due_idx").on(t.userId, t.dueBy)],
+);
+
 export const myProfile = sqliteTable("my_profile", {
   userId: text("user_id").primaryKey(),
   displayName: text("display_name").notNull(),
@@ -316,6 +341,7 @@ export type UserBriefPreferences = {
 };
 
 export type Person = typeof persons.$inferSelect;
+export type Intention = typeof intentions.$inferSelect;
 export type MyProfile = typeof myProfile.$inferSelect;
 export type CalendarSyncLink = typeof calendarSyncLinks.$inferSelect;
 export type CalendarSyncEvent = typeof calendarSyncEvents.$inferSelect;

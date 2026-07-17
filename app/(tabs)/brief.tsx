@@ -1,14 +1,22 @@
 import { useMemo, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
+import { addIntention, deleteAllIntentions } from "@/db/repos/intentionsRepo";
 import { useAppAuth, useAppUser } from "@/features/auth/useAppAuth";
 import { useBriefData } from "@/features/brief/useBriefData";
 import { useMockCalendarPool } from "@/features/brief/useMockCalendarPool";
 import { useTranslation } from "@/i18n";
+import { notifyBriefReload } from "@/lib/brief/briefRefresh";
 import type { CalendarBriefEvent } from "@/lib/brief/calendarEvents";
 import { getCalendarWeekBounds, isDateInCalendarWeek } from "@/lib/brief/calendarWeek";
 import { eventIcon, iconAndTitle } from "@/lib/brief/eventIcon";
 import { buildFlowSummary } from "@/lib/brief/flowSummary";
 import { briefGreetingLine } from "@/lib/brief/greeting";
+import {
+  hasRoomForIntention,
+  pickOpenIntention,
+  weaveIntentionIntoFlowSummary,
+} from "@/lib/brief/intentionWeave";
+import { localDateKey } from "@/lib/brief/lookForward";
 import { mockEventsForDay } from "@/lib/brief/mockFromCalendarPool";
 import type { TrainingDisplayLine } from "@/lib/brief/pplTraining";
 import { localizeGatheringTitle } from "@/lib/gatherings/localizeGathering";
@@ -103,11 +111,27 @@ export default function BriefScreen() {
 
   // Flow-summary: the day's narrative at the top of the brief. The active period
   // (morning until 18:00, then evening) picks which variant fills the block.
-  const flowSummary = isEveningWindow
-    ? buildFlowSummary("evening", effectiveTomorrowEvents, effectiveWeekEvents, lang)
-    : isMorningWindow
-      ? buildFlowSummary("morning", effectiveTodayEvents, effectiveWeekEvents, lang)
+  const flowPeriod = isEveningWindow ? ("evening" as const) : ("morning" as const);
+  const flowFocusEvents = isEveningWindow ? effectiveTomorrowEvents : effectiveTodayEvents;
+  let flowSummary =
+    isMorningWindow || isEveningWindow
+      ? buildFlowSummary(flowPeriod, flowFocusEvents, effectiveWeekEvents, lang)
       : null;
+
+  // Companion moment: when the focus day has room, weave in one open intention
+  // ("du antydet at du skulle ringe tante Berit denne uken").
+  const todayIso = localDateKey();
+  const openIntention = pickOpenIntention(brief.intentions, todayIso);
+  if (flowSummary && openIntention && hasRoomForIntention(flowFocusEvents)) {
+    flowSummary = weaveIntentionIntoFlowSummary(
+      flowSummary,
+      openIntention,
+      lang,
+      flowPeriod,
+      todayIso,
+    );
+  }
+
   const flowSummaryHeadline =
     flowSummary?.available && !flowSummary.isEmpty ? flowSummary.headline : null;
   const flowSummaryBody = flowSummaryHeadline ? flowSummary?.body : null;
@@ -369,22 +393,49 @@ export default function BriefScreen() {
           </View>
         ) : null}
 
-        {/* Dev-only: mock mode toggle */}
+        {/* Dev-only: mock mode toggle + intention seeding */}
         {__DEV__ && (
-          <Pressable
-            onPress={() => setMockMode((v) => !v)}
-            className={`self-start px-3 py-1.5 rounded-pill border mb-3 ${
-              mockMode ? "border-accent bg-accentLight" : "border-border"
-            }`}
-          >
-            <Text
-              className={`text-2xs uppercase tracking-[1px] font-bodySemi ${
-                mockMode ? "text-accent" : "text-text3"
+          <View className="flex-row gap-2 mb-3">
+            <Pressable
+              onPress={() => setMockMode((v) => !v)}
+              className={`px-3 py-1.5 rounded-pill border ${
+                mockMode ? "border-accent bg-accentLight" : "border-border"
               }`}
             >
-              {mockMode ? "Mock: on" : "Mock: off"}
-            </Text>
-          </Pressable>
+              <Text
+                className={`text-2xs uppercase tracking-[1px] font-bodySemi ${
+                  mockMode ? "text-accent" : "text-text3"
+                }`}
+              >
+                {mockMode ? "Mock: on" : "Mock: off"}
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={() => {
+                if (!userId) return;
+                void addIntention(userId, {
+                  text: "ringe tante Berit",
+                  dueBy: localDateKey(getCalendarWeekBounds().end),
+                }).then(() => notifyBriefReload());
+              }}
+              className="px-3 py-1.5 rounded-pill border border-border"
+            >
+              <Text className="text-2xs uppercase tracking-[1px] font-bodySemi text-text3">
+                + Int
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={() => {
+                if (!userId) return;
+                void deleteAllIntentions(userId).then(() => notifyBriefReload());
+              }}
+              className="px-3 py-1.5 rounded-pill border border-border"
+            >
+              <Text className="text-2xs uppercase tracking-[1px] font-bodySemi text-text3">
+                × Int
+              </Text>
+            </Pressable>
+          </View>
         )}
 
         {/* Week picker */}

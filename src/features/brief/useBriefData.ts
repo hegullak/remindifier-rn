@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { listBriefSchedule, listUpcomingRedLetterDays } from "@/db/repos/briefRepo";
 import { listGatheringsForUser } from "@/db/repos/gatheringsRepo";
+import { listOpenIntentions } from "@/db/repos/intentionsRepo";
 import {
   deleteDailyLookForward,
   dismissDailyLookForward,
@@ -32,7 +33,8 @@ import {
   getCalendarWeekBounds,
   getISOWeek,
 } from "@/lib/brief/calendarWeek";
-import type { DailyLookForwardRecord } from "@/lib/brief/lookForward";
+import type { OpenIntention } from "@/lib/brief/intentionWeave";
+import { type DailyLookForwardRecord, localDateKey } from "@/lib/brief/lookForward";
 import type { BriefSectionId } from "@/lib/brief/sections";
 import { DEFAULT_BRIEF_SECTION_ORDER } from "@/lib/brief/sections";
 import {
@@ -58,6 +60,8 @@ interface BriefState {
   sectionOrder: BriefSectionId[];
   lookForward: DailyLookForwardRecord | null;
   calendarAccess: CalendarAccessStatus;
+  /** Open soft intentions ("ring tante Berit denne uken") for flow-summary weaving. */
+  intentions: OpenIntention[];
 }
 
 const initialState: BriefState = {
@@ -70,6 +74,7 @@ const initialState: BriefState = {
   sectionOrder: DEFAULT_BRIEF_SECTION_ORDER,
   lookForward: null,
   calendarAccess: "denied",
+  intentions: [],
 };
 
 export function formatBriefDateLine(locale: Locale, weekBounds: { start: Date; end: Date }) {
@@ -93,15 +98,23 @@ export function useBriefData(userId: string | null | undefined) {
       setBrief(initialState);
       return;
     }
-    const [scheduleRaw, redLetterDays, sectionOrder, selectedCalendarIds, gatherings, lookForward] =
-      await Promise.all([
-        listBriefSchedule(userId),
-        listUpcomingRedLetterDays(userId, 60, locale),
-        getBriefSectionOrder(userId),
-        getSelectedCalendarIds(userId),
-        listGatheringsForUser(userId),
-        getDailyLookForward(userId),
-      ]);
+    const [
+      scheduleRaw,
+      redLetterDays,
+      sectionOrder,
+      selectedCalendarIds,
+      gatherings,
+      lookForward,
+      intentions,
+    ] = await Promise.all([
+      listBriefSchedule(userId),
+      listUpcomingRedLetterDays(userId, 60, locale),
+      getBriefSectionOrder(userId),
+      getSelectedCalendarIds(userId),
+      listGatheringsForUser(userId),
+      getDailyLookForward(userId),
+      listOpenIntentions(userId, localDateKey()),
+    ]);
     const calendarResult = await fetchCalendarBriefEvents(weekBounds, selectedCalendarIds);
     const calendarEvents = calendarResult.events;
     const scheduleLocalized = scheduleRaw.map((item) => localizeScheduleItem(item, locale));
@@ -133,6 +146,7 @@ export function useBriefData(userId: string | null | undefined) {
       sectionOrder,
       lookForward,
       calendarAccess: calendarResult.access,
+      intentions,
     }));
   }, [userId, locale, weekBounds]);
 
