@@ -96,7 +96,7 @@ export default function SemanticIntakeScreen() {
       const result = await confirmSemanticIntake(userId, draft);
       triggerMedium();
       if (result.kind === "gathering" || result.kind === "follow_up") {
-        router.replace("/(tabs)/brief");
+        router.replace("/(tabs)/flow");
         return;
       }
     } catch {

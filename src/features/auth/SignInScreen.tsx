@@ -51,7 +51,7 @@ export function SignInScreen() {
   const strategy = selectedFactor?.strategy ?? "totp";
 
   const goToApp = useCallback(() => {
-    router.replace("/(tabs)/brief");
+    router.replace("/(tabs)/flow");
   }, [router]);
 
   const finishSignIn = useCallback(

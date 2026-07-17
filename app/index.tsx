@@ -22,5 +22,5 @@ export default function IndexScreen() {
     return <Redirect href="/sign-in" />;
   }
 
-  return <Redirect href="/(tabs)/brief" />;
+  return <Redirect href="/(tabs)/flow" />;
 }

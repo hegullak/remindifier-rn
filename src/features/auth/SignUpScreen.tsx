@@ -57,7 +57,7 @@ export function SignUpScreen() {
       });
       if (result.status === "complete" && result.createdSessionId) {
         const active = await activateClerkSession(setActive, result.createdSessionId);
-        if (active) router.replace("/(tabs)/brief");
+        if (active) router.replace("/(tabs)/flow");
         else setErrorMessage(t("signUpForm.sessionNotStarted"));
       } else {
         setErrorMessage(t("signUpForm.verifyIncomplete"));

@@ -67,7 +67,7 @@ function OnboardingContent({
   }
 
   if (alreadyCompleted) {
-    return <Redirect href="/(tabs)/brief" />;
+    return <Redirect href="/(tabs)/flow" />;
   }
 
   async function finishOnboarding(personId?: string) {
@@ -75,7 +75,7 @@ function OnboardingContent({
     if (personId) {
       router.replace(`/(tabs)/people/${personId}`);
     } else {
-      router.replace("/(tabs)/brief");
+      router.replace("/(tabs)/flow");
     }
   }
 

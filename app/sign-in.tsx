@@ -13,7 +13,7 @@ export default function SignInRoute() {
   useEffect(() => {
     if (!isLoaded) return;
     if (isSignedIn) {
-      router.replace("/(tabs)/brief");
+      router.replace("/(tabs)/flow");
     }
   }, [isLoaded, isSignedIn, router]);
 
