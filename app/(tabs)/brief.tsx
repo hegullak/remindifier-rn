@@ -6,11 +6,10 @@ import { useMockCalendarPool } from "@/features/brief/useMockCalendarPool";
 import { useTranslation } from "@/i18n";
 import type { CalendarBriefEvent } from "@/lib/brief/calendarEvents";
 import { getCalendarWeekBounds, isDateInCalendarWeek } from "@/lib/brief/calendarWeek";
-import { buildEveningWindDown } from "@/lib/brief/eveningWindDown";
 import { eventIcon, iconAndTitle } from "@/lib/brief/eventIcon";
+import { buildFlowSummary } from "@/lib/brief/flowSummary";
 import { briefGreetingLine } from "@/lib/brief/greeting";
 import { mockEventsForDay } from "@/lib/brief/mockFromCalendarPool";
-import { buildMorningBrief } from "@/lib/brief/morningBrief";
 import type { TrainingDisplayLine } from "@/lib/brief/pplTraining";
 import { localizeGatheringTitle } from "@/lib/gatherings/localizeGathering";
 import { anniversaryMilestoneDetail } from "@/lib/milestones/anniversaries";
@@ -97,30 +96,21 @@ export default function BriefScreen() {
     [effectiveWeekEvents],
   );
 
-  const morningBrief = buildMorningBrief(effectiveTodayEvents, effectiveWeekEvents, lang);
-  const windDown = buildEveningWindDown(effectiveTomorrowEvents, effectiveWeekEvents, lang);
-
   const now = new Date();
   const nowMinutes = now.getHours() * 60 + now.getMinutes();
   const isEveningWindow = nowMinutes >= EVENING_START_MINUTES;
   const isMorningWindow = !isEveningWindow && now.getHours() >= MORNING_START_HOUR;
 
-  // Flow-summary: the day's narrative at the top of the brief. Morning and
-  // evening variants feed the same block (buildMorningBrief / buildEveningWindDown).
-  const flowSummaryHeadline = isMorningWindow
-    ? morningBrief.available && !morningBrief.isEmpty
-      ? morningBrief.headline
-      : null
-    : isEveningWindow
-      ? windDown.available && !windDown.isEmpty
-        ? windDown.headline
-        : null
+  // Flow-summary: the day's narrative at the top of the brief. The active period
+  // (morning until 18:00, then evening) picks which variant fills the block.
+  const flowSummary = isEveningWindow
+    ? buildFlowSummary("evening", effectiveTomorrowEvents, effectiveWeekEvents, lang)
+    : isMorningWindow
+      ? buildFlowSummary("morning", effectiveTodayEvents, effectiveWeekEvents, lang)
       : null;
-  const flowSummaryBody = isMorningWindow
-    ? morningBrief.body
-    : isEveningWindow
-      ? windDown.body
-      : null;
+  const flowSummaryHeadline =
+    flowSummary?.available && !flowSummary.isEmpty ? flowSummary.headline : null;
+  const flowSummaryBody = flowSummaryHeadline ? flowSummary?.body : null;
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
