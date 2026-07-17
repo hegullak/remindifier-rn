@@ -2,9 +2,9 @@ import { useMemo, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { addIntention, deleteAllIntentions } from "@/db/repos/intentionsRepo";
 import { useAppAuth, useAppUser } from "@/features/auth/useAppAuth";
+import { DateNavBar } from "@/features/brief/DateNavBar";
 import { useBriefData } from "@/features/brief/useBriefData";
 import { useMockCalendarPool } from "@/features/brief/useMockCalendarPool";
-import { DayPickerHeader } from "@/features/day/DayPickerHeader";
 import { useDayData } from "@/features/day/useDayData";
 import { useTranslation } from "@/i18n";
 import { notifyBriefReload } from "@/lib/brief/briefRefresh";
@@ -74,6 +74,8 @@ export default function BriefScreen() {
   } = useBriefData(userId);
   const [mockMode, setMockMode] = useState(false);
   const { pool: mockPool } = useMockCalendarPool(userId, __DEV__ && mockMode);
+  /** Dev-only override so morning/evening flow-summary can be triggered on demand. */
+  const [periodOverride, setPeriodOverride] = useState<"morning" | "evening" | null>(null);
   const [weekExpanded, setWeekExpanded] = useState(false);
   const [anniversaryDetail, setAnniversaryDetail] = useState<AnniversaryDetail | null>(null);
 
@@ -118,8 +120,12 @@ export default function BriefScreen() {
 
   const now = new Date();
   const nowMinutes = now.getHours() * 60 + now.getMinutes();
-  const isEveningWindow = nowMinutes >= EVENING_START_MINUTES;
-  const isMorningWindow = !isEveningWindow && now.getHours() >= MORNING_START_HOUR;
+  const isEveningWindow = periodOverride
+    ? periodOverride === "evening"
+    : nowMinutes >= EVENING_START_MINUTES;
+  const isMorningWindow = periodOverride
+    ? periodOverride === "morning"
+    : !isEveningWindow && now.getHours() >= MORNING_START_HOUR;
 
   // Flow-summary: the day's narrative at the top of the brief. The active period
   // (morning until 18:00, then evening) picks which variant fills the block.
@@ -352,13 +358,6 @@ export default function BriefScreen() {
     return (
       <View className="mb-1">
         <SectionLabel>{locale === "no" ? "Dagen min" : "My day"}</SectionLabel>
-        <DayPickerHeader
-          dateLabel={dayData.dateLabel}
-          dayOffset={dayData.dayOffset}
-          onPrev={() => dayData.shiftDay(-1)}
-          onNext={() => dayData.shiftDay(1)}
-          onToday={dayData.goToToday}
-        />
         {!hasDay && !hasTraining ? (
           <BriefCard stripeColor="blue">
             <Text className="text-body text-text2 font-body">{t("day.empty")}</Text>
@@ -453,9 +452,9 @@ export default function BriefScreen() {
           </View>
         ) : null}
 
-        {/* Dev-only: mock mode toggle + intention seeding */}
+        {/* Dev-only: mock mode toggle + period override + intention seeding */}
         {__DEV__ && (
-          <View className="flex-row gap-2 mb-3">
+          <View className="flex-row flex-wrap gap-2 mb-3">
             <Pressable
               onPress={() => setMockMode((v) => !v)}
               className={`px-3 py-1.5 rounded-pill border ${
@@ -468,6 +467,34 @@ export default function BriefScreen() {
                 }`}
               >
                 {mockMode ? "Mock: on" : "Mock: off"}
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={() => setPeriodOverride((p) => (p === "morning" ? null : "morning"))}
+              className={`px-3 py-1.5 rounded-pill border ${
+                periodOverride === "morning" ? "border-accent bg-accentLight" : "border-border"
+              }`}
+            >
+              <Text
+                className={`text-2xs uppercase tracking-[1px] font-bodySemi ${
+                  periodOverride === "morning" ? "text-accent" : "text-text3"
+                }`}
+              >
+                Day mode
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={() => setPeriodOverride((p) => (p === "evening" ? null : "evening"))}
+              className={`px-3 py-1.5 rounded-pill border ${
+                periodOverride === "evening" ? "border-accent bg-accentLight" : "border-border"
+              }`}
+            >
+              <Text
+                className={`text-2xs uppercase tracking-[1px] font-bodySemi ${
+                  periodOverride === "evening" ? "text-accent" : "text-text3"
+                }`}
+              >
+                Evening mode
               </Text>
             </Pressable>
             <Pressable
@@ -510,41 +537,21 @@ export default function BriefScreen() {
           </View>
         )}
 
-        {/* Week picker */}
-        <View className="flex-row items-center gap-3 mb-4">
-          <Pressable
-            onPress={() => shiftWeek(-1)}
-            accessibilityRole="button"
-            accessibilityLabel={t("brief.weekPrev")}
-            hitSlop={16}
-            className="active:opacity-60"
-          >
-            <Text className="text-xl text-accent font-body">←</Text>
-          </Pressable>
-          <Pressable
-            onPress={resetWeek}
-            disabled={weekOffset === 0}
-            accessibilityRole="button"
-            accessibilityLabel={t("brief.weekThis")}
-            hitSlop={8}
-            className="active:opacity-70"
-          >
-            <Text
-              className={`text-base font-bodySemi ${weekOffset === 0 ? "text-text3" : "text-accent"}`}
-            >
-              {dateLine}
-            </Text>
-          </Pressable>
-          <Pressable
-            onPress={() => shiftWeek(1)}
-            accessibilityRole="button"
-            accessibilityLabel={t("brief.weekNext")}
-            hitSlop={16}
-            className="active:opacity-60"
-          >
-            <Text className="text-xl text-accent font-body">→</Text>
-          </Pressable>
-        </View>
+        {/* Combined day + week navigation */}
+        <DateNavBar
+          dayLabel={dayData.dateLabel}
+          weekLabel={dateLine}
+          isToday={isViewingToday}
+          isThisWeek={weekOffset === 0}
+          onPrevDay={() => dayData.shiftDay(-1)}
+          onNextDay={() => dayData.shiftDay(1)}
+          onPrevWeek={() => shiftWeek(-1)}
+          onNextWeek={() => shiftWeek(1)}
+          onReset={() => {
+            dayData.goToToday();
+            resetWeek();
+          }}
+        />
 
         {renderDagenMin()}
         {renderUkenMin()}
