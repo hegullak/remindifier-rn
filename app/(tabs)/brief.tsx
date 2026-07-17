@@ -4,6 +4,8 @@ import { addIntention, deleteAllIntentions } from "@/db/repos/intentionsRepo";
 import { useAppAuth, useAppUser } from "@/features/auth/useAppAuth";
 import { useBriefData } from "@/features/brief/useBriefData";
 import { useMockCalendarPool } from "@/features/brief/useMockCalendarPool";
+import { DayPickerHeader } from "@/features/day/DayPickerHeader";
+import { useDayData } from "@/features/day/useDayData";
 import { useTranslation } from "@/i18n";
 import { notifyBriefReload } from "@/lib/brief/briefRefresh";
 import type { CalendarBriefEvent } from "@/lib/brief/calendarEvents";
@@ -20,6 +22,7 @@ import { localDateKey } from "@/lib/brief/lookForward";
 import { mockEventsForDay } from "@/lib/brief/mockFromCalendarPool";
 import type { TrainingDisplayLine } from "@/lib/brief/pplTraining";
 import { localizeGatheringTitle } from "@/lib/gatherings/localizeGathering";
+import { logger } from "@/lib/logger";
 import { anniversaryMilestoneDetail } from "@/lib/milestones/anniversaries";
 import { AppShell } from "@/ui/AppShell";
 import { BottomSheet } from "@/ui/BottomSheet";
@@ -74,6 +77,15 @@ export default function BriefScreen() {
   const [weekExpanded, setWeekExpanded] = useState(false);
   const [anniversaryDetail, setAnniversaryDetail] = useState<AnniversaryDetail | null>(null);
 
+  // Day navigation for "Dagen min" — independent per-day fetch so ‹ › works
+  // across week boundaries too. Flow-summary stays tied to the real today/tomorrow.
+  const dayData = useDayData(userId);
+  const isViewingToday = dayData.dayOffset === 0;
+  const effectiveDayEvents = useMemo(() => {
+    if (!mockMode || dayData.events.length > 0) return dayData.events;
+    return mockEventsForDay(dayData.date, mockPool);
+  }, [mockMode, dayData.events, dayData.date, mockPool]);
+
   const lang = locale === "no" ? "no" : "en";
   const firstName = user?.firstName?.trim() || (locale === "no" ? "du" : "there");
   const { lead: greetingLead, name: greetingName } = briefGreetingLine(firstName, locale);
@@ -122,7 +134,8 @@ export default function BriefScreen() {
   // ("du antydet at du skulle ringe tante Berit denne uken").
   const todayIso = localDateKey();
   const openIntention = pickOpenIntention(brief.intentions, todayIso);
-  if (flowSummary && openIntention && hasRoomForIntention(flowFocusEvents)) {
+  const roomForIntention = hasRoomForIntention(flowFocusEvents);
+  if (flowSummary && openIntention && roomForIntention) {
     flowSummary = weaveIntentionIntoFlowSummary(
       flowSummary,
       openIntention,
@@ -130,6 +143,14 @@ export default function BriefScreen() {
       flowPeriod,
       todayIso,
     );
+  }
+  if (__DEV__ && openIntention) {
+    logger.info("intention_weave", {
+      surfaced: Boolean(flowSummary && roomForIntention),
+      hasRoom: roomForIntention,
+      period: flowPeriod,
+      focusEventCount: flowFocusEvents.length,
+    });
   }
 
   const flowSummaryHeadline =
@@ -220,9 +241,31 @@ export default function BriefScreen() {
   }
 
   weekItems.sort((a, b) => a.sortKey - b.sortKey);
-  const todayItems = weekItems.filter((i) => i.sortKey === 0);
   const restItems = weekItems.filter((i) => i.sortKey > 0);
   const nowMinutesForDim = now.getHours() * 60 + now.getMinutes();
+
+  // "Dagen min" items come from the per-day fetch (selected via ‹ ›),
+  // not from the week window — precise date filtering, works for past days.
+  const dayItems: UnifiedItem[] = effectiveDayEvents.map((event) => {
+    const { icon, title } = iconAndTitle(event.title);
+    const timeStr = event.allDay
+      ? undefined
+      : event.startDate.toLocaleTimeString(locale === "no" ? "nb-NO" : "en-GB", {
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+    return {
+      id: `day-${event.id}`,
+      sortKey: 0,
+      sortMinutes: event.allDay
+        ? undefined
+        : event.startDate.getHours() * 60 + event.startDate.getMinutes(),
+      dayLabel: "",
+      icon,
+      primary: title,
+      secondary: timeStr,
+    };
+  });
 
   function renderUnifiedRow(
     item: UnifiedItem,
@@ -277,58 +320,75 @@ export default function BriefScreen() {
   }
 
   function renderDagenMin() {
-    if (weekOffset !== 0) return null;
+    // Demo schedule + training lines belong to the actual today only.
+    const scheduleItems: UnifiedItem[] = isViewingToday
+      ? brief.schedule.map((item) => {
+          const rawTitle = item.gatheringId
+            ? localizeGatheringTitle(item.gatheringId, item.title, locale)
+            : item.title;
+          const { icon, title } = iconAndTitle(rawTitle);
+          const [h, m] = item.time.split(":").map(Number);
+          return {
+            id: `sched-${item.id}`,
+            sortKey: 0,
+            sortMinutes: Number.isFinite(h) ? h * 60 + (m || 0) : undefined,
+            dayLabel: "",
+            icon,
+            primary: title,
+            secondary: item.time,
+            note: item.note || undefined,
+          };
+        })
+      : [];
 
-    const scheduleItems: UnifiedItem[] = brief.schedule.map((item) => {
-      const rawTitle = item.gatheringId
-        ? localizeGatheringTitle(item.gatheringId, item.title, locale)
-        : item.title;
-      const { icon, title } = iconAndTitle(rawTitle);
-      const [h, m] = item.time.split(":").map(Number);
-      return {
-        id: `sched-${item.id}`,
-        sortKey: 0,
-        sortMinutes: Number.isFinite(h) ? h * 60 + (m || 0) : undefined,
-        dayLabel: "I DAG",
-        icon,
-        primary: title,
-        secondary: item.time,
-        note: item.note || undefined,
-      };
-    });
-
-    const dayCombined = [...scheduleItems, ...todayItems].sort(
+    const dayCombined = [...scheduleItems, ...dayItems].sort(
       (a, b) => (a.sortMinutes ?? -1) - (b.sortMinutes ?? -1),
     );
 
     const hasDay = dayCombined.length > 0;
-    const hasTraining = trainingLines.length > 0;
-    if (!hasDay && !hasTraining) return null;
+    const hasTraining = isViewingToday && trainingLines.length > 0;
     const needDivider = hasDay && hasTraining;
 
     return (
       <View className="mb-1">
         <SectionLabel>{locale === "no" ? "Dagen min" : "My day"}</SectionLabel>
-        <BriefCard stripeColor="blue">
-          {dayCombined.map((item, i) => {
-            const dimmed = item.sortMinutes !== undefined && item.sortMinutes < nowMinutesForDim;
-            return renderUnifiedRow(item, i, dayCombined, false, dimmed);
-          })}
-          {needDivider && <View className="h-px bg-border my-3" />}
-          {trainingLines.map((line, i) => (
-            <View
-              key={trainingLineKey(line, i)}
-              className={`flex-row items-start gap-2${i < trainingLines.length - 1 ? " mb-3" : ""}`}
-            >
-              <Text className="text-base">{i === 0 ? "🏋️" : "🏃"}</Text>
-              {line.kind === "ppl" ? (
-                <PplSessionLabel active={line.active} className="flex-1" />
-              ) : (
-                <Text className="text-body-lg text-text1 font-body flex-1">{line.text}</Text>
-              )}
-            </View>
-          ))}
-        </BriefCard>
+        <DayPickerHeader
+          dateLabel={dayData.dateLabel}
+          dayOffset={dayData.dayOffset}
+          onPrev={() => dayData.shiftDay(-1)}
+          onNext={() => dayData.shiftDay(1)}
+          onToday={dayData.goToToday}
+        />
+        {!hasDay && !hasTraining ? (
+          <BriefCard stripeColor="blue">
+            <Text className="text-body text-text2 font-body">{t("day.empty")}</Text>
+          </BriefCard>
+        ) : (
+          <BriefCard stripeColor="blue">
+            {dayCombined.map((item, i) => {
+              const dimmed =
+                isViewingToday &&
+                item.sortMinutes !== undefined &&
+                item.sortMinutes < nowMinutesForDim;
+              return renderUnifiedRow(item, i, dayCombined, false, dimmed);
+            })}
+            {needDivider && <View className="h-px bg-border my-3" />}
+            {hasTraining &&
+              trainingLines.map((line, i) => (
+                <View
+                  key={trainingLineKey(line, i)}
+                  className={`flex-row items-start gap-2${i < trainingLines.length - 1 ? " mb-3" : ""}`}
+                >
+                  <Text className="text-base">{i === 0 ? "🏋️" : "🏃"}</Text>
+                  {line.kind === "ppl" ? (
+                    <PplSessionLabel active={line.active} className="flex-1" />
+                  ) : (
+                    <Text className="text-body-lg text-text1 font-body flex-1">{line.text}</Text>
+                  )}
+                </View>
+              ))}
+          </BriefCard>
+        )}
       </View>
     );
   }
@@ -413,25 +473,37 @@ export default function BriefScreen() {
             <Pressable
               onPress={() => {
                 if (!userId) return;
-                void addIntention(userId, {
+                addIntention(userId, {
                   text: "ringe tante Berit",
                   dueBy: localDateKey(getCalendarWeekBounds().end),
-                }).then(() => notifyBriefReload());
+                })
+                  .then(() => notifyBriefReload())
+                  .catch((error) => {
+                    logger.error("intention_seed_failed", {
+                      error: error instanceof Error ? error.message : "unknown",
+                    });
+                  });
               }}
-              className="px-3 py-1.5 rounded-pill border border-border"
+              className="px-3 py-1.5 rounded-pill border border-green/60 bg-greenLight"
             >
-              <Text className="text-2xs uppercase tracking-[1px] font-bodySemi text-text3">
+              <Text className="text-2xs uppercase tracking-[1px] font-bodySemi text-green">
                 + Int
               </Text>
             </Pressable>
             <Pressable
               onPress={() => {
                 if (!userId) return;
-                void deleteAllIntentions(userId).then(() => notifyBriefReload());
+                deleteAllIntentions(userId)
+                  .then(() => notifyBriefReload())
+                  .catch((error) => {
+                    logger.error("intention_clear_failed", {
+                      error: error instanceof Error ? error.message : "unknown",
+                    });
+                  });
               }}
-              className="px-3 py-1.5 rounded-pill border border-border"
+              className="px-3 py-1.5 rounded-pill border border-red/60 bg-redLight"
             >
-              <Text className="text-2xs uppercase tracking-[1px] font-bodySemi text-text3">
+              <Text className="text-2xs uppercase tracking-[1px] font-bodySemi text-red">
                 × Int
               </Text>
             </Pressable>
