@@ -162,6 +162,7 @@ export const en = {
       lunch: "Lunch",
       afternoon: "Afternoon",
       evening: "Evening",
+      weekend: "Weekend",
     },
   },
   week: {

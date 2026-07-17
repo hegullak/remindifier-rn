@@ -163,6 +163,7 @@ export const no = {
       lunch: "Lunsj",
       afternoon: "Ettermiddag",
       evening: "Kveld",
+      weekend: "Helg",
     },
   },
   week: {

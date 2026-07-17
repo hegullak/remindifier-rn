@@ -1,4 +1,11 @@
 import { Pressable, ScrollView, Text } from "react-native";
+import type { MockDayScenario } from "@/lib/brief/mockDay";
+
+const SCENARIO_LABELS: Record<MockDayScenario, string> = {
+  light: "Light",
+  moderate: "Med",
+  busy: "Busy",
+};
 
 /** Dev-only Brief testing controls — rendered in the header, never in production. */
 export function DevBriefControls({
@@ -6,6 +13,9 @@ export function DevBriefControls({
   onToggleMock,
   periodOverride,
   onSetPeriod,
+  scenario,
+  scenarioIndex,
+  onPressScenario,
   onSeedIntention,
   onClearIntentions,
 }: {
@@ -13,6 +23,9 @@ export function DevBriefControls({
   onToggleMock: () => void;
   periodOverride: "morning" | "evening" | null;
   onSetPeriod: (period: "morning" | "evening" | null) => void;
+  scenario: MockDayScenario | null;
+  scenarioIndex: number;
+  onPressScenario: (scenario: MockDayScenario) => void;
   onSeedIntention: () => void;
   onClearIntentions: () => void;
 }) {
@@ -62,6 +75,27 @@ export function DevBriefControls({
           EM
         </Text>
       </Pressable>
+      {(["light", "moderate", "busy"] as MockDayScenario[]).map((kind) => {
+        const active = scenario === kind;
+        return (
+          <Pressable
+            key={kind}
+            onPress={() => onPressScenario(kind)}
+            className={`px-2 py-1 rounded-pill border ${
+              active ? "border-accent bg-accentLight" : "border-border"
+            }`}
+          >
+            <Text
+              className={`text-3xs uppercase font-bodySemi ${
+                active ? "text-accent" : "text-text3"
+              }`}
+            >
+              {SCENARIO_LABELS[kind]}
+              {active ? `·${scenarioIndex + 1}` : ""}
+            </Text>
+          </Pressable>
+        );
+      })}
       <Pressable
         onPress={onSeedIntention}
         className="px-2 py-1 rounded-pill border border-green/60 bg-greenLight"

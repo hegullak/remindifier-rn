@@ -1,15 +1,16 @@
 import { analyzeDay } from "@/lib/brief/analyzeDay";
+import { buildWeekendSummary, getDayOfWeek } from "@/lib/brief/briefHelpers";
 import type { CalendarBriefEvent } from "@/lib/brief/calendarEvents";
 import type { FlowSummaryPeriod } from "@/lib/brief/flowSummary";
 
 /**
  * Structured Mental Forecast for the Flow screen: one short verdict (the
- * day's character) plus up to three stanzas — morning / afternoon / evening —
- * each a couple of quiet interpreted sentences, never a raw event list.
- * "Kalenderen viser tid. echoflow forklarer dagen."
+ * day's character) plus up to four stanzas — morning / afternoon / evening /
+ * weekend — each a couple of quiet interpreted sentences, never a raw event
+ * list. "Kalenderen viser tid. echoflow forklarer dagen."
  */
 
-export type FlowStanzaPeriod = "morning" | "afternoon" | "evening";
+export type FlowStanzaPeriod = "morning" | "afternoon" | "evening" | "weekend";
 
 export type FlowStanza = {
   period: FlowStanzaPeriod;
@@ -69,10 +70,25 @@ function buildVerdict(
   return period === "evening" ? `Tomorrow: ${core.charAt(0).toLowerCase()}${core.slice(1)}` : core;
 }
 
+/** "Fri helg." or a one-line summary of what's on, from this week's Sat/Sun events. */
+function buildWeekendStanza(weekEvents: CalendarBriefEvent[], locale: "en" | "no"): FlowStanza {
+  const no = locale === "no";
+  const saturday = weekEvents.filter((e) => getDayOfWeek(e.startDate) === 6 && !e.allDay);
+  const sunday = weekEvents.filter((e) => getDayOfWeek(e.startDate) === 0 && !e.allDay);
+  const hasWeekendEvents = saturday.length > 0 || sunday.length > 0;
+  const line = hasWeekendEvents
+    ? buildWeekendSummary(saturday, sunday, locale)
+    : no
+      ? "Fri helg."
+      : "Free weekend.";
+  return { period: "weekend", lines: [line] };
+}
+
 export function buildFlowStanzas(
   focusEvents: CalendarBriefEvent[],
   locale: "en" | "no",
   period: FlowSummaryPeriod = "morning",
+  weekEvents: CalendarBriefEvent[] = [],
 ): FlowStanzasResult {
   const signals = analyzeDay(focusEvents);
   const no = locale === "no";
@@ -88,7 +104,7 @@ export function buildFlowStanzas(
           : no
             ? "Dagen er åpen — du styrer tempoet selv."
             : "The day is open — you set the pace.",
-      stanzas: [],
+      stanzas: weekEvents.length > 0 ? [buildWeekendStanza(weekEvents, locale)] : [],
     };
   }
 
@@ -166,6 +182,10 @@ export function buildFlowStanzas(
     }
   }
   stanzas.push({ period: "evening", lines: eveningLines });
+
+  if (weekEvents.length > 0) {
+    stanzas.push(buildWeekendStanza(weekEvents, locale));
+  }
 
   return {
     isEmpty: false,

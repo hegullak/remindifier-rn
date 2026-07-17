@@ -17,6 +17,7 @@ import {
   pickOpenIntention,
 } from "@/lib/brief/intentionWeave";
 import { localDateKey } from "@/lib/brief/lookForward";
+import { type MockDayScenario, mockDayEventsVariant } from "@/lib/brief/mockDay";
 import { mockEventsForDay } from "@/lib/brief/mockFromCalendarPool";
 import { logger } from "@/lib/logger";
 import { AppShell } from "@/ui/AppShell";
@@ -39,6 +40,19 @@ export default function FlowScreen() {
   const { pool: mockPool } = useMockCalendarPool(userId, __DEV__ && mockMode);
   /** Dev-only override so morning/evening Mental Forecast can be triggered on demand. */
   const [periodOverride, setPeriodOverride] = useState<"morning" | "evening" | null>(null);
+  /** Dev-only load scenario override: pressing the same button again rotates to the next of 5 variants. */
+  const [scenario, setScenario] = useState<{ kind: MockDayScenario | null; index: number }>({
+    kind: null,
+    index: 0,
+  });
+
+  function pressScenario(kind: MockDayScenario) {
+    setScenario((prev) => {
+      if (prev.kind !== kind) return { kind, index: 0 };
+      const next = prev.index + 1;
+      return next >= 5 ? { kind: null, index: 0 } : { kind, index: next };
+    });
+  }
 
   const lang = locale === "no" ? "no" : "en";
   const firstName = user?.firstName?.trim() || (locale === "no" ? "du" : "there");
@@ -86,11 +100,15 @@ export default function FlowScreen() {
     : !isEveningWindow && now.getHours() >= MORNING_START_HOUR;
 
   // Mental Forecast: interprets the focus day (today in the morning, tomorrow
-  // in the evening) as a verdict + three quiet stanzas, never an event list.
+  // in the evening) as a verdict + quiet stanzas, never an event list.
   const flowPeriod = isEveningWindow ? ("evening" as const) : ("morning" as const);
-  const flowFocusEvents = isEveningWindow ? effectiveTomorrowEvents : effectiveTodayEvents;
+  const scenarioEvents = scenario.kind ? mockDayEventsVariant(scenario.kind, scenario.index) : null;
+  const flowFocusEvents =
+    scenarioEvents ?? (isEveningWindow ? effectiveTomorrowEvents : effectiveTodayEvents);
   const forecast =
-    isMorningWindow || isEveningWindow ? buildFlowStanzas(flowFocusEvents, lang, flowPeriod) : null;
+    scenarioEvents || isMorningWindow || isEveningWindow
+      ? buildFlowStanzas(flowFocusEvents, lang, flowPeriod, effectiveWeekEvents)
+      : null;
 
   // Companion moment: when the focus day has room, one open intention gets its
   // own quiet line ("du antydet at du skulle ringe tante Berit denne uken").
@@ -144,6 +162,9 @@ export default function FlowScreen() {
             onToggleMock={() => setMockMode((v) => !v)}
             periodOverride={periodOverride}
             onSetPeriod={setPeriodOverride}
+            scenario={scenario.kind}
+            scenarioIndex={scenario.index}
+            onPressScenario={pressScenario}
             onSeedIntention={seedTestIntention}
             onClearIntentions={clearTestIntentions}
           />

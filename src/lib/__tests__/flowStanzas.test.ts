@@ -95,4 +95,43 @@ describe("buildFlowStanzas", () => {
     expect(stanza(result, "morning").lines.join(" ")).toContain("First event at 08:00.");
     expect(stanza(result, "evening").lines.join(" ")).toContain("Football practice at 18:30.");
   });
+
+  describe("weekend stanza", () => {
+    // 2026-06-01 is a Monday; Saturday is 2026-06-06, Sunday 2026-06-07.
+    function makeWeekendEvent(id: string, day: number, hour: number, title: string) {
+      const startDate = new Date(2026, 5, day, hour, 0, 0, 0);
+      return {
+        id,
+        title,
+        startDate,
+        endDate: new Date(startDate.getTime() + 60 * 60000),
+        allDay: false,
+        daysUntil: day - 1,
+        isToday: false,
+      };
+    }
+
+    it("is omitted when weekEvents is not passed", () => {
+      const result = buildFlowStanzas([makeEvent("a", 9)], "no");
+      expect(result.stanzas.find((s) => s.period === "weekend")).toBeUndefined();
+    });
+
+    it("reports a free weekend when no Sat/Sun events exist", () => {
+      const result = buildFlowStanzas([makeEvent("a", 9)], "no", "morning", [makeEvent("a", 9)]);
+      expect(stanza(result, "weekend").lines.join(" ")).toBe("Fri helg.");
+    });
+
+    it("names a Saturday event", () => {
+      const weekEvents = [makeEvent("a", 9), makeWeekendEvent("sat", 6, 13, "Fotballkamp")];
+      const result = buildFlowStanzas([makeEvent("a", 9)], "no", "morning", weekEvents);
+      expect(stanza(result, "weekend").lines.join(" ")).toContain("Fotballkamp lørdag kl. 13:00.");
+    });
+
+    it("appears even on an empty focus day when weekEvents is passed", () => {
+      const weekEvents = [makeWeekendEvent("sun", 7, 11, "Brunsj")];
+      const result = buildFlowStanzas([], "no", "morning", weekEvents);
+      expect(result.isEmpty).toBe(true);
+      expect(stanza(result, "weekend").lines.join(" ")).toContain("Brunsj søndag kl. 11:00.");
+    });
+  });
 });
