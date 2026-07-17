@@ -42,7 +42,13 @@ export default function FlowScreen() {
 
   const lang = locale === "no" ? "no" : "en";
   const firstName = user?.firstName?.trim() || (locale === "no" ? "du" : "there");
-  const { lead: greetingLead, name: greetingName } = briefGreetingLine(firstName, locale);
+  // Greeting follows the dev period override so DM/EM previews the full variant.
+  const { lead: greetingLead, name: greetingName } = briefGreetingLine(
+    firstName,
+    locale,
+    new Date(),
+    periodOverride ?? undefined,
+  );
 
   // Mock mode (dev-only): fill any day this week with zero real events using
   // events drawn from the user's own calendar history — for testing the forecast.
@@ -161,11 +167,11 @@ export default function FlowScreen() {
             </Text>
 
             {forecast.stanzas.map((stanza) => (
-              <View key={stanza.period} className="mb-4">
-                <Text className="text-2xs uppercase tracking-[1.92px] text-text3 font-bodySemi mb-1">
+              <View key={stanza.period} className="mb-5">
+                <Text className="text-sm uppercase tracking-[1.5px] text-text1 font-bodySemi mb-1.5">
                   {t(`day.periods.${stanza.period}`)}
                 </Text>
-                <Text className="text-body-lg text-text2 font-body leading-[23px]">
+                <Text className="text-base text-text2 font-body leading-[24px]">
                   {stanza.lines.join(" ")}
                 </Text>
               </View>

@@ -25,8 +25,9 @@ export function briefGreetingLine(
   firstName: string,
   locale: Locale,
   date = new Date(),
+  periodOverride?: DayPeriod,
 ): GreetingParts {
-  const period = dayPeriod(date);
+  const period = periodOverride ?? dayPeriod(date);
   const name = firstName.trim() || (locale === "no" ? "du" : "there");
   return { lead: `${greetingLead(locale, period)},`, name: `${name}.` };
 }
