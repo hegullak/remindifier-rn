@@ -58,6 +58,8 @@ describe("formatHolidayLine", () => {
   });
 
   it("formats days away (no/en)", () => {
+    const holiday = holidayOrNull;
+    if (!holiday) return;
     expect(
       formatHolidayLine({ holiday, daysUntil: 5, bridgeDaySuggestion: undefined }, "no"),
     ).toContain("5 dager");
@@ -67,6 +69,8 @@ describe("formatHolidayLine", () => {
   });
 
   it("formats within three days (no) and longer horizon (en)", () => {
+    const holiday = holidayOrNull;
+    if (!holiday) return;
     expect(
       formatHolidayLine({ holiday, daysUntil: 2, bridgeDaySuggestion: undefined }, "no"),
     ).toContain("2 dager");

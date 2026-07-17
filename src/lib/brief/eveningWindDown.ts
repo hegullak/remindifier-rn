@@ -26,7 +26,6 @@ type WindDownSignals = {
   hasLunchFree: boolean;
   hasMorningBusy: boolean;
   afternoonCalm: boolean;
-  hasFreeEvening: boolean;
   workEventCount: number;
   personalEventNames: string[];
   hasEveningActivity: boolean;
@@ -68,9 +67,6 @@ function analyseEvents(
   const eveningActivities = personalEvents
     .filter((e) => e.startDate.getHours() >= 17)
     .map((e) => e.title);
-  // hasFreeEvening = no personal activities in 17-22 slot (work always ends at 17)
-  const _hasFreeEvening = !hasEveningActivity;
-
   // Weekend signals — show upcoming Saturday/Sunday events
   const saturday = weekEvents.filter((e) => getDayOfWeek(e.startDate) === 6 && !e.allDay);
   const sunday = weekEvents.filter((e) => getDayOfWeek(e.startDate) === 0 && !e.allDay);
@@ -88,7 +84,6 @@ function analyseEvents(
     hasLunchFree,
     hasMorningBusy,
     afternoonCalm,
-    _hasFreeEvening,
     workEventCount: workEvents.length,
     personalEventNames,
     hasEveningActivity,
@@ -108,7 +103,6 @@ function buildEnglish(
     hasMorningBusy,
     hasLunchFree,
     afternoonCalm,
-    _hasFreeEvening,
     workEventCount,
     hasEveningActivity,
     eveningActivities,
@@ -209,7 +203,6 @@ function buildNorwegian(
     hasMorningBusy,
     hasLunchFree,
     afternoonCalm,
-    _hasFreeEvening,
     workEventCount,
     hasEveningActivity,
     eveningActivities,
