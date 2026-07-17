@@ -56,20 +56,20 @@ function FloatingTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
       isDark={isDark}
       style={{
         position: "absolute",
-        bottom: 20,
+        bottom: 18,
         left: 33,
         right: 33,
-        height: 60,
-        borderRadius: 30,
+        height: 52,
+        borderRadius: 26,
         overflow: "hidden",
         flexDirection: "row",
         alignItems: "center",
         backgroundColor: isExpoGo ? tabUi.bg : undefined,
         shadowColor: "#000",
-        shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: isDark ? 0.45 : 0.15,
-        shadowRadius: 16,
-        elevation: 10,
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: isDark ? 0.25 : 0.1,
+        shadowRadius: 10,
+        elevation: 6,
       }}
     >
       <View

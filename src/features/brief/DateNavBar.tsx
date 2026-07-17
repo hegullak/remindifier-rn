@@ -31,13 +31,13 @@ export function DateNavBar({
   const isReset = isToday && isThisWeek;
 
   return (
-    <View className="flex-row items-center justify-between mb-4">
+    <View className="flex-row items-center justify-between mb-3">
       <Pressable
         onPress={onPrevWeek}
         hitSlop={12}
         accessibilityRole="button"
         accessibilityLabel={t("brief.weekPrev")}
-        className="w-8 h-9 items-center justify-center active:opacity-60"
+        className="w-8 h-8 items-center justify-center active:opacity-60"
       >
         <Text className="text-lg text-accent font-body">«</Text>
       </Pressable>
@@ -46,7 +46,7 @@ export function DateNavBar({
         hitSlop={12}
         accessibilityRole="button"
         accessibilityLabel={t("day.previous")}
-        className="w-8 h-9 items-center justify-center active:opacity-60"
+        className="w-8 h-8 items-center justify-center active:opacity-60"
       >
         <Text className="text-xl text-accent font-body">‹</Text>
       </Pressable>
@@ -67,7 +67,7 @@ export function DateNavBar({
         hitSlop={12}
         accessibilityRole="button"
         accessibilityLabel={t("day.next")}
-        className="w-8 h-9 items-center justify-center active:opacity-60"
+        className="w-8 h-8 items-center justify-center active:opacity-60"
       >
         <Text className="text-xl text-accent font-body">›</Text>
       </Pressable>
@@ -76,7 +76,7 @@ export function DateNavBar({
         hitSlop={12}
         accessibilityRole="button"
         accessibilityLabel={t("brief.weekNext")}
-        className="w-8 h-9 items-center justify-center active:opacity-60"
+        className="w-8 h-8 items-center justify-center active:opacity-60"
       >
         <Text className="text-lg text-accent font-body">»</Text>
       </Pressable>

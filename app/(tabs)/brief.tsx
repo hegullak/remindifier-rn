@@ -283,7 +283,7 @@ export default function BriefScreen() {
     const prevDay = i > 0 ? arr[i - 1].dayLabel : "";
     const showDayLabel = showDay && item.dayLabel !== prevDay;
     const row = (
-      <View className={i < arr.length - 1 ? "mb-3" : ""}>
+      <View className={i < arr.length - 1 ? "mb-2.5" : ""}>
         {showDayLabel && (
           <Text className="text-3xs uppercase tracking-[1.2px] text-sage font-bodySemi mb-1">
             {item.dayLabel}
@@ -357,7 +357,7 @@ export default function BriefScreen() {
 
     return (
       <View className="mb-1">
-        <SectionLabel>{locale === "no" ? "Dagen min" : "My day"}</SectionLabel>
+        <SectionLabel compact>{locale === "no" ? "Dagen min" : "My day"}</SectionLabel>
         {!hasDay && !hasTraining ? (
           <BriefCard stripeColor="blue">
             <Text className="text-body text-text2 font-body">{t("day.empty")}</Text>
@@ -371,12 +371,12 @@ export default function BriefScreen() {
                 item.sortMinutes < nowMinutesForDim;
               return renderUnifiedRow(item, i, dayCombined, false, dimmed);
             })}
-            {needDivider && <View className="h-px bg-border my-3" />}
+            {needDivider && <View className="h-px bg-border my-2.5" />}
             {hasTraining &&
               trainingLines.map((line, i) => (
                 <View
                   key={trainingLineKey(line, i)}
-                  className={`flex-row items-start gap-2${i < trainingLines.length - 1 ? " mb-3" : ""}`}
+                  className={`flex-row items-start gap-2${i < trainingLines.length - 1 ? " mb-2.5" : ""}`}
                 >
                   <Text className="text-base">{i === 0 ? "🏋️" : "🏃"}</Text>
                   {line.kind === "ppl" ? (
@@ -397,7 +397,7 @@ export default function BriefScreen() {
     if (restItems.length === 0) return null;
     return (
       <View className="mb-1">
-        <SectionLabel>{locale === "no" ? "Uken min" : "My week"}</SectionLabel>
+        <SectionLabel compact>{locale === "no" ? "Uken min" : "My week"}</SectionLabel>
         {weekExpanded ? (
           <Pressable onPress={() => setWeekExpanded(false)} className="active:opacity-90">
             <BriefCard stripeColor="sage">
@@ -429,26 +429,24 @@ export default function BriefScreen() {
     <AppShell>
       <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 130 }}>
         {/* Greeting */}
-        <View style={{ paddingTop: 16, paddingBottom: flowSummaryHeadline ? 6 : 16 }}>
+        <View style={{ paddingTop: 12, paddingBottom: flowSummaryHeadline ? 4 : 12 }}>
           <Text className="text-5xl leading-tight text-text1 font-heading">
             {greetingLead} <Text className="text-accent">{greetingName}</Text>
           </Text>
         </View>
 
-        {/* Flow-summary — morning 06-18 or evening 18:00+ only */}
+        {/* Mental Forecast — morning 06-18 or evening 18:00+ only. One editorial
+            lede (headline) + one quiet flowing paragraph, not a stack of equal-weight lines. */}
         {flowSummaryHeadline ? (
-          <View style={{ paddingBottom: 16 }}>
-            <Text className="text-body-lg text-text1 font-body leading-[24px] mb-2">
+          <View style={{ paddingBottom: 12 }}>
+            <Text className="text-body-lg text-text1 font-bodySemi leading-[22px] mb-1.5">
               {flowSummaryHeadline}
             </Text>
-            {flowSummaryBody
-              ?.split("\n")
-              .filter(Boolean)
-              .map((line) => (
-                <Text key={line} className="text-body text-text3 font-body leading-[20px] mb-0.5">
-                  {line}
-                </Text>
-              ))}
+            {flowSummaryBody ? (
+              <Text className="text-body text-text3 font-body leading-[19px]">
+                {flowSummaryBody.split("\n").filter(Boolean).join(" ")}
+              </Text>
+            ) : null}
           </View>
         ) : null}
 

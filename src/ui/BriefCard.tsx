@@ -13,7 +13,7 @@ export function BriefCard({
   const stripeHex = BRIEF_STRIPE_COLORS[theme][stripeColor];
 
   return (
-    <View className="relative bg-card border border-border rounded-lg px-4 py-3 mb-1 overflow-hidden">
+    <View className="relative bg-card border border-border rounded-lg px-4 py-2.5 mb-1 overflow-hidden">
       <View
         style={{
           position: "absolute",
