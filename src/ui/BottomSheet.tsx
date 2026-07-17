@@ -1,7 +1,9 @@
 import { useCallback, useState } from "react";
 import {
   Dimensions,
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   Pressable,
   ScrollView,
   type StyleProp,
@@ -79,13 +81,18 @@ export function BottomSheet({ visible, onDismiss, children, title, large }: Bott
           ThemeProvider tree, so NativeWind color vars (text-text1, bg-card…)
           would otherwise fall back to light theme. */}
       <View className={`${themeClass} flex-1`.trim()}>
-        <Pressable className="flex-1 bg-black/40 justify-end" onPress={onDismiss}>
-          <Pressable onPress={(e) => e.stopPropagation()}>
-            <SheetChrome title={title} onDismiss={onDismiss} large={large}>
-              {children}
-            </SheetChrome>
+        <KeyboardAvoidingView
+          className="flex-1"
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
+        >
+          <Pressable className="flex-1 bg-black/40 justify-end" onPress={onDismiss}>
+            <Pressable onPress={(e) => e.stopPropagation()}>
+              <SheetChrome title={title} onDismiss={onDismiss} large={large}>
+                {children}
+              </SheetChrome>
+            </Pressable>
           </Pressable>
-        </Pressable>
+        </KeyboardAvoidingView>
       </View>
     </Modal>
   );
