@@ -9,12 +9,12 @@ import { useTranslation } from "@/i18n";
 import { notifyBriefReload } from "@/lib/brief/briefRefresh";
 import type { CalendarBriefEvent } from "@/lib/brief/calendarEvents";
 import { getCalendarWeekBounds } from "@/lib/brief/calendarWeek";
-import { buildFlowSummary } from "@/lib/brief/flowSummary";
+import { buildFlowStanzas } from "@/lib/brief/flowStanzas";
 import { briefGreetingLine } from "@/lib/brief/greeting";
 import {
+  buildIntentionLine,
   hasRoomForIntention,
   pickOpenIntention,
-  weaveIntentionIntoFlowSummary,
 } from "@/lib/brief/intentionWeave";
 import { localDateKey } from "@/lib/brief/lookForward";
 import { mockEventsForDay } from "@/lib/brief/mockFromCalendarPool";
@@ -31,7 +31,7 @@ const MORNING_START_HOUR = 6;
 const EVENING_START_MINUTES = 18 * 60;
 
 export default function FlowScreen() {
-  const { locale } = useTranslation();
+  const { t, locale } = useTranslation();
   const { user } = useAppUser();
   const { userId } = useAppAuth();
   const { brief } = useBriefData(userId);
@@ -80,40 +80,29 @@ export default function FlowScreen() {
     : !isEveningWindow && now.getHours() >= MORNING_START_HOUR;
 
   // Mental Forecast: interprets the focus day (today in the morning, tomorrow
-  // in the evening) rather than listing its events.
+  // in the evening) as a verdict + three quiet stanzas, never an event list.
   const flowPeriod = isEveningWindow ? ("evening" as const) : ("morning" as const);
   const flowFocusEvents = isEveningWindow ? effectiveTomorrowEvents : effectiveTodayEvents;
-  let flowSummary =
-    isMorningWindow || isEveningWindow
-      ? buildFlowSummary(flowPeriod, flowFocusEvents, effectiveWeekEvents, lang)
-      : null;
+  const forecast =
+    isMorningWindow || isEveningWindow ? buildFlowStanzas(flowFocusEvents, lang, flowPeriod) : null;
 
-  // Companion moment: when the focus day has room, weave in one open intention
-  // ("du antydet at du skulle ringe tante Berit denne uken").
+  // Companion moment: when the focus day has room, one open intention gets its
+  // own quiet line ("du antydet at du skulle ringe tante Berit denne uken").
   const todayIso = localDateKey();
   const openIntention = pickOpenIntention(brief.intentions, todayIso);
   const roomForIntention = hasRoomForIntention(flowFocusEvents);
-  if (flowSummary && openIntention && roomForIntention) {
-    flowSummary = weaveIntentionIntoFlowSummary(
-      flowSummary,
-      openIntention,
-      lang,
-      flowPeriod,
-      todayIso,
-    );
-  }
+  const intentionLine =
+    forecast && openIntention && roomForIntention
+      ? buildIntentionLine(openIntention, lang, flowPeriod, todayIso)
+      : null;
   if (__DEV__ && openIntention) {
     logger.info("intention_weave", {
-      surfaced: Boolean(flowSummary && roomForIntention),
+      surfaced: Boolean(intentionLine),
       hasRoom: roomForIntention,
       period: flowPeriod,
       focusEventCount: flowFocusEvents.length,
     });
   }
-
-  const flowSummaryHeadline =
-    flowSummary?.available && !flowSummary.isEmpty ? flowSummary.headline : null;
-  const flowSummaryBody = flowSummaryHeadline ? flowSummary?.body : null;
 
   function seedTestIntention() {
     if (!userId) return;
@@ -157,23 +146,37 @@ export default function FlowScreen() {
     >
       <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 130 }}>
         {/* Greeting */}
-        <View style={{ paddingTop: 12, paddingBottom: flowSummaryHeadline ? 4 : 12 }}>
+        <View style={{ paddingTop: 16, paddingBottom: 16 }}>
           <Text className="text-5xl leading-tight text-text1 font-heading">
             {greetingLead} <Text className="text-accent">{greetingName}</Text>
           </Text>
         </View>
 
-        {/* Mental Forecast — morning 06-18 or evening 18:00+ only. One editorial
-            lede (headline) + one quiet flowing paragraph, not a stack of equal-weight lines. */}
-        {flowSummaryHeadline ? (
-          <View style={{ paddingBottom: 12 }}>
-            <Text className="text-body-lg text-text1 font-bodySemi leading-[22px] mb-1.5">
-              {flowSummaryHeadline}
+        {/* Mental Forecast — verdict, then morning/afternoon/evening stanzas.
+            Editorial prose, no cards. Larger type than before: Flow owns the screen now. */}
+        {forecast ? (
+          <View>
+            <Text className="text-xl text-text1 font-bodySemi leading-[26px] mb-5">
+              {forecast.verdict}
             </Text>
-            {flowSummaryBody ? (
-              <Text className="text-body text-text3 font-body leading-[19px]">
-                {flowSummaryBody.split("\n").filter(Boolean).join(" ")}
-              </Text>
+
+            {forecast.stanzas.map((stanza) => (
+              <View key={stanza.period} className="mb-4">
+                <Text className="text-2xs uppercase tracking-[1.92px] text-text3 font-bodySemi mb-1">
+                  {t(`day.periods.${stanza.period}`)}
+                </Text>
+                <Text className="text-body-lg text-text2 font-body leading-[23px]">
+                  {stanza.lines.join(" ")}
+                </Text>
+              </View>
+            ))}
+
+            {intentionLine ? (
+              <View className="border-t border-border mt-2 pt-4">
+                <Text className="text-body-lg text-accent font-heading italic leading-[23px]">
+                  {intentionLine}
+                </Text>
+              </View>
             ) : null}
           </View>
         ) : null}

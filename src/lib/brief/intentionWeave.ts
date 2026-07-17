@@ -42,7 +42,8 @@ function isSameIsoWeek(aIso: string, bIso: string): boolean {
   return a.getFullYear() === b.getFullYear() && getISOWeek(a) === getISOWeek(b);
 }
 
-function intentionSentence(
+/** The companion sentence for one open intention — rendered as its own quiet line on Flow. */
+export function buildIntentionLine(
   intention: OpenIntention,
   locale: "en" | "no",
   period: FlowSummaryPeriod,
@@ -76,7 +77,7 @@ export function weaveIntentionIntoFlowSummary(
   todayIso: string,
 ): FlowSummary {
   if (!summary.available) return summary;
-  const sentence = intentionSentence(intention, locale, period, todayIso);
+  const sentence = buildIntentionLine(intention, locale, period, todayIso);
   return {
     ...summary,
     isEmpty: false,
