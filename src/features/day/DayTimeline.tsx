@@ -13,7 +13,15 @@ const PERIOD_LABEL_KEY: Record<DayPeriodId, string> = {
   evening: "day.periods.evening",
 };
 
-function EventRow({ event, showEndTime }: { event: CalendarBriefEvent; showEndTime: boolean }) {
+function EventRow({
+  event,
+  showEndTime,
+  isPast,
+}: {
+  event: CalendarBriefEvent;
+  showEndTime: boolean;
+  isPast: boolean;
+}) {
   const { locale } = useTranslation();
   const { icon, title } = iconAndTitle(event.title);
   const time = formatTime(event.startDate, locale === "no" ? "no" : "en");
@@ -21,14 +29,22 @@ function EventRow({ event, showEndTime }: { event: CalendarBriefEvent; showEndTi
     showEndTime && event.endDate ? formatTime(event.endDate, locale === "no" ? "no" : "en") : null;
 
   return (
-    <View className="flex-row items-start gap-3 py-2.5 border-b border-border/50">
+    <View
+      className="flex-row items-start gap-3 py-2.5 border-b border-border/50"
+      style={isPast ? { opacity: 0.45 } : undefined}
+    >
       <Text className="text-2xs text-text3 font-bodySemi w-11 mt-0.5">
         {time}
         {endTime ? `\n${endTime}` : ""}
       </Text>
       <Text className="text-base mt-0.5">{icon}</Text>
       <View className="flex-1">
-        <Text className="text-body-lg text-text1 font-bodyMedium">{title}</Text>
+        <Text
+          className="text-body-lg text-text1 font-bodyMedium"
+          style={isPast ? { textDecorationLine: "line-through" } : undefined}
+        >
+          {title}
+        </Text>
         {event.calendarName ? (
           <Text className="text-2xs text-text3 font-body mt-0.5">{event.calendarName}</Text>
         ) : null}
@@ -37,9 +53,16 @@ function EventRow({ event, showEndTime }: { event: CalendarBriefEvent; showEndTi
   );
 }
 
-export function DayTimeline({ timeline }: { timeline: DayTimelineData }) {
+export function DayTimeline({
+  timeline,
+  isToday = false,
+}: {
+  timeline: DayTimelineData;
+  isToday?: boolean;
+}) {
   const { t } = useTranslation();
   const isEmpty = timeline.allDay.length === 0 && timeline.periods.length === 0;
+  const now = Date.now();
 
   if (isEmpty) {
     return (
@@ -56,7 +79,7 @@ export function DayTimeline({ timeline }: { timeline: DayTimelineData }) {
           <SectionLabel>{t("day.periods.allDay")}</SectionLabel>
           <View className="bg-card border border-border rounded-lg px-4">
             {timeline.allDay.map((event) => (
-              <EventRow key={event.id} event={event} showEndTime={false} />
+              <EventRow key={event.id} event={event} showEndTime={false} isPast={false} />
             ))}
           </View>
         </>
@@ -67,7 +90,12 @@ export function DayTimeline({ timeline }: { timeline: DayTimelineData }) {
           <SectionLabel>{t(PERIOD_LABEL_KEY[group.id])}</SectionLabel>
           <View className="bg-card border border-border rounded-lg px-4">
             {group.events.map((event) => (
-              <EventRow key={event.id} event={event} showEndTime />
+              <EventRow
+                key={event.id}
+                event={event}
+                showEndTime
+                isPast={isToday && event.startDate.getTime() < now}
+              />
             ))}
           </View>
         </View>

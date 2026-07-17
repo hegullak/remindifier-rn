@@ -24,6 +24,9 @@ import { FatalScreen, LoadingScreen } from "@/ui/StartupScreens";
 
 const isExpoGo = Constants.appOwnership === "expo";
 
+/** day/week route files exist on disk but are hidden from the tab bar for now. */
+const VISIBLE_TAB_NAMES = ["brief"];
+
 function TabBarContainer({
   children,
   style,
@@ -79,59 +82,62 @@ function FloatingTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
           backgroundColor: tabUi.overlay,
         }}
       />
-      {state.routes.map((route, index) => {
-        const { options } = descriptors[route.key];
-        const focused = state.index === index;
-        const accentColor = tabUi.accent;
-        const inactiveColor = tabUi.inactive;
+      {state.routes
+        .filter((route) => VISIBLE_TAB_NAMES.includes(route.name))
+        .map((route) => {
+          const index = state.routes.indexOf(route);
+          const { options } = descriptors[route.key];
+          const focused = state.index === index;
+          const accentColor = tabUi.accent;
+          const inactiveColor = tabUi.inactive;
 
-        const emojis: Record<string, string> = {
-          brief: "☀️",
-        };
-        const labels: Record<string, string> = {
-          brief: options.title ?? "brief",
-        };
+          const emojis: Record<string, string> = {
+            brief: "☀️",
+          };
+          const labels: Record<string, string> = {
+            brief: options.title ?? "brief",
+          };
 
-        return (
-          <Pressable
-            key={route.key}
-            onPress={() => {
-              triggerSelection();
-              const event = navigation.emit({
-                type: "tabPress",
-                target: route.key,
-                canPreventDefault: true,
-              });
-              if (event.defaultPrevented) return;
-              // Always land on the tab's root list — reset its nested stack to top
-              // whether the tab is already focused or navigated to from another tab.
-              const nested = state.routes[index].state;
-              const hasNestedHistory =
-                nested && typeof nested.index === "number" && nested.index > 0 && nested.key;
-              if (!focused) {
-                navigation.navigate(route.name);
-              }
-              if (hasNestedHistory) {
-                navigation.dispatch({ ...StackActions.popToTop(), target: nested.key });
-              }
-            }}
-            style={{ flex: 1, alignItems: "center", justifyContent: "center", gap: 3 }}
-          >
-            <Text style={{ fontSize: 20, opacity: focused ? 1 : 0.4, lineHeight: 24 }}>
-              {emojis[route.name] ?? "●"}
-            </Text>
-            <Text
-              style={{
-                fontSize: 10,
-                fontFamily: "DMSans_600SemiBold",
-                color: focused ? accentColor : inactiveColor,
+          return (
+            <Pressable
+              key={route.key}
+              onPress={() => {
+                triggerSelection();
+                const event = navigation.emit({
+                  type: "tabPress",
+                  target: route.key,
+                  canPreventDefault: true,
+                });
+                if (event.defaultPrevented) return;
+                // Always land on the tab's root list — reset its nested stack to top
+                // whether the tab is already focused or navigated to from another tab.
+                const nested = state.routes[index].state;
+                const hasNestedHistory =
+                  nested && typeof nested.index === "number" && nested.index > 0 && nested.key;
+                if (!focused) {
+                  navigation.navigate(route.name);
+                }
+                if (hasNestedHistory) {
+                  navigation.dispatch({ ...StackActions.popToTop(), target: nested.key });
+                }
               }}
+              style={{ flex: 1, alignItems: "center", justifyContent: "center", gap: 3 }}
             >
-              {labels[route.name]}
-            </Text>
-          </Pressable>
-        );
-      })}
+              <Text style={{ fontSize: 20, opacity: focused ? 1 : 0.4, lineHeight: 24 }}>
+                {emojis[route.name] ?? "●"}
+              </Text>
+              <Text
+                style={{
+                  fontSize: 10,
+                  fontFamily: "DMSans_600SemiBold",
+                  color: focused ? accentColor : inactiveColor,
+                }}
+              >
+                {labels[route.name]}
+              </Text>
+            </Pressable>
+          );
+        })}
     </TabBarContainer>
   );
 }
@@ -227,6 +233,8 @@ function TabsWithBootstrap({
   return (
     <Tabs tabBar={(props) => <FloatingTabBar {...props} />} screenOptions={{ headerShown: false }}>
       <Tabs.Screen name="brief" options={{ title: t("tabs.brief") }} />
+      <Tabs.Screen name="day" options={{ href: null }} />
+      <Tabs.Screen name="week" options={{ href: null }} />
     </Tabs>
   );
 }
