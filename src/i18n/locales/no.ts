@@ -173,12 +173,14 @@ export const no = {
   intentions: {
     captureTitle: "Noe å huske",
     placeholder: "f.eks. Ringe tante Berit",
+    notesPlaceholder: "Verdt å ta opp — én per linje\nf.eks. Hvordan gikk det hos legen?",
     horizon: {
       today: "I dag",
       week: "Denne uken",
       month: "Denne måneden",
     },
     resolveTitle: "Hvordan gikk det?",
+    talkingPointsLabel: "Verdt å ta opp",
     done: "Gjort",
     notNow: "Ikke nå",
   },

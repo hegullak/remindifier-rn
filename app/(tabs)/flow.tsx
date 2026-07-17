@@ -14,6 +14,7 @@ import { briefGreetingLine } from "@/lib/brief/greeting";
 import {
   buildIntentionLine,
   findIntentionWindow,
+  intentionTalkingPoints,
   pickOpenIntention,
 } from "@/lib/brief/intentionWeave";
 import { localDateKey } from "@/lib/brief/lookForward";
@@ -129,6 +130,7 @@ export default function FlowScreen() {
     forecast && openIntention && intentionWindow
       ? buildIntentionLine(openIntention, intentionWindow, lang, todayIso)
       : null;
+  const intentionPoints = openIntention ? intentionTalkingPoints(openIntention) : [];
   if (__DEV__ && openIntention) {
     logger.info("intention_weave", {
       surfaced: Boolean(intentionLine),
@@ -156,6 +158,7 @@ export default function FlowScreen() {
     if (!userId) return;
     addIntention(userId, {
       text: "ringe tante Berit",
+      notes: "Hvordan gikk det hos legen?\nNår skal du bli bestemor?\nNår har du tid til å møtes?",
       dueBy: localDateKey(getCalendarWeekBounds().end),
     })
       .then(() => notifyBriefReload())
@@ -241,7 +244,26 @@ export default function FlowScreen() {
         onDismiss={() => setShowResolveSheet(false)}
         title={t("intentions.resolveTitle")}
       >
-        <Text className="text-body-lg text-text1 font-bodyMedium mb-5">{openIntention?.text}</Text>
+        <Text className="text-body-lg text-text1 font-bodyMedium mb-4">{openIntention?.text}</Text>
+
+        {/* The preparation moment: talking points captured with the intention,
+            shown right before the user acts on it. */}
+        {intentionPoints.length > 0 ? (
+          <View className="mb-5">
+            <Text className="text-3xs uppercase tracking-[1.5px] text-text3 font-bodySemi mb-2">
+              {t("intentions.talkingPointsLabel")}
+            </Text>
+            {intentionPoints.map((point) => (
+              <View key={point} className="flex-row items-start gap-2 mb-1.5">
+                <Text className="text-body text-accent font-body">·</Text>
+                <Text className="text-body text-text2 font-body leading-[20px] flex-1">
+                  {point}
+                </Text>
+              </View>
+            ))}
+          </View>
+        ) : null}
+
         <View className="gap-2">
           <Button onPress={handleIntentionDone} loading={resolving} disabled={resolving}>
             {t("intentions.done")}

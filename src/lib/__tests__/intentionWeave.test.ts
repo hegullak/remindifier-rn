@@ -3,6 +3,7 @@ import {
   buildIntentionLine,
   findIntentionWindow,
   hasRoomForIntention,
+  intentionTalkingPoints,
   type OpenIntention,
   pickOpenIntention,
 } from "@/lib/brief/intentionWeave";
@@ -61,6 +62,24 @@ describe("pickOpenIntention", () => {
   it("an intention due today is still open", () => {
     const dueToday: OpenIntention = { id: "i2", text: "levere skjema", dueBy: TODAY_ISO };
     expect(pickOpenIntention([dueToday], TODAY_ISO)).toEqual(dueToday);
+  });
+});
+
+describe("intentionTalkingPoints", () => {
+  it("splits notes into trimmed lines, dropping blanks", () => {
+    const intention: OpenIntention = {
+      ...BERIT,
+      notes: "Hvordan gikk det hos legen?\n\n  Når skal du bli bestemor?  \n",
+    };
+    expect(intentionTalkingPoints(intention)).toEqual([
+      "Hvordan gikk det hos legen?",
+      "Når skal du bli bestemor?",
+    ]);
+  });
+
+  it("returns empty for missing notes", () => {
+    expect(intentionTalkingPoints(BERIT)).toEqual([]);
+    expect(intentionTalkingPoints({ ...BERIT, notes: null })).toEqual([]);
   });
 });
 

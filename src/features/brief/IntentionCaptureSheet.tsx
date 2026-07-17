@@ -38,11 +38,13 @@ export function IntentionCaptureSheet({
   const { t } = useTranslation();
   const { isDark } = useAppTheme();
   const [text, setText] = useState("");
+  const [notes, setNotes] = useState("");
   const [horizon, setHorizon] = useState<Horizon>("week");
   const [saving, setSaving] = useState(false);
 
   function reset() {
     setText("");
+    setNotes("");
     setHorizon("week");
   }
 
@@ -50,7 +52,11 @@ export function IntentionCaptureSheet({
     if (!userId || !text.trim()) return;
     setSaving(true);
     try {
-      await addIntention(userId, { text: text.trim(), dueBy: dueByForHorizon(horizon) });
+      await addIntention(userId, {
+        text: text.trim(),
+        notes: notes.trim() || undefined,
+        dueBy: dueByForHorizon(horizon),
+      });
       notifyBriefReload();
       reset();
       onDismiss();
@@ -78,10 +84,29 @@ export function IntentionCaptureSheet({
         placeholder={t("intentions.placeholder")}
         placeholderTextColor={isDark ? "#7A8CAD" : "#A89E90"}
         multiline
+        numberOfLines={2}
+        textAlignVertical="top"
+        style={[
+          styles.input,
+          {
+            color: isDark ? "#EEF0F5" : "#1C1915",
+            backgroundColor: isDark ? "#222838" : "#EFECE3",
+            borderColor: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.07)",
+          },
+        ]}
+      />
+
+      <TextInput
+        value={notes}
+        onChangeText={setNotes}
+        placeholder={t("intentions.notesPlaceholder")}
+        placeholderTextColor={isDark ? "#7A8CAD" : "#A89E90"}
+        multiline
         numberOfLines={3}
         textAlignVertical="top"
         style={[
           styles.input,
+          styles.notesInput,
           {
             color: isDark ? "#EEF0F5" : "#1C1915",
             backgroundColor: isDark ? "#222838" : "#EFECE3",
@@ -119,12 +144,16 @@ export function IntentionCaptureSheet({
 
 const styles = StyleSheet.create({
   input: {
-    minHeight: 72,
+    minHeight: 56,
     borderWidth: 1,
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 12,
     fontSize: 15,
     lineHeight: 22,
+  },
+  notesInput: {
+    minHeight: 88,
+    marginTop: 10,
   },
 });

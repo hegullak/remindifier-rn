@@ -15,7 +15,12 @@ export async function listOpenIntentions(
 ): Promise<OpenIntention[]> {
   const db = await getDrizzleDbForUser(userId);
   return db
-    .select({ id: intentions.id, text: intentions.text, dueBy: intentions.dueBy })
+    .select({
+      id: intentions.id,
+      text: intentions.text,
+      dueBy: intentions.dueBy,
+      notes: intentions.notes,
+    })
     .from(intentions)
     .where(
       and(
@@ -30,7 +35,7 @@ export async function listOpenIntentions(
 
 export async function addIntention(
   userId: string,
-  input: { text: string; dueBy: string },
+  input: { text: string; dueBy: string; notes?: string },
 ): Promise<string> {
   const db = await getDrizzleDbForUser(userId);
   const id = `int-${Crypto.randomUUID()}`;
@@ -38,6 +43,7 @@ export async function addIntention(
     id,
     userId,
     text: input.text.trim(),
+    notes: input.notes?.trim() || null,
     dueBy: input.dueBy,
     createdAt: new Date(),
   });

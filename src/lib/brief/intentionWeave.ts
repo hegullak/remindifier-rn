@@ -17,7 +17,17 @@ export type OpenIntention = {
   text: string;
   /** Local date (YYYY-MM-DD) the intention should be done by. */
   dueBy: string;
+  /** Talking points / prep notes, one per line — the mental-preparation payload. */
+  notes?: string | null;
 };
+
+/** Notes split into displayable talking-point lines. */
+export function intentionTalkingPoints(intention: OpenIntention): string[] {
+  return (intention.notes ?? "")
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
+}
 
 /** Which day within the horizon has room, and whether that's today. */
 export type IntentionWindow = {

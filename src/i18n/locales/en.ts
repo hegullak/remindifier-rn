@@ -172,12 +172,14 @@ export const en = {
   intentions: {
     captureTitle: "Something to remember",
     placeholder: "e.g. Call aunt Berit",
+    notesPlaceholder: "Worth bringing up — one per line\ne.g. How did the doctor's visit go?",
     horizon: {
       today: "Today",
       week: "This week",
       month: "This month",
     },
     resolveTitle: "How did it go?",
+    talkingPointsLabel: "Worth bringing up",
     done: "Done",
     notNow: "Not now",
   },

@@ -313,6 +313,8 @@ export const intentions = sqliteTable(
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
     text: text("text").notNull(),
+    /** Talking points / prep notes, one per line — shown when the intention surfaces. */
+    notes: text("notes"),
     /** Local date (YYYY-MM-DD) the intention should be done by. */
     dueBy: text("due_by").notNull(),
     completedAt: integer("completed_at", { mode: "timestamp_ms" }),

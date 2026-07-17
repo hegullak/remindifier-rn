@@ -31,6 +31,12 @@ const migrations = {
         tag: "0004_silky_impossible_man",
         breakpoints: true,
       },
+      {
+        idx: 5,
+        when: 1784315429096,
+        tag: "0005_hesitant_pestilence",
+        breakpoints: true,
+      },
     ],
   },
   migrations: {
@@ -222,6 +228,7 @@ CREATE UNIQUE INDEX \`calendar_sync_links_user_source\` ON \`calendar_sync_links
 );
 --> statement-breakpoint
 CREATE INDEX \`intentions_user_due_idx\` ON \`intentions\` (\`user_id\`,\`due_by\`);`,
+    m0005: `ALTER TABLE \`intentions\` ADD \`notes\` text;`,
   },
 };
 
