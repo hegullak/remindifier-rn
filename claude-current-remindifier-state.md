@@ -1,6 +1,6 @@
 # remindifier-rn — Current AI Session State
 
-*Last updated: 2026-07-10 (session — Brief/Day/Week nav, Daily Brief MVP, echoflow calendar sync)*
+*Last updated: 2026-07-17 (session — vision defined, brief restored to June structure, flow-summary, intentions loop A+C, day nav, mock mode)*
 
 **This file is the session snapshot.** Architecture lives in [`PROJECT_MEMORY.md`](./PROJECT_MEMORY.md).  
 Agent protocol: `.cursor/rules/session-handoff.mdc` · Skill: `.cursor/skills/project-memory/SKILL.md`
@@ -83,7 +83,30 @@ None — all work this session is committed locally. **Not yet pushed** (push on
 
 ---
 
-## What Was Done (this session, newest first)
+## What Was Done (2026-07-17 session, newest first)
+
+### Vision defined (see AI memory: vision-companion / loop-closing-intentions)
+
+echoflow = **companion / flow-enabler**, not a reminder or calendar app. Flagship sentence: *"…du kan vurdere om du skal ringe tante Berit — du antydet at du skulle gjøre det denne uken."* Chosen direction: **close the capture→surface loop** (intentions). Deferred by choice: intake routing to intentions (B), merkedager + look-forward weaving into flow-summary, recurring-rhythm modelling ("som vanlig"), LLM-vs-template voice decision (privacy tension — Henning's call).
+
+### Intentions loop A+C (companion moment) — commit f13c271 + 6756a3b
+
+- **New `intentions` table** (migration `0004_silky_impossible_man`, mirrored by hand into `migrations.ts`): loose intention text + `dueBy` (local YYYY-MM-DD horizon) + completed/dismissed. `src/db/repos/intentionsRepo.ts`.
+- **`src/lib/brief/intentionWeave.ts`** (pure, 13 tests): `hasRoomForIntention` (empty day, or ≤4 timed events without back-to-back — conservative: offers, never nags), `pickOpenIntention`, `weaveIntentionIntoFlowSummary` (appends flagship sentence to body; NO/EN, morning/evening variants; "denne uken" clause only when dueBy in current ISO week; revives isEmpty summaries so open days still show the block).
+- `useBriefData` loads open intentions; `brief.tsx` weaves one in. Dev pills on Brief: **"+ Int"** (green) seeds "ringe tante Berit" due end of week, **"× Int"** (red) clears. Dev log `intention_weave` {surfaced, hasRoom, …} shows in Metro why the companion stayed silent.
+- **Not yet verified on device** — Henning pressed "+ Int" without seeing the sentence; likely `hasRoom=false` (seed calendar makes today busy) — check the `intention_weave` log line next session.
+
+### Brief restored to June structure + flow-summary naming — commits 91dfea0…2f50a09
+
+- **Reverted the interpreted-cards experiment** (DayLoadCard/rhythm/breathing-room/recommendation cards) per user: back to the June brief — greeting → **flow-summary** (narrative; morning variant 06–18, evening wind-down 18+) → week picker → **Dagen min** → **Uken min** (collapsed +N). Dead code kept: `DayLoadCard.tsx`, `BriefTextCard.tsx`, `mockDay.ts`, `interpretDay.ts` (only `laterThisWeek` no longer used from it).
+- **"Flow-summary" is the agreed name** for the top narrative block. New facade `src/lib/brief/flowSummary.ts`: `buildFlowSummary(period, …)` + `FlowSummary` type dispatch to `morningBrief.ts`/`eveningWindDown.ts` (kept as tested internals). Removed dead i18n: `brief.morningBrief.*`, `brief.eveningWindDown.*`, `brief.sections.eveningWindDown`, `brief.cards.*`.
+- **Day/week tabs removed from tab bar** (route files still exist; hidden via `VISIBLE_TAB_NAMES` filter in FloatingTabBar + `href: null`). Single ☀️ brief tab.
+- **Day navigation inside Dagen min** (commit 6756a3b): `DayPickerHeader` + `useDayData` per-day fetch — works across week boundaries and for past days; fixes past-weekday bleed into today (`computeDaysUntil` clamps past to 0). Schedule/training/strikethrough only on the actual today. Week picker unchanged.
+- **Mock mode** (dev pill on Brief): fills empty week days with 1–3 events drawn deterministically (seeded by date) from the user's own calendar history (180d back / 30d fwd) — `mockFromCalendarPool.ts` + `useMockCalendarPool.ts`.
+- i18n `day.*` keys added (were missing → raw keys rendered; that was the "no changes visible" mystery).
+- Codebase fully lint-clean now; 402 tests / 52 suites green. `cal/` (private .ics exports) gitignored and untracked.
+
+## What Was Done (2026-07-10 session)
 
 ### Feature: writable "echoflow" device calendar + one-way calendar copy
 
