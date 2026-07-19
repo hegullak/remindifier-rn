@@ -1,0 +1,46 @@
+<svg width="430" height="932" viewBox="0 0 430 932" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="430" height="932" rx="46" fill="#0D1117"/>
+  <rect x="18" y="18" width="394" height="896" rx="38" fill="#111827"/>
+  <circle cx="350" cy="86" r="48" fill="#F59E0B" opacity="0.12"/>
+  <circle cx="72" cy="222" r="70" fill="#38BDF8" opacity="0.08"/>
+
+  <text x="36" y="72" fill="#F8FAFC" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700">echoflow</text>
+  <text x="36" y="106" fill="#CBD5E1" font-family="Arial, Helvetica, sans-serif" font-size="14">God morgen, Henning</text>
+
+  <rect x="36" y="128" width="358" height="156" rx="28" fill="#1F2937"/>
+  <text x="60" y="166" fill="#F8FAFC" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="700">Moderat dag</text>
+  <text x="60" y="198" fill="#CBD5E1" font-family="Arial, Helvetica, sans-serif" font-size="15">Formiddagen har mest trykk.</text>
+  <text x="60" y="222" fill="#CBD5E1" font-family="Arial, Helvetica, sans-serif" font-size="15">Lunsjen er ledig, så ikke fyll den</text>
+  <text x="60" y="246" fill="#CBD5E1" font-family="Arial, Helvetica, sans-serif" font-size="15">med småkaos. Mat først, verden etterpå.</text>
+
+  <rect x="36" y="306" width="171" height="112" rx="22" fill="#18202F"/>
+  <text x="56" y="336" fill="#93C5FD" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="700">RYTME</text>
+  <text x="56" y="366" fill="#F8FAFC" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="700">Tett før 11</text>
+  <text x="56" y="392" fill="#CBD5E1" font-family="Arial, Helvetica, sans-serif" font-size="13">Roligere etter 14:30</text>
+
+  <rect x="223" y="306" width="171" height="112" rx="22" fill="#18202F"/>
+  <text x="243" y="336" fill="#FCD34D" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="700">ENERGI</text>
+  <text x="243" y="366" fill="#F8FAFC" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="700">Ledig lunsj</text>
+  <text x="243" y="392" fill="#CBD5E1" font-family="Arial, Helvetica, sans-serif" font-size="13">Bruk den som pusterom</text>
+
+  <rect x="36" y="438" width="358" height="128" rx="24" fill="#1F2937"/>
+  <text x="60" y="470" fill="#F8FAFC" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700">Viktig i dag</text>
+  <circle cx="66" cy="506" r="5" fill="#38BDF8"/>
+  <text x="84" y="512" fill="#E5E7EB" font-family="Arial, Helvetica, sans-serif" font-size="15">13:00 Fysio</text>
+  <text x="84" y="536" fill="#94A3B8" font-family="Arial, Helvetica, sans-serif" font-size="13">Ikke legg tungt møte rett før eller etter.</text>
+
+  <rect x="36" y="586" width="358" height="126" rx="24" fill="#18202F"/>
+  <text x="60" y="618" fill="#F8FAFC" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700">Senere i uken</text>
+  <text x="60" y="650" fill="#E5E7EB" font-family="Arial, Helvetica, sans-serif" font-size="15">Torsdag 09:00 · Tannlege</text>
+  <text x="60" y="676" fill="#94A3B8" font-family="Arial, Helvetica, sans-serif" font-size="13">Legg merke til dette nå, ikke torsdag morgen.</text>
+
+  <rect x="36" y="732" width="358" height="76" rx="22" fill="#0F172A" stroke="#334155"/>
+  <text x="60" y="764" fill="#F8FAFC" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="700">Myk anbefaling</text>
+  <text x="60" y="790" fill="#CBD5E1" font-family="Arial, Helvetica, sans-serif" font-size="13">Hold kvelden lett hvis du kan. Dagen er nok.</text>
+
+  <rect x="28" y="836" width="374" height="58" rx="29" fill="#0B1220" stroke="#243044"/>
+  <rect x="48" y="846" width="84" height="38" rx="19" fill="#F59E0B" opacity="0.18"/>
+  <text x="67" y="871" fill="#FCD34D" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="700">Brief</text>
+  <text x="166" y="871" fill="#94A3B8" font-family="Arial, Helvetica, sans-serif" font-size="13">Dagen min</text>
+  <text x="286" y="871" fill="#94A3B8" font-family="Arial, Helvetica, sans-serif" font-size="13">Innstillinger</text>
+</svg>

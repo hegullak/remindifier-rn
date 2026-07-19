@@ -1,0 +1,40 @@
+<svg width="430" height="932" viewBox="0 0 430 932" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="430" height="932" rx="46" fill="#0D1117"/>
+  <rect x="18" y="18" width="394" height="896" rx="38" fill="#111827"/>
+  <circle cx="350" cy="134" r="70" fill="#6366F1" opacity="0.12"/>
+  <circle cx="86" cy="708" r="80" fill="#F59E0B" opacity="0.08"/>
+
+  <text x="36" y="72" fill="#F8FAFC" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700">Kveldslanding</text>
+  <text x="36" y="104" fill="#CBD5E1" font-family="Arial, Helvetica, sans-serif" font-size="14">Forbered morgendagen, ikke hele livet.</text>
+
+  <rect x="36" y="130" width="358" height="158" rx="28" fill="#1F2937"/>
+  <text x="60" y="168" fill="#F8FAFC" font-family="Arial, Helvetica, sans-serif" font-size="27" font-weight="700">I morgen ser lett ut</text>
+  <text x="60" y="202" fill="#CBD5E1" font-family="Arial, Helvetica, sans-serif" font-size="15">Formiddagen har struktur, men dagen</text>
+  <text x="60" y="226" fill="#CBD5E1" font-family="Arial, Helvetica, sans-serif" font-size="15">har rom. Du trenger ikke løse uken nå.</text>
+  <text x="60" y="256" fill="#FCD34D" font-family="Arial, Helvetica, sans-serif" font-size="14" font-weight="700">Land kvelden. Gjør én liten ting klar.</text>
+
+  <rect x="36" y="314" width="358" height="126" rx="24" fill="#18202F"/>
+  <text x="60" y="346" fill="#F8FAFC" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700">Morgendagens første steg</text>
+  <text x="60" y="378" fill="#CBD5E1" font-family="Arial, Helvetica, sans-serif" font-size="15">Legg klar det du trenger før første avtale.</text>
+  <text x="60" y="402" fill="#94A3B8" font-family="Arial, Helvetica, sans-serif" font-size="13">Da slipper dagen å starte med skuffe-jakt.</text>
+
+  <rect x="36" y="464" width="358" height="118" rx="24" fill="#1F2937"/>
+  <text x="60" y="496" fill="#F8FAFC" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700">Vær obs på</text>
+  <circle cx="66" cy="530" r="5" fill="#F59E0B"/>
+  <text x="84" y="536" fill="#E5E7EB" font-family="Arial, Helvetica, sans-serif" font-size="15">09:00 møteblokk</text>
+  <text x="84" y="560" fill="#94A3B8" font-family="Arial, Helvetica, sans-serif" font-size="13">Ikke start med e-postdykk rett før.</text>
+
+  <rect x="36" y="606" width="358" height="96" rx="24" fill="#0F172A" stroke="#334155"/>
+  <text x="60" y="638" fill="#F8FAFC" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700">Det som kan vente</text>
+  <text x="60" y="668" fill="#CBD5E1" font-family="Arial, Helvetica, sans-serif" font-size="14">Resten av uken trenger ikke oppmerksomhet nå.</text>
+
+  <rect x="36" y="728" width="358" height="74" rx="22" fill="#18202F"/>
+  <text x="60" y="760" fill="#F8FAFC" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="700">Kveldens nok</text>
+  <text x="60" y="786" fill="#CBD5E1" font-family="Arial, Helvetica, sans-serif" font-size="13">Lukk dagen. Du er forberedt nok.</text>
+
+  <rect x="28" y="836" width="374" height="58" rx="29" fill="#0B1220" stroke="#243044"/>
+  <rect x="48" y="846" width="84" height="38" rx="19" fill="#6366F1" opacity="0.18"/>
+  <text x="67" y="871" fill="#C4B5FD" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="700">Brief</text>
+  <text x="166" y="871" fill="#94A3B8" font-family="Arial, Helvetica, sans-serif" font-size="13">Dagen min</text>
+  <text x="286" y="871" fill="#94A3B8" font-family="Arial, Helvetica, sans-serif" font-size="13">Innstillinger</text>
+</svg>
